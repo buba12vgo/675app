@@ -1,8 +1,5 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
 export const CLUB_LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml";
 export const CLUB_LOGO_MAX_BYTES = 2 * 1024 * 1024;
-export const CLUB_LOGO_UPLOAD_TIMEOUT_MS = 8000;
 export const CLUB_LOGO_INLINE_MAX_BYTES = 750000;
 
 const MIME_BY_EXTENSION = {
@@ -19,24 +16,8 @@ export function getFileMimeType(file) {
   return MIME_BY_EXTENSION[ext] || "";
 }
 
-export function getLogoExtension(file, mime = getFileMimeType(file)) {
-  if (mime === "image/svg+xml") return "svg";
-  if (mime === "image/png") return "png";
-  if (mime === "image/webp") return "webp";
-  return "jpg";
-}
-
 export function isAllowedLogoFile(file) {
   return CLUB_LOGO_ACCEPT.split(",").includes(getFileMimeType(file));
-}
-
-function withTimeout(promise, ms, message) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(message)), ms);
-    }),
-  ]);
 }
 
 function readFileAsDataUrl(file) {
@@ -106,49 +87,18 @@ async function optimizeLogoToDataUrl(file, mime = getFileMimeType(file)) {
   return optimizeRasterLogo(file);
 }
 
-async function uploadClubLogoToStorage(storage, clubId, file, mime = getFileMimeType(file)) {
-  const ext = getLogoExtension(file, mime);
-  const storageRef = ref(storage, `clubes/${clubId}/logo.${ext}`);
-  await uploadBytes(storageRef, file, { contentType: mime || file.type || "application/octet-stream" });
-  return getDownloadURL(storageRef);
-}
-
-export async function prepareClubLogoUrl({ storage, clubId, file }) {
+export async function prepareClubLogoUrl({ file }) {
   const mime = getFileMimeType(file);
-  const inlinePromise = optimizeLogoToDataUrl(file, mime);
-  const storagePromise = withTimeout(
-    uploadClubLogoToStorage(storage, clubId, file, mime),
-    CLUB_LOGO_UPLOAD_TIMEOUT_MS,
-    "Tiempo de espera agotado al subir el logo."
-  ).catch(() => null);
-
-  const [inlineUrl, storageUrl] = await Promise.all([inlinePromise, storagePromise]);
-
-  if (storageUrl) {
-    return { logoUrl: storageUrl, logoSource: "storage" };
-  }
-
-  return { logoUrl: inlineUrl, logoSource: "inline" };
+  const logoUrl = await optimizeLogoToDataUrl(file, mime);
+  return { logoUrl, logoSource: "inline" };
 }
 
 export function getClubLogoErrorMessage(error) {
   const code = error?.code || "";
   const message = error?.message || "";
 
-  if (message.includes("Tiempo de espera")) {
-    return "La subida tardó demasiado. Se guardará una versión optimizada del escudo.";
-  }
   if (code.includes("permission-denied")) {
     return "No tienes permiso para guardar el escudo de este club en Firestore.";
-  }
-  if (code.includes("storage/unauthorized") || code.includes("storage/unauthenticated")) {
-    return "No tienes permiso para subir el escudo. Revisa las reglas de Firebase Storage.";
-  }
-  if (code.includes("storage/quota-exceeded")) {
-    return "Se ha superado la cuota de almacenamiento del proyecto.";
-  }
-  if (code.includes("storage/canceled")) {
-    return "La subida del escudo fue cancelada.";
   }
   if (message.includes("demasiado grande")) {
     return message;

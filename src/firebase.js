@@ -1,11 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getStorage } from "firebase/storage";
 
-// PEGA AQUÍ TU firebaseConfig REAL (este es de ejemplo)
 const firebaseConfig = {
-    // Configuración de Firebase para soporte de autenticación, gestión de clubes y equipos, y superadministrador.
     apiKey: "AIzaSyDf95t7VelZoS1GGPReM0H_soCjgDVmJ9M",
     authDomain: "app-33232.firebaseapp.com",
     projectId: "app-33232",
@@ -15,9 +12,7 @@ const firebaseConfig = {
     measurementId: "G-WSFYQ5M2VD"
 };
 
-// Arrancamos el motor de Firebase y exportamos la base de datos
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 export const googleProvider = new GoogleAuthProvider();

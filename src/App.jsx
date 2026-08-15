@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { auth, googleProvider, db, storage } from "./firebase";
+import { auth, googleProvider, db } from "./firebase";
 import {
   CLUB_LOGO_ACCEPT,
   CLUB_LOGO_MAX_BYTES,
@@ -366,7 +366,7 @@ function ClubLogoUpload({
           )}
         </div>
         <div className="club-logo-upload__hint" style={{ color: textMuted }}>
-          PNG, JPG, WEBP o SVG · máx. 2 MB
+          PNG, JPG, WEBP o SVG · máx. 2 MB · se guarda en Firestore
         </div>
       </div>
     </div>
@@ -1940,7 +1940,7 @@ function App() {
         return;
       }
 
-      const { logoUrl, logoSource } = await prepareClubLogoUrl({ storage, clubId, file });
+      const { logoUrl, logoSource } = await prepareClubLogoUrl({ file });
       await updateDoc(doc(db, "Clubes", clubId), {
         logoUrl,
         logoSource,
