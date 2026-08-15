@@ -247,13 +247,24 @@ function ClubLogoMark({
   className = "team-context-logo",
   size = 42,
 }) {
-  if (logoUrl) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [logoUrl]);
+
+  if (logoUrl && !imageFailed) {
+    const imageClassName = className === "team-context-logo"
+      ? "club-logo-mark"
+      : `${className} club-logo-mark`;
+
     return (
       <img
         src={logoUrl}
         alt={`Logo de ${clubNombre || "club"}`}
-        className={`${className} club-logo-mark`}
+        className={imageClassName}
         style={{ width: size, height: size }}
+        onError={() => setImageFailed(true)}
       />
     );
   }
@@ -261,7 +272,7 @@ function ClubLogoMark({
   return (
     <div
       className={className}
-      aria-hidden="true"
+      aria-hidden={!clubNombre}
       style={{
         width: size,
         height: size,
@@ -358,6 +369,22 @@ function ClubLogoUpload({
           PNG, JPG, WEBP o SVG · máx. 2 MB
         </div>
       </div>
+    </div>
+  );
+}
+
+function ClubLogoNotice({ message, success, accent }) {
+  if (!message) return null;
+
+  return (
+    <div
+      className="club-logo-notice"
+      style={{
+        color: success ? accent : undefined,
+        borderColor: success ? "rgba(42, 101, 112, 0.35)" : undefined,
+      }}
+    >
+      {message}
     </div>
   );
 }
@@ -1315,6 +1342,7 @@ function App() {
   const [clubes, setClubes] = useState([]);
   const [activeClub, setActiveClub] = useState(null);
   const [logoUploadClubId, setLogoUploadClubId] = useState(null);
+  const [logoUploadNotice, setLogoUploadNotice] = useState(null);
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
@@ -1881,6 +1909,19 @@ function App() {
 
   const getClubLogoUrl = (clubId) => getClubFromId(clubId)?.logoUrl || null;
 
+  const syncClubLogoLocally = (clubId, logoUrl, logoSource) => {
+    setActiveClub(prev => (
+      prev?.id === clubId
+        ? { ...prev, logoUrl: logoUrl || null, logoSource: logoSource || null }
+        : prev
+    ));
+    setClubes(prev => prev.map(club => (
+      club.id === clubId
+        ? { ...club, logoUrl: logoUrl || null, logoSource: logoSource || null }
+        : club
+    )));
+  };
+
   const canEditClubLogo = (clubId) =>
     Boolean(clubId && (userData?.rol === "superadmin" || userData?.clubId === clubId));
 
@@ -1888,6 +1929,7 @@ function App() {
     if (!clubId || !file) return;
     setLogoUploadClubId(clubId);
     setErrorMsg("");
+    setLogoUploadNotice(null);
     try {
       if (!isAllowedLogoFile(file)) {
         setErrorMsg("Formato no válido. Usa JPG, PNG, WEBP o SVG.");
@@ -1904,8 +1946,21 @@ function App() {
         logoSource,
         logoUpdatedAt: new Date(),
       });
+
+      const savedSnap = await getDoc(doc(db, "Clubes", clubId));
+      const savedLogoUrl = savedSnap.data()?.logoUrl;
+      if (!savedSnap.exists() || !savedLogoUrl) {
+        throw new Error("El escudo no se guardó. Revisa permisos de Firestore para el club.");
+      }
+
+      syncClubLogoLocally(clubId, savedLogoUrl, logoSource);
+      setLogoUploadNotice({ clubId, message: "Escudo guardado correctamente." });
     } catch (err) {
-      setErrorMsg(getClubLogoErrorMessage(err));
+      const message = getClubLogoErrorMessage(err);
+      setErrorMsg(message);
+      if (err?.code === "permission-denied") {
+        setErrorMsg("No tienes permiso para guardar el escudo de este club en Firestore.");
+      }
     } finally {
       setLogoUploadClubId(null);
     }
@@ -1915,14 +1970,19 @@ function App() {
     if (!clubId) return;
     setLogoUploadClubId(clubId);
     setErrorMsg("");
+    setLogoUploadNotice(null);
     try {
       await updateDoc(doc(db, "Clubes", clubId), {
         logoUrl: null,
         logoSource: null,
         logoUpdatedAt: new Date(),
       });
+      syncClubLogoLocally(clubId, null, null);
+      setLogoUploadNotice({ clubId, message: "Escudo eliminado." });
     } catch (err) {
-      setErrorMsg("No se pudo quitar el logo del club.");
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para quitar el escudo de este club."
+        : "No se pudo quitar el logo del club.");
     } finally {
       setLogoUploadClubId(null);
     }
@@ -1934,7 +1994,7 @@ function App() {
     const logoProps = {
       clubId: club.id,
       clubNombre: club.nombre,
-      logoUrl: getClubLogoUrl(club.id),
+      logoUrl: getClubLogoUrl(club.id) || club.logoUrl || null,
       uploading: logoUploadClubId === club.id,
       onUpload: (file) => handleUploadClubLogo(club.id, file),
       onRemove: () => handleRemoveClubLogo(club.id),
@@ -1961,6 +2021,9 @@ function App() {
         }}
       >
         <ClubLogoUpload {...logoProps} />
+        {logoUploadNotice?.clubId === club.id && (
+          <ClubLogoNotice message={logoUploadNotice.message} success accent={accent} />
+        )}
       </div>
     );
   };
@@ -2923,7 +2986,7 @@ function App() {
 
   const getLogoClubActivo = () => {
     const clubId = equipoActivo?.clubId || userData?.clubId;
-    return getClubLogoUrl(clubId);
+    return getClubLogoUrl(clubId) || activeClub?.logoUrl || null;
   };
 
   const renderTeamLayout = () => {
@@ -3054,7 +3117,7 @@ function App() {
                           {clubes.map(club => (
                             <div key={club.id} className="entity-list-card" style={{ borderLeftColor: userData?.clubId === club.id ? accent : textMuted }}>
                               <ClubLogoMark
-                                logoUrl={club.logoUrl}
+                                logoUrl={getClubLogoUrl(club.id) || club.logoUrl || null}
                                 clubNombre={club.nombre}
                                 accentLight={accentLight}
                                 accentSoft={accentSoft}
@@ -3076,7 +3139,7 @@ function App() {
                                       className="entity-list-card__logo-btn"
                                       style={{ color: accent, borderColor: inputBorder, background: cardBgElevated }}
                                     >
-                                      {logoUploadClubId === club.id ? "Subiendo…" : club.logoUrl ? "Cambiar logo" : "Subir logo"}
+                                      {logoUploadClubId === club.id ? "Subiendo…" : (getClubLogoUrl(club.id) || club.logoUrl) ? "Cambiar logo" : "Subir logo"}
                                     </label>
                                     <input
                                       id={`club-logo-list-${club.id}`}
@@ -3185,7 +3248,10 @@ function App() {
               )}
             </>
           )}
-          {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
+          {logoUploadNotice && (
+            <ClubLogoNotice message={logoUploadNotice.message} success accent={accent} />
+          )}
+          {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: logoUploadNotice ? 12 : 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
         </div>
       </main>
         </div>

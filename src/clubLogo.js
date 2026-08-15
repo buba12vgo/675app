@@ -2,7 +2,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export const CLUB_LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml";
 export const CLUB_LOGO_MAX_BYTES = 2 * 1024 * 1024;
-export const CLUB_LOGO_UPLOAD_TIMEOUT_MS = 20000;
+export const CLUB_LOGO_UPLOAD_TIMEOUT_MS = 8000;
 export const CLUB_LOGO_INLINE_MAX_BYTES = 750000;
 
 const MIME_BY_EXTENSION = {
@@ -115,23 +115,20 @@ async function uploadClubLogoToStorage(storage, clubId, file, mime = getFileMime
 
 export async function prepareClubLogoUrl({ storage, clubId, file }) {
   const mime = getFileMimeType(file);
+  const inlinePromise = optimizeLogoToDataUrl(file, mime);
+  const storagePromise = withTimeout(
+    uploadClubLogoToStorage(storage, clubId, file, mime),
+    CLUB_LOGO_UPLOAD_TIMEOUT_MS,
+    "Tiempo de espera agotado al subir el logo."
+  ).catch(() => null);
 
-  try {
-    return {
-      logoUrl: await withTimeout(
-        uploadClubLogoToStorage(storage, clubId, file, mime),
-        CLUB_LOGO_UPLOAD_TIMEOUT_MS,
-        "Tiempo de espera agotado al subir el logo."
-      ),
-      logoSource: "storage",
-    };
-  } catch (storageError) {
-    console.warn("Fallo la subida a Firebase Storage, usando logo embebido.", storageError);
-    return {
-      logoUrl: await optimizeLogoToDataUrl(file, mime),
-      logoSource: "inline",
-    };
+  const [inlineUrl, storageUrl] = await Promise.all([inlinePromise, storagePromise]);
+
+  if (storageUrl) {
+    return { logoUrl: storageUrl, logoSource: "storage" };
   }
+
+  return { logoUrl: inlineUrl, logoSource: "inline" };
 }
 
 export function getClubLogoErrorMessage(error) {
@@ -140,6 +137,9 @@ export function getClubLogoErrorMessage(error) {
 
   if (message.includes("Tiempo de espera")) {
     return "La subida tardó demasiado. Se guardará una versión optimizada del escudo.";
+  }
+  if (code.includes("permission-denied")) {
+    return "No tienes permiso para guardar el escudo de este club en Firestore.";
   }
   if (code.includes("storage/unauthorized") || code.includes("storage/unauthenticated")) {
     return "No tienes permiso para subir el escudo. Revisa las reglas de Firebase Storage.";
