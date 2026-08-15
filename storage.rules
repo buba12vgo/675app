@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return firestore.get(/databases/(default)/documents/Usuarios/$(request.auth.uid)).data;
+    }
+
+    function isSuperadmin() {
+      return isSignedIn() && userData().rol == 'superadmin';
+    }
+
+    function belongsToClub(clubId) {
+      return isSignedIn() && userData().clubId == clubId;
+    }
+
+    function isImageUpload() {
+      return request.resource.size <= 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/(png|jpeg|webp|svg\\+xml)');
+    }
+
+    match /clubes/{clubId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isImageUpload() && (isSuperadmin() || belongsToClub(clubId));
+    }
+  }
+}

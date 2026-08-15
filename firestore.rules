@@ -1,0 +1,94 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data;
+    }
+
+    function isSuperadmin() {
+      return isSignedIn() && userData().rol == 'superadmin';
+    }
+
+    function userClubId() {
+      return userData().clubId;
+    }
+
+    function belongsToClub(clubId) {
+      return isSignedIn() && userClubId() == clubId;
+    }
+
+    function equipoClubId(equipoId) {
+      return get(/databases/$(database)/documents/Equipos/$(equipoId)).data.clubId;
+    }
+
+    function canAccessEquipo(equipoId) {
+      return isSuperadmin() || belongsToClub(equipoClubId(equipoId));
+    }
+
+    function clubLogoFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['logoUrl', 'logoSource', 'logoUpdatedAt']);
+    }
+
+    function validClubLogoData() {
+      let logoUrl = request.resource.data.logoUrl;
+      return (logoUrl == null || (logoUrl is string && logoUrl.size() <= 800000))
+        && (
+          !('logoSource' in request.resource.data)
+          || request.resource.data.logoSource == null
+          || request.resource.data.logoSource in ['storage', 'inline']
+        );
+    }
+
+    match /Usuarios/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperadmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId && (
+        isSuperadmin()
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clubId', 'clubNombre'])
+      );
+      allow delete: if isSuperadmin();
+    }
+
+    match /Clubes/{clubId} {
+      allow read: if isSignedIn();
+      allow create: if isSuperadmin();
+      allow update: if isSuperadmin() || (
+        belongsToClub(clubId) && clubLogoFieldsOnly() && validClubLogoData()
+      );
+      allow delete: if isSuperadmin();
+    }
+
+    match /Equipos/{equipoId} {
+      allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
+      allow create: if isSignedIn() && (
+        isSuperadmin() || belongsToClub(request.resource.data.clubId)
+      );
+      allow update, delete: if isSignedIn() && (
+        isSuperadmin() || belongsToClub(resource.data.clubId)
+      );
+    }
+
+    match /Jugadoras/{jugadoraId} {
+      allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
+      allow create: if isSignedIn() && (
+        isSuperadmin() || belongsToClub(request.resource.data.clubId)
+      );
+      allow update, delete: if isSignedIn() && (
+        isSuperadmin() || belongsToClub(resource.data.clubId)
+      );
+    }
+
+    match /Sesiones/{sesionId} {
+      allow read: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+      allow create: if isSignedIn() && canAccessEquipo(request.resource.data.equipoId);
+      allow update: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+      allow delete: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+    }
+  }
+}
