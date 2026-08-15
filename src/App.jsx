@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { auth, googleProvider, db } from "./firebase";
 import {
   signInWithEmailAndPassword,
@@ -195,6 +195,7 @@ function AsistenciaValoracionPanel({
   accent,
   inputBorder,
   textMuted,
+  textSecondary,
   success,
   error,
   cardBgElevated,
@@ -202,6 +203,14 @@ function AsistenciaValoracionPanel({
   resumenPresentes,
   btnTodasPresentes = "Todas presentes",
   btnTodasAusentes = "Todas ausentes",
+  equipoActivoId,
+  jugadorasClub = [],
+  jugadorasClubLoading = false,
+  getNombreEquipo,
+  busquedaJugadoraClub = "",
+  setBusquedaJugadoraClub,
+  onAgregarJugadoraExterna,
+  onQuitarJugadoraExterna,
 }) {
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
   const totalJugadoras = jugadoras.length;
@@ -212,6 +221,17 @@ function AsistenciaValoracionPanel({
     : (totalJugadoras > 0
       ? `${presentesCount} de ${totalJugadoras} presentes · ${totalJugadoras - presentesCount} ausentes`
       : "Sin jugadoras en plantilla");
+
+  const idsEnSesion = useMemo(() => new Set(jugadoras.map(j => j.id)), [jugadoras]);
+  const resultadosBusqueda = useMemo(() => {
+    if (!equipoActivoId || !getNombreEquipo || !busquedaJugadoraClub.trim()) return [];
+    return filtrarJugadorasClubBusqueda(jugadorasClub, {
+      equipoActivoId,
+      idsEnSesion,
+      busqueda: busquedaJugadoraClub,
+      getNombreEquipo,
+    });
+  }, [jugadorasClub, equipoActivoId, idsEnSesion, busquedaJugadoraClub, getNombreEquipo]);
 
   const marcarTodasPresentes = () => {
     setAsistencias(prev => {
@@ -320,6 +340,65 @@ function AsistenciaValoracionPanel({
           </div>
         )}
       </div>
+      {equipoActivoId && setBusquedaJugadoraClub && onAgregarJugadoraExterna && (
+        <div className="session-club-search" style={{ flexShrink: 0 }}>
+          <input
+            type="search"
+            value={busquedaJugadoraClub}
+            onChange={e => setBusquedaJugadoraClub(e.target.value)}
+            placeholder="Buscar jugadora de otro equipo del club…"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              fontSize: 14,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: 9,
+              background: cardBgElevated,
+              color: "#fff",
+              outline: "none",
+              fontWeight: 500,
+            }}
+          />
+          {jugadorasClubLoading && busquedaJugadoraClub.trim() && (
+            <div style={{ color: textMuted, fontSize: 13, marginTop: 8, fontStyle: "italic" }}>
+              Cargando jugadoras del club…
+            </div>
+          )}
+          {!jugadorasClubLoading && busquedaJugadoraClub.trim() && resultadosBusqueda.length === 0 && (
+            <div style={{ color: textMuted, fontSize: 13, marginTop: 8, fontStyle: "italic" }}>
+              No hay coincidencias en otros equipos.
+            </div>
+          )}
+          {resultadosBusqueda.length > 0 && (
+            <div className="session-club-search-results" style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+              {resultadosBusqueda.map(j => (
+                <button
+                  key={j.id}
+                  type="button"
+                  onClick={() => onAgregarJugadoraExterna(j.id)}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "9px 11px",
+                    borderRadius: 9,
+                    border: `1px solid ${inputBorder}`,
+                    background: "rgba(59,130,246,0.08)",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span style={{ color: accent, fontWeight: 700, marginRight: 8 }}>#{j.dorsal}</span>
+                  <span style={{ fontWeight: 600 }}>{j.nombre}</span>
+                  <span style={{ color: textMuted, fontSize: 12.5, marginLeft: 8 }}>
+                    {getNombreEquipo(j.equipoId)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div className="session-asistencia-list">
         {jugadorasLoading ? (
           <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>Cargando jugadoras...</div>
@@ -329,6 +408,7 @@ function AsistenciaValoracionPanel({
           jugadoras.map(j => {
             const estaPresente = !!asistencias[j.id];
             const valoracionActual = valoraciones[j.id];
+            const esExterna = equipoActivoId && j.equipoId !== equipoActivoId;
             return (
               <div key={j.id} style={{
                 background: estaPresente ? "rgba(52,199,89,0.08)" : "rgba(255,69,58,0.06)",
@@ -372,9 +452,42 @@ function AsistenciaValoracionPanel({
                         display: "block"
                       }}>"{j.apodo}"</span>
                     )}
+                    {esExterna && getNombreEquipo && (
+                      <span style={{
+                        color: textSecondary,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        display: "block",
+                        marginTop: 2,
+                      }}>
+                        {getNombreEquipo(j.equipoId)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                  {esExterna && onQuitarJugadoraExterna && (
+                    <button
+                      type="button"
+                      aria-label="Quitar jugadora de la sesión"
+                      title="Quitar de esta sesión"
+                      onClick={() => onQuitarJugadoraExterna(j.id)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 7,
+                        border: `1px solid ${inputBorder}`,
+                        background: "transparent",
+                        color: textMuted,
+                        fontSize: 16,
+                        lineHeight: 1,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
                   {estaPresente && (
                     <div style={{ display: "flex", gap: 2 }} aria-label="Valoración del 1 al 5">
                       {[1, 2, 3, 4, 5].map(n => (
@@ -758,10 +871,38 @@ function calcularEstadisticasJugadoras(jugadoras, sesiones) {
   }));
 }
 
+function normalizarTextoBusqueda(texto) {
+  return (texto || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+}
+
+function combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds) {
+  const map = new Map(jugadoras.map(j => [j.id, j]));
+  jugadorasExternasIds.forEach(id => {
+    const j = jugadorasClub.find(x => x.id === id);
+    if (j && !map.has(j.id)) map.set(j.id, j);
+  });
+  return Array.from(map.values()).sort((a, b) => a.dorsal - b.dorsal);
+}
+
+function filtrarJugadorasClubBusqueda(jugadorasClub, { equipoActivoId, idsEnSesion, busqueda, getNombreEquipo }) {
+  const q = normalizarTextoBusqueda(busqueda.trim());
+  if (!q) return [];
+  return jugadorasClub
+    .filter(j => j.equipoId !== equipoActivoId)
+    .filter(j => !idsEnSesion.has(j.id))
+    .filter(j => {
+      const nombreEquipo = getNombreEquipo(j.equipoId);
+      const haystack = `${j.nombre} ${j.apodo || ""} ${j.dorsal} ${nombreEquipo}`;
+      return normalizarTextoBusqueda(haystack).includes(q);
+    })
+    .slice(0, 8);
+}
+
 function resetCamposSesion(setters) {
   const {
     setTematica, setEjercicios, setAsistencias, setValoraciones,
-    setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista
+    setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
+    setJugadorasExternasIds, setBusquedaJugadoraClub,
   } = setters;
   setTematica("");
   setEjercicios("");
@@ -771,6 +912,8 @@ function resetCamposSesion(setters) {
   setRivalPartido("");
   setLocalPartido("casa");
   setSesionVista("datos");
+  if (setJugadorasExternasIds) setJugadorasExternasIds([]);
+  if (setBusquedaJugadoraClub) setBusquedaJugadoraClub("");
 }
 
 function App() {
@@ -801,6 +944,11 @@ function App() {
   // Estado de jugadoras
   const [jugadoras, setJugadoras] = useState([]);
   const [jugadorasLoading, setJugadorasLoading] = useState(false);
+  const [jugadorasClub, setJugadorasClub] = useState([]);
+  const [jugadorasClubLoading, setJugadorasClubLoading] = useState(false);
+  const [equiposClub, setEquiposClub] = useState([]);
+  const [jugadorasExternasIds, setJugadorasExternasIds] = useState([]);
+  const [busquedaJugadoraClub, setBusquedaJugadoraClub] = useState("");
 
   // Formulario plantilla
   const [jugadoraNombre, setJugadoraNombre] = useState("");
@@ -865,7 +1013,38 @@ function App() {
   const error = THEME.error;
 
   const colorPartido = "#8B5CF6";
-  const sesionSetters = { setTematica, setEjercicios, setAsistencias, setValoraciones, setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista };
+  const sesionSetters = {
+    setTematica, setEjercicios, setAsistencias, setValoraciones,
+    setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
+    setJugadorasExternasIds, setBusquedaJugadoraClub,
+  };
+
+  const getNombreEquipoById = (equipoId) => equiposClub.find(e => e.id === equipoId)?.nombre || "Otro equipo";
+
+  const jugadorasSesion = useMemo(
+    () => combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds),
+    [jugadoras, jugadorasClub, jugadorasExternasIds]
+  );
+
+  const handleAgregarJugadoraExterna = (jugadoraId) => {
+    setJugadorasExternasIds(prev => (prev.includes(jugadoraId) ? prev : [...prev, jugadoraId]));
+    setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
+    setBusquedaJugadoraClub("");
+  };
+
+  const handleQuitarJugadoraExterna = (jugadoraId) => {
+    setJugadorasExternasIds(prev => prev.filter(id => id !== jugadoraId));
+    setAsistencias(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+    setValoraciones(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+  };
 
   const tabsMenu = [
     { key: "home", label: "Inicio", Icon: IconHome },
@@ -933,6 +1112,10 @@ function App() {
     setJugadoraDorsal("");
     setJugadoraApodo("");
     setAddJugadoraLoading(false);
+    setJugadorasExternasIds([]);
+    setBusquedaJugadoraClub("");
+    setJugadorasClub([]);
+    setEquiposClub([]);
   }, [equipoActivo]);
 
   // Fetch de clubes para usuarios sin club
@@ -1037,6 +1220,49 @@ function App() {
     };
   }, [equipoActivo, userData?.clubId, tab]);
 
+  // Jugadoras y equipos del club (para convocar de otros equipos en sesiones)
+  useEffect(() => {
+    const clubId = equipoActivo?.clubId || userData?.clubId;
+    if (!equipoActivo || !clubId || tab !== "sesiones") {
+      setJugadorasClub([]);
+      setEquiposClub([]);
+      setJugadorasClubLoading(false);
+      return;
+    }
+
+    setJugadorasClubLoading(true);
+    const equiposCol = collection(db, "Equipos");
+    const qEquipos = query(equiposCol, where("clubId", "==", clubId));
+    const unsubEquipos = onSnapshot(
+      qEquipos,
+      (snapshot) => {
+        setEquiposClub(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      },
+      () => setEquiposClub([])
+    );
+
+    const jugadorasCol = collection(db, "Jugadoras");
+    const qJugadoras = query(jugadorasCol, where("clubId", "==", clubId));
+    const unsubJugadoras = onSnapshot(
+      qJugadoras,
+      (snapshot) => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => a.dorsal - b.dorsal);
+        setJugadorasClub(docs);
+        setJugadorasClubLoading(false);
+      },
+      () => {
+        setJugadorasClub([]);
+        setJugadorasClubLoading(false);
+      }
+    );
+
+    return () => {
+      unsubEquipos();
+      unsubJugadoras();
+    };
+  }, [equipoActivo, userData?.clubId, tab]);
+
   // --- CALENDARIO SESIONES equipoActivo (en vivo) ---
   useEffect(() => {
     let unsub;
@@ -1096,6 +1322,8 @@ function App() {
             setEjercicios(docSesion.data().ejercicios || "");
             setAsistencias(docSesion.data().asistencias || {});
             setValoraciones(docSesion.data().valoraciones || {});
+            setJugadorasExternasIds(docSesion.data().jugadorasExternas || []);
+            setBusquedaJugadoraClub("");
             setTipoSesion(normalizarTipoSesion(docSesion.data()));
             setRivalPartido(docSesion.data().rival || "");
             setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
@@ -1120,42 +1348,44 @@ function App() {
     }
   }, [equipoActivo, fechaSesionSeleccionada, tab]);
 
-  // Refiltra asistencias y valoraciones cuando jugadoras cambian pero ya hay sesión cargada
+  // Refiltra asistencias y valoraciones cuando cambia la lista de la sesión
   useEffect(() => {
-    if (jugadoras.length && sesionDoc) {
-      setAsistencias(prevAsist => {
-        let nuevo = {};
-        jugadoras.forEach(j => {
-          nuevo[j.id] = typeof prevAsist[j.id] !== "undefined" ? prevAsist[j.id] : false;
-        });
-        return nuevo;
-      });
-      setValoraciones(prevVal => {
-        let nuevo = {};
-        jugadoras.forEach(j => {
-          const val = prevVal[j.id];
-          if (typeof val === "number" && val >= 1 && val <= 5) {
-            nuevo[j.id] = val;
-          }
-        });
-        return nuevo;
-      });
-    }
-  }, [jugadoras, sesionDoc]);
+    if (!sesionDoc) return;
+    const lista = combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds);
+    if (!lista.length) return;
 
-  // Actualiza asistencias cuando cambia listado jugadoras y NO hay sesión ya creada
+    setAsistencias(prevAsist => {
+      const nuevo = {};
+      lista.forEach(j => {
+        nuevo[j.id] = typeof prevAsist[j.id] !== "undefined" ? prevAsist[j.id] : false;
+      });
+      return nuevo;
+    });
+    setValoraciones(prevVal => {
+      const nuevo = {};
+      lista.forEach(j => {
+        const val = prevVal[j.id];
+        if (typeof val === "number" && val >= 1 && val <= 5) {
+          nuevo[j.id] = val;
+        }
+      });
+      return nuevo;
+    });
+  }, [jugadoras, jugadorasClub, jugadorasExternasIds, sesionDoc]);
+
+  // Actualiza asistencias cuando cambia listado y NO hay sesión ya creada
   useEffect(() => {
-    if (!sesionDoc && jugadoras.length && fechaSesionSeleccionada && tab === "sesiones") {
+    if (!sesionDoc && jugadorasSesion.length && fechaSesionSeleccionada && tab === "sesiones") {
       setAsistencias(() => {
-        let nuevo = {};
-        jugadoras.forEach(j => {
+        const nuevo = {};
+        jugadorasSesion.forEach(j => {
           nuevo[j.id] = false;
         });
         return nuevo;
       });
       setValoraciones({});
     }
-  }, [jugadoras, sesionDoc, tab, fechaSesionSeleccionada]);
+  }, [jugadorasSesion, sesionDoc, tab, fechaSesionSeleccionada]);
 
   useEffect(() => {
     setSesionVista("datos");
@@ -1285,7 +1515,7 @@ function App() {
     setErrorMsg("");
     try {
       let asist = {};
-      jugadoras.forEach(j => {
+      jugadorasSesion.forEach(j => {
         asist[j.id] = false;
       });
       const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fechaSesionSeleccionada}`);
@@ -1299,6 +1529,7 @@ function App() {
         local: "casa",
         asistencias: asist,
         valoraciones: {},
+        jugadorasExternas: jugadorasExternasIds,
         creadoEn: new Date(),
       });
       const snap = await getDoc(sesionDocRef);
@@ -1326,7 +1557,7 @@ function App() {
     setErrorMsg("");
     try {
       const valoracionesFiltradas = {};
-      jugadoras.forEach(j => {
+      jugadorasSesion.forEach(j => {
         if (asistencias[j.id] && typeof valoraciones[j.id] === "number") {
           valoracionesFiltradas[j.id] = valoraciones[j.id];
         }
@@ -1338,6 +1569,7 @@ function App() {
         tipo: tipoSesion,
         asistencias,
         valoraciones: valoracionesFiltradas,
+        jugadorasExternas: jugadorasExternasIds,
         actualizadoEn: new Date(),
       };
       if (tipoSesion === "partido") {
@@ -1738,8 +1970,8 @@ function App() {
                           onClick={() => setSesionVista("asistencia")}
                         >
                           {tipoSesion === "partido"
-                            ? `Convocatoria (${jugadoras.filter(j => asistencias[j.id]).length}/${jugadoras.length})`
-                            : `Asistencia (${jugadoras.filter(j => asistencias[j.id]).length}/${jugadoras.length})`}
+                            ? `Convocatoria (${jugadorasSesion.filter(j => asistencias[j.id]).length}/${jugadorasSesion.length})`
+                            : `Asistencia (${jugadorasSesion.filter(j => asistencias[j.id]).length}/${jugadorasSesion.length})`}
                         </button>
                       </div>
 
@@ -1852,7 +2084,7 @@ function App() {
 
                         <div className={`session-panel-asistencia${sesionVista !== "asistencia" ? " session-panel-section--hidden-mobile" : ""}`}>
                           <AsistenciaValoracionPanel
-                            jugadoras={jugadoras}
+                            jugadoras={jugadorasSesion}
                             jugadorasLoading={jugadorasLoading}
                             asistencias={asistencias}
                             valoraciones={valoraciones}
@@ -1861,6 +2093,7 @@ function App() {
                             accent={tipoSesion === "partido" ? colorPartido : accent}
                             inputBorder={inputBorder}
                             textMuted={textMuted}
+                            textSecondary={textSecondary}
                             success={success}
                             error={error}
                             cardBgElevated={cardBgElevated}
@@ -1872,6 +2105,14 @@ function App() {
                               : undefined}
                             btnTodasPresentes={tipoSesion === "partido" ? "Todas convocadas" : "Todas presentes"}
                             btnTodasAusentes={tipoSesion === "partido" ? "Ninguna convocada" : "Todas ausentes"}
+                            equipoActivoId={equipoActivo?.id}
+                            jugadorasClub={jugadorasClub}
+                            jugadorasClubLoading={jugadorasClubLoading}
+                            getNombreEquipo={getNombreEquipoById}
+                            busquedaJugadoraClub={busquedaJugadoraClub}
+                            setBusquedaJugadoraClub={setBusquedaJugadoraClub}
+                            onAgregarJugadoraExterna={handleAgregarJugadoraExterna}
+                            onQuitarJugadoraExterna={handleQuitarJugadoraExterna}
                           />
                         </div>
                       </div>
