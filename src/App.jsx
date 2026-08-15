@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { auth, googleProvider, db, storage } from "./firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  CLUB_LOGO_ACCEPT,
+  CLUB_LOGO_MAX_BYTES,
+  getClubLogoErrorMessage,
+  isAllowedLogoFile,
+  prepareClubLogoUrl,
+} from "./clubLogo.js";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -221,8 +227,6 @@ function BlurredBackground({ isDark = true }) {
   );
 }
 
-const CLUB_LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml";
-const CLUB_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 function getClubInitials(nombre) {
   return (nombre || "C")
@@ -232,13 +236,6 @@ function getClubInitials(nombre) {
     .map(p => p[0])
     .join("")
     .toUpperCase();
-}
-
-function getLogoExtension(file) {
-  if (file.type === "image/svg+xml") return "svg";
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
 }
 
 function ClubLogoMark({
@@ -1892,8 +1889,7 @@ function App() {
     setLogoUploadClubId(clubId);
     setErrorMsg("");
     try {
-      const allowed = CLUB_LOGO_ACCEPT.split(",");
-      if (!allowed.includes(file.type)) {
+      if (!isAllowedLogoFile(file)) {
         setErrorMsg("Formato no válido. Usa JPG, PNG, WEBP o SVG.");
         return;
       }
@@ -1902,16 +1898,14 @@ function App() {
         return;
       }
 
-      const ext = getLogoExtension(file);
-      const storageRef = ref(storage, `clubes/${clubId}/logo.${ext}`);
-      await uploadBytes(storageRef, file, { contentType: file.type });
-      const url = await getDownloadURL(storageRef);
+      const { logoUrl, logoSource } = await prepareClubLogoUrl({ storage, clubId, file });
       await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl: url,
+        logoUrl,
+        logoSource,
         logoUpdatedAt: new Date(),
       });
     } catch (err) {
-      setErrorMsg("No se pudo subir el logo. Revisa los permisos de Firebase Storage.");
+      setErrorMsg(getClubLogoErrorMessage(err));
     } finally {
       setLogoUploadClubId(null);
     }
@@ -1924,6 +1918,7 @@ function App() {
     try {
       await updateDoc(doc(db, "Clubes", clubId), {
         logoUrl: null,
+        logoSource: null,
         logoUpdatedAt: new Date(),
       });
     } catch (err) {
