@@ -1799,7 +1799,7 @@ function App() {
       setUserData(prev => ({ ...prev, nombreUsuario: validacion.nombre }));
       setNombreUsuarioDraft(validacion.nombre);
       setNombreUsuarioFeedback("Nombre de usuario guardado.");
-    } catch (err) {
+    } catch {
       setNombreUsuarioError("No se pudo guardar el nombre de usuario.");
     }
     setGuardandoNombreUsuario(false);
