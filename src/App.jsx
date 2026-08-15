@@ -19,25 +19,16 @@ import {
   where,
   deleteDoc
 } from "firebase/firestore";
+import {
+  THEMES,
+  STORAGE_THEME_KEY,
+  applyThemeToDocument,
+  getStoredTheme,
+  persistTheme,
+  getGlassCardStyle,
+} from "./theme.js";
 
-const THEME = {
-  bg: "#0B1120",
-  bgDark: "#0B1120",
-  cardBg: "#151D2E",
-  cardBgElevated: "#1A2438",
-  surface: "#1E293B",
-  inputBg: "#1A2438",
-  inputBorder: "#2D3A52",
-  accent: "#3B82F6",
-  accentLight: "#60A5FA",
-  accentSoft: "rgba(59, 130, 246, 0.14)",
-  text: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  success: "#10B981",
-  error: "#F87171",
-  cardShadow: "0 8px 32px rgba(0, 0, 0, 0.35)",
-};
+const THEME = THEMES.dark;
 
 function IconHome({ size = 20, color = "currentColor" }) {
   return (
@@ -82,6 +73,91 @@ function IconChevronLeft({ size = 18, color = "currentColor" }) {
   );
 }
 
+function IconDevicePhone({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+      <path d="M11 18.5h2" />
+    </svg>
+  );
+}
+
+function IconDeviceTablet({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4.5" y="3" width="15" height="18" rx="2.5" />
+      <path d="M10.5 18h3" />
+    </svg>
+  );
+}
+
+function IconDeviceMonitor({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M8 20h8M12 16v4" />
+    </svg>
+  );
+}
+
+const DEVICE_PREVIEW_OPTIONS = [
+  { id: "mobile", label: "Vista móvil (375px)", Icon: IconDevicePhone },
+  { id: "tablet", label: "Vista tablet (768px)", Icon: IconDeviceTablet },
+  { id: "desktop", label: "Vista PC (1200px)", Icon: IconDeviceMonitor },
+];
+
+function DevicePreviewControl({ mode, onChange }) {
+  return (
+    <div className="device-preview-control" role="group" aria-label="Previsualización de dispositivo">
+      {DEVICE_PREVIEW_OPTIONS.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          className={`device-preview-control__btn${mode === id ? " device-preview-control__btn--active" : ""}`}
+          aria-label={label}
+          aria-pressed={mode === id}
+          title={label}
+          onClick={() => onChange(id)}
+        >
+          <Icon size={15} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function IconSun({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2M12 19.5v2M4.5 12h2M17.5 12h2M6.1 6.1l1.4 1.4M16.5 16.5l1.4 1.4M6.1 17.9l1.4-1.4M16.5 7.5l1.4-1.4" />
+    </svg>
+  );
+}
+
+function IconMoon({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 7 7 0 1 0 20 14.5z" />
+    </svg>
+  );
+}
+
+function ThemeToggleButton({ colorMode, onToggle }) {
+  const isDark = colorMode === "dark";
+  return (
+    <button
+      type="button"
+      className="theme-toggle-btn"
+      onClick={onToggle}
+      aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      title={isDark ? "Modo claro" : "Modo oscuro"}
+    >
+      {isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
+    </button>
+  );
+}
+
 function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 11, userSelect: "none" }}>
@@ -89,11 +165,11 @@ function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24 }) {
         width: 36,
         height: 36,
         borderRadius: 11,
-        background: `linear-gradient(135deg, ${accent} 0%, #2563EB 100%)`,
+        background: `linear-gradient(135deg, ${accent} 0%, ${THEME.accentDark} 100%)`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 4px 14px rgba(59, 130, 246, 0.35)"
+        boxShadow: `0 4px 14px ${THEME.accentShadow}`
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M7 12h10M12 7v10" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
@@ -106,7 +182,7 @@ function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24 }) {
   );
 }
 
-function BlurredBackground() {
+function BlurredBackground({ isDark = true }) {
   return (
     <div
       aria-hidden="true"
@@ -125,7 +201,9 @@ function BlurredBackground() {
           backgroundImage: "url(/bg-basketball.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(56px) saturate(0.25) brightness(0.5) hue-rotate(185deg)",
+          filter: isDark
+            ? "blur(56px) saturate(0.25) brightness(0.5) hue-rotate(185deg)"
+            : "blur(56px) saturate(0.45) brightness(0.92) hue-rotate(185deg)",
           transform: "scale(1.15)",
         }}
       />
@@ -133,27 +211,84 @@ function BlurredBackground() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(160deg, rgba(11,17,32,0.94) 0%, rgba(11,17,32,0.82) 50%, rgba(37,99,235,0.14) 100%)",
+          background: isDark
+            ? "linear-gradient(160deg, rgba(11,17,32,0.94) 0%, rgba(11,17,32,0.82) 50%, rgba(42,101,112,0.14) 100%)"
+            : "linear-gradient(160deg, rgba(248,250,252,0.94) 0%, rgba(241,245,249,0.88) 50%, rgba(42,101,112,0.10) 100%)",
         }}
       />
     </div>
   );
 }
 
-function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, inputBorder, variant = "mobile" }) {
+function getClubInitials(nombre) {
+  return (nombre || "C")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0])
+    .join("")
+    .toUpperCase();
+}
+
+function TeamContextHeader({
+  clubNombre,
+  equipoNombre,
+  onCambiarEquipo,
+  accent,
+  accentLight,
+  accentSoft,
+  accentBorder,
+  text,
+  textSecondary,
+  textMuted,
+  variant = "sidebar",
+}) {
+  return (
+    <div className={`team-context-header team-context-header--${variant}`}>
+      <div className="team-context-brand">
+        <div
+          className="team-context-logo"
+          aria-hidden="true"
+          style={{
+            background: accentSoft,
+            color: accentLight,
+            border: `1px solid ${accentBorder}`,
+          }}
+        >
+          {getClubInitials(clubNombre)}
+        </div>
+        <div className="team-context-text">
+          <div className="team-context-club" style={{ color: textSecondary }}>{clubNombre}</div>
+          <div className="team-context-team" style={{ color: text }}>{equipoNombre}</div>
+        </div>
+      </div>
+      <button
+        type="button"
+        className="team-context-back"
+        onClick={onCambiarEquipo}
+        style={{ color: textMuted, borderColor: accentBorder }}
+      >
+        <IconChevronLeft size={16} color={textMuted} />
+        <span>Cambiar equipo</span>
+      </button>
+    </div>
+  );
+}
+
+function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant = "mobile" }) {
   const isDesktop = variant === "desktop";
-  const navStyle = {
-    background: isDesktop ? "transparent" : "rgba(26, 36, 56, 0.85)",
-    backdropFilter: isDesktop ? "none" : "blur(12px)",
-    WebkitBackdropFilter: isDesktop ? "none" : "blur(12px)",
-    borderTop: isDesktop ? "none" : `1px solid ${inputBorder}`,
-    boxShadow: isDesktop ? "none" : "0 -4px 24px rgba(0,0,0,0.25)",
+
+  const handleTabClick = (key) => {
+    setTab(key);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
     <nav
       className={isDesktop ? "app-nav-desktop" : "app-nav-mobile"}
-      style={navStyle}
+      style={isDesktop ? { background: "transparent" } : undefined}
     >
       {tabsMenu.map(({ key, label, Icon }) => {
         const active = tab === key;
@@ -161,7 +296,7 @@ function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, inputBor
           <button
             key={key}
             type="button"
-            onClick={() => setTab(key)}
+            onClick={() => handleTabClick(key)}
             className={`app-nav-btn ${isDesktop ? "app-nav-btn--desktop" : "app-nav-btn--mobile"}`}
             style={{
               background: active ? accentSoft : "transparent",
@@ -179,11 +314,6 @@ function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, inputBor
   );
 }
 
-const glassCardStyle = {
-  background: "rgba(21, 29, 46, 0.78)",
-  backdropFilter: "blur(14px)",
-  WebkitBackdropFilter: "blur(14px)",
-};
 
 function AsistenciaValoracionPanel({
   jugadoras,
@@ -211,6 +341,8 @@ function AsistenciaValoracionPanel({
   setBusquedaJugadoraClub,
   onAgregarJugadoraExterna,
   onQuitarJugadoraExterna,
+  onGoToPlantilla,
+  text,
 }) {
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
   const totalJugadoras = jugadoras.length;
@@ -299,8 +431,30 @@ function AsistenciaValoracionPanel({
           <div style={{ color: accent, fontWeight: 700, fontSize: 16.5, letterSpacing: "0.01em" }}>
             {titulo}
           </div>
-          <div style={{ color: "#a09fa3", fontSize: 13.5, marginTop: 2 }}>
+          <div style={{ color: textMuted, fontSize: 13.5, marginTop: 2 }}>
             {resumen}
+            {totalJugadoras === 0 && onGoToPlantilla && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  onClick={onGoToPlantilla}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: accent,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    padding: 0,
+                    fontFamily: "inherit",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  Ir a Plantilla
+                </button>
+              </>
+            )}
           </div>
         </div>
         {totalJugadoras > 0 && (
@@ -382,7 +536,7 @@ function AsistenciaValoracionPanel({
                     padding: "9px 11px",
                     borderRadius: 9,
                     border: `1px solid ${inputBorder}`,
-                    background: "rgba(59,130,246,0.08)",
+                    background: "rgba(42, 101, 112, 0.08)",
                     color: "#fff",
                     cursor: "pointer",
                     fontFamily: "inherit",
@@ -403,114 +557,70 @@ function AsistenciaValoracionPanel({
         {jugadorasLoading ? (
           <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>Cargando jugadoras...</div>
         ) : jugadoras.length === 0 ? (
-          <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15 }}>No hay jugadoras.</div>
+          <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15, textAlign: "center", lineHeight: 1.5 }}>
+            No hay jugadoras en la plantilla.
+            {onGoToPlantilla && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  onClick={onGoToPlantilla}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: accent,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    padding: 0,
+                    fontFamily: "inherit",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  Añadir en Plantilla
+                </button>
+              </>
+            )}
+          </div>
         ) : (
           jugadoras.map(j => {
             const estaPresente = !!asistencias[j.id];
             const valoracionActual = valoraciones[j.id];
             const esExterna = equipoActivoId && j.equipoId !== equipoActivoId;
             return (
-              <div key={j.id} style={{
-                background: estaPresente ? "rgba(52,199,89,0.08)" : "rgba(255,69,58,0.06)",
-                borderRadius: 10,
-                boxShadow: "0 2px 7px rgba(0,0,0,0.08)",
-                borderLeft: `4px solid ${estaPresente ? verdePresente : rojoAusente}`,
-                padding: "9px 11px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
-                  <span style={{
-                    color: accent,
-                    fontWeight: 700,
-                    fontSize: 18,
-                    width: 32,
-                    textAlign: "center",
-                    flexShrink: 0
-                  }}>{j.dorsal}</span>
-                  <div style={{ minWidth: 0, overflow: "hidden", flex: 1 }}>
-                    <span style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 16.2,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      display: "block"
-                    }}>{j.nombre}</span>
+              <div
+                key={j.id}
+                className={`asistencia-row${estaPresente ? " asistencia-row--presente" : " asistencia-row--ausente"}`}
+              >
+                <div className="asistencia-row__main">
+                  <span className="asistencia-row__dorsal" style={{ color: accent }}>{j.dorsal}</span>
+                  <div className="asistencia-row__info">
+                    <span className="asistencia-row__nombre">{j.nombre}</span>
                     {(j.apodo && j.apodo.trim() !== "") && (
-                      <span style={{
-                        color: "#BFD6FF",
-                        fontSize: 13,
-                        fontWeight: 500,
-                        opacity: .75,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "block"
-                      }}>"{j.apodo}"</span>
+                      <span className="asistencia-row__apodo">"{j.apodo}"</span>
                     )}
                     {esExterna && getNombreEquipo && (
-                      <span style={{
-                        color: textSecondary,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        display: "block",
-                        marginTop: 2,
-                      }}>
+                      <span className="asistencia-row__equipo" style={{ color: textSecondary }}>
                         {getNombreEquipo(j.equipoId)}
                       </span>
                     )}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                  {esExterna && onQuitarJugadoraExterna && (
-                    <button
-                      type="button"
-                      aria-label="Quitar jugadora de la sesión"
-                      title="Quitar de esta sesión"
-                      onClick={() => onQuitarJugadoraExterna(j.id)}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 7,
-                        border: `1px solid ${inputBorder}`,
-                        background: "transparent",
-                        color: textMuted,
-                        fontSize: 16,
-                        lineHeight: 1,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      ×
-                    </button>
-                  )}
+                <div className="asistencia-row__controls">
                   {estaPresente && (
-                    <div style={{ display: "flex", gap: 2 }} aria-label="Valoración del 1 al 5">
+                    <div className="asistencia-rating-group" aria-label="Valoración del 1 al 5">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button
                           key={n}
                           type="button"
+                          className={`asistencia-rating-btn${valoracionActual === n ? " asistencia-rating-btn--active" : ""}`}
                           aria-label={`Valoración ${n}`}
                           aria-pressed={valoracionActual === n}
                           onClick={() => setValoraciones(prev => ({ ...prev, [j.id]: n }))}
                           style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: 6,
-                            border: valoracionActual === n
-                              ? `1.5px solid ${accent}`
-                              : `1px solid ${inputBorder}`,
-                            background: valoracionActual === n ? accent : "#1E1F25",
+                            borderColor: valoracionActual === n ? accent : inputBorder,
+                            background: valoracionActual === n ? accent : "transparent",
                             color: valoracionActual === n ? "#fff" : textMuted,
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            padding: 0,
-                            lineHeight: 1
                           }}
                         >
                           {n}
@@ -518,33 +628,35 @@ function AsistenciaValoracionPanel({
                       ))}
                     </div>
                   )}
-                  <button
-                    type="button"
-                    aria-label={estaPresente ? "Marcar ausente" : "Marcar presente"}
-                    title={estaPresente ? "Presente — pulsa para marcar ausente" : "Ausente — pulsa para marcar presente"}
-                    onClick={() => toggleAsistencia(j.id, estaPresente)}
-                    style={{
-                      width: 34,
-                      height: 34,
-                      flexShrink: 0,
-                      borderRadius: 9,
-                      border: "none",
-                      background: estaPresente ? verdePresente : rojoAusente,
-                      color: "#fff",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      lineHeight: 1,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: estaPresente
-                        ? "0 2px 8px rgba(52,199,89,0.35)"
-                        : "0 2px 8px rgba(255,69,58,0.3)",
-                    }}
-                  >
-                    {estaPresente ? "✓" : "✗"}
-                  </button>
+                  <div className="asistencia-action-group">
+                    {esExterna && onQuitarJugadoraExterna && (
+                      <button
+                        type="button"
+                        className="asistencia-remove-btn"
+                        aria-label="Quitar jugadora de la sesión"
+                        title="Quitar de esta sesión"
+                        onClick={() => onQuitarJugadoraExterna(j.id)}
+                        style={{ borderColor: inputBorder, color: textMuted }}
+                      >
+                        ×
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="asistencia-toggle-btn"
+                      aria-label={estaPresente ? "Marcar ausente" : "Marcar presente"}
+                      title={estaPresente ? "Presente — pulsa para marcar ausente" : "Ausente — pulsa para marcar presente"}
+                      onClick={() => toggleAsistencia(j.id, estaPresente)}
+                      style={{
+                        background: estaPresente ? verdePresente : rojoAusente,
+                        boxShadow: estaPresente
+                          ? "0 2px 8px rgba(52,199,89,0.35)"
+                          : "0 2px 8px rgba(255,69,58,0.3)",
+                      }}
+                    >
+                      {estaPresente ? "✓" : "✗"}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -566,6 +678,7 @@ function PlantillaForm({
   setJugadoraApodo,
   addJugadoraLoading,
   accent,
+  accentShadow,
   inputBorder,
   inputBg,
   surface,
@@ -658,7 +771,7 @@ function PlantillaForm({
           fontSize: 16,
           cursor: "pointer",
           marginTop: 5,
-          boxShadow: "0 4px 14px rgba(59, 130, 246, 0.28)",
+          boxShadow: `0 4px 14px ${accentShadow}`,
           transition: "all .16s",
           letterSpacing: "0.013em"
         }}
@@ -771,6 +884,113 @@ function getProximosEventosInicio(sesiones, hoy = new Date()) {
   return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
 }
 
+function getIconoClimaDecorativo(fechaStr) {
+  const iconos = ["☀️", "⛅", "🌤️", "🌥️", "💨"];
+  const hash = (fechaStr || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return iconos[hash % iconos.length];
+}
+
+function getMetricasEvento(sesion) {
+  const asist = sesion?.asistencias || {};
+  const entries = Object.entries(asist);
+  const total = entries.length;
+  const confirmadas = entries.filter(([, presente]) => presente === true).length;
+  return { confirmadas, total };
+}
+
+function HomeEventCard({
+  tipo,
+  sesion,
+  hoyStr,
+  mananaStr,
+  accent,
+  accentLight,
+  accentSoft,
+  accentBorder,
+  colorPartido,
+  colorPartidoLight,
+  colorPartidoSoft,
+  colorPartidoBorder,
+  text,
+  textMuted,
+  textSecondary,
+  success,
+  onOpen,
+}) {
+  const esPartido = tipo === "partido";
+  const color = esPartido ? colorPartido : accent;
+  const colorLight = esPartido ? colorPartidoLight : accentLight;
+  const colorSoft = esPartido ? colorPartidoSoft : accentSoft;
+  const colorBorder = esPartido ? colorPartidoBorder : accentBorder;
+  const titulo = esPartido ? "Próximo partido" : "Próximo entreno";
+  const metricas = sesion ? getMetricasEvento(sesion) : null;
+  const metricaLabel = esPartido ? "Convocadas" : "Confirmadas";
+  const metricaTexto = metricas?.total
+    ? `${metricaLabel}: ${metricas.confirmadas}/${metricas.total}`
+    : `${metricaLabel}: sin datos`;
+
+  return (
+    <article className={`home-event-card home-event-card--${tipo}`} style={{ borderLeftColor: color }}>
+      <div className="home-event-card__top">
+        <div className="home-event-card__title-wrap">
+          <IconCalendar size={17} color={colorLight} />
+          <span className="home-event-card__title" style={{ color: colorLight }}>{titulo}</span>
+        </div>
+        {sesion && (
+          <div className="home-event-card__badges">
+            <span className="home-event-card__badge" style={{ background: colorSoft, color: colorLight, borderColor: colorBorder }}>
+              {etiquetaDiaRelativo(sesion.fecha, hoyStr, mananaStr)}
+            </span>
+            <span className="home-event-card__weather" title="Previsión orientativa">{getIconoClimaDecorativo(sesion.fecha)}</span>
+          </div>
+        )}
+      </div>
+
+      {sesion ? (
+        <>
+          <div className="home-event-card__body">
+            <h3 className="home-event-card__headline" style={{ color: text }}>
+              {esPartido
+                ? `vs ${sesion.rival?.trim() || "Rival por confirmar"}`
+                : (sesion.tematica?.trim() || "Entrenamiento")}
+            </h3>
+            <p className="home-event-card__meta" style={{ color: textMuted }}>
+              {formatearFechaCorta(sesion.fecha)}
+              {esPartido
+                ? (sesion.local === "fuera" ? " · Fuera" : " · En casa")
+                : (sesion.ejercicios?.trim() ? ` · ${sesion.ejercicios.trim().slice(0, 48)}${sesion.ejercicios.trim().length > 48 ? "…" : ""}` : "")}
+            </p>
+          </div>
+          <div className="home-event-card__footer">
+            <div className="home-event-card__metrics">
+              <span className="home-event-card__metric" style={{ color: textSecondary }}>
+                {metricaTexto}
+              </span>
+              {metricas?.total > 0 && (
+                <span className="home-event-card__metric" style={{ color: success }}>
+                  {Math.round((metricas.confirmadas / metricas.total) * 100)}% lista
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="home-event-card__action"
+              onClick={() => onOpen(sesion.fecha)}
+              style={{ color: colorLight, borderColor: colorBorder }}
+            >
+              Ver en calendario
+            </button>
+          </div>
+        </>
+      ) : (
+        <p className="home-event-card__empty" style={{ color: textMuted }}>
+          {esPartido ? "No hay partidos programados." : "No hay entreno programado para hoy ni para mañana."}
+        </p>
+      )}
+    </article>
+  );
+}
+
 function getRangoFechasEstadisticas(periodo, desde, hasta) {
   const hoy = new Date();
   if (periodo === "semanal") {
@@ -830,11 +1050,11 @@ function EstadisticasTablaTipo({
 }) {
   const esPartido = tipo === "partido";
   const {
-    accent, accentLight, colorPartido, text, textMuted, textSecondary,
+    accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary,
     surface, error, success, inputBorder, cardBgElevated,
   } = theme;
   const color = esPartido ? colorPartido : accent;
-  const colorLight = esPartido ? "#A78BFA" : accentLight;
+  const colorLight = esPartido ? colorPartidoLight : accentLight;
   const titulo = esPartido ? "Partidos" : "Entrenos";
   const statsKey = esPartido ? "partidos" : "entrenos";
   const labelPresentes = esPartido ? "Conv." : "Asist.";
@@ -865,19 +1085,27 @@ function EstadisticasTablaTipo({
         </span>
       </div>
       <div className="stats-table stats-table--tipo" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="stats-table-header stats-table-header--tipo" style={{ color: textMuted }}>
+        <div className="stats-table-header stats-table-header--tipo">
           <span>#</span>
           <span>Jugadora</span>
-          <span style={{ color: colorLight }} title="Sesiones en el periodo">Ses.</span>
-          <span style={{ color: colorLight }} title={esPartido ? "Convocadas" : "Asistencias"}>{labelPresentes}</span>
-          <span style={{ color: colorLight }} title={esPartido ? "No convocadas" : "Ausencias"}>{labelAusencias}</span>
-          <span style={{ color: colorLight }} title="Nota media">Nota</span>
+          <span title="Sesiones en el periodo">Ses.</span>
+          <span title={esPartido ? "Convocadas" : "Asistencias"}>{labelPresentes}</span>
+          <span title={esPartido ? "No convocadas" : "Ausencias"}>{labelAusencias}</span>
+          <span title="Nota media">Nota</span>
         </div>
         {estadisticas.map(({ jugadora: j, [statsKey]: stats }) => (
-          <div key={j.id} className="stats-table-row stats-table-row--tipo">
+          <div
+            key={j.id}
+            className="stats-table-row stats-table-row--tipo"
+            style={{
+              background: cardBgElevated,
+              border: `1px solid ${inputBorder}`,
+              color: text,
+            }}
+          >
             <span style={{ color, fontWeight: 700, fontSize: 15, textAlign: "center" }}>{j.dorsal}</span>
             <div style={{ minWidth: 0, overflow: "hidden" }}>
-              <div style={{ color: text, fontWeight: 600, fontSize: 14.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{j.nombre}</div>
+              <div className="stats-table-row__nombre">{j.nombre}</div>
             </div>
             <span style={{ textAlign: "center", color: textMuted, fontWeight: 600, fontSize: 13 }}>{stats.total}</span>
             <span style={{ textAlign: "center", color: success, fontWeight: 700, fontSize: 13 }}>{stats.presentes}</span>
@@ -971,6 +1199,35 @@ function App() {
   // Equipo activo y tabs
   const [equipoActivo, setEquipoActivo] = useState(null);
   const [tab, setTab] = useState("home");
+  const [devicePreview, setDevicePreview] = useState("mobile");
+  const [colorMode, setColorMode] = useState(() => getStoredTheme());
+
+  useEffect(() => {
+    applyThemeToDocument(colorMode);
+    persistTheme(colorMode);
+  }, [colorMode]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event) => {
+      try {
+        if (localStorage.getItem(STORAGE_THEME_KEY)) return;
+      } catch {
+        /* ignore */
+      }
+      setColorMode(event.matches ? "dark" : "light");
+    };
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  const toggleColorMode = () => {
+    setColorMode(prev => (prev === "dark" ? "light" : "dark"));
+  };
+
+  const theme = THEMES[colorMode];
+  const glassCardStyle = getGlassCardStyle(colorMode);
+  const isDarkMode = colorMode === "dark";
 
   // Estado de jugadoras
   const [jugadoras, setJugadoras] = useState([]);
@@ -1027,23 +1284,31 @@ function App() {
   const [fechaSesionSeleccionada, setFechaSesionSeleccionada] = useState(null); // Si está en panel de sesión, guarda la fecha string "YYYY-MM-DD"
 
   // Colores
-  const bgDark = THEME.bg;
-  const accent = THEME.accent;
-  const accentSoft = THEME.accentSoft;
-  const accentLight = THEME.accentLight;
-  const cardBg = THEME.cardBg;
-  const cardBgElevated = THEME.cardBgElevated;
-  const surface = THEME.surface;
-  const cardShadow = THEME.cardShadow;
-  const inputBg = THEME.inputBg;
-  const inputBorder = THEME.inputBorder;
-  const text = THEME.text;
-  const textSecondary = THEME.textSecondary;
-  const textMuted = THEME.textMuted;
-  const success = THEME.success;
-  const error = THEME.error;
-
-  const colorPartido = "#8B5CF6";
+  const bgDark = theme.bg;
+  const accent = theme.accent;
+  const accentSoft = theme.accentSoft;
+  const accentLight = theme.accentLight;
+  const accentShadow = theme.accentShadow;
+  const accentBorder = theme.accentBorder;
+  const accentBgSubtle = theme.accentBgSubtle;
+  const tableHeader = theme.tableHeader;
+  const tableHeaderAccent = theme.tableHeaderAccent;
+  const cardBg = theme.cardBg;
+  const cardBgElevated = theme.cardBgElevated;
+  const surface = theme.surface;
+  const cardShadow = theme.cardShadow;
+  const inputBg = theme.inputBg;
+  const inputBorder = theme.inputBorder;
+  const text = theme.text;
+  const textSecondary = theme.textSecondary;
+  const textMuted = theme.textMuted;
+  const success = theme.success;
+  const error = theme.error;
+  const colorPartido = theme.colorPartido;
+  const colorPartidoLight = theme.colorPartidoLight;
+  const colorPartidoSoft = theme.colorPartidoSoft;
+  const colorPartidoBorder = theme.colorPartidoBorder;
+  const onAccent = theme.onAccent;
   const sesionSetters = {
     setTematica, setEjercicios, setAsistencias, setValoraciones,
     setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
@@ -1249,7 +1514,7 @@ function App() {
     return () => {
       if (typeof unsub === "function") unsub();
     };
-  }, [equipoActivo, userData?.clubId, tab]);
+  }, [equipoActivo, userData?.clubId, userData?.rol, tab]);
 
   // Jugadoras y equipos del club (para convocar de otros equipos en sesiones)
   useEffect(() => {
@@ -1625,14 +1890,17 @@ function App() {
   if (!user) {
     return (
       <div className="login-page" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
-        <BlurredBackground />
+        <BlurredBackground isDark={isDarkMode} />
+        <div className="login-page__toolbar">
+          <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
+        </div>
         <div className="login-card" style={{ ...glassCardStyle, display: "flex", flexDirection: "column", gap: 18, border: `1px solid ${inputBorder}`, boxShadow: cardShadow }}>
           <AppBrand accent={accent} text={text} fontSize={26} />
           <div style={{ color: textSecondary, fontSize: 16, marginTop: 4, fontWeight: 500 }}>Inicia sesión para continuar</div>
           <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }} autoComplete="off">
             <input type="email" placeholder="Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" style={{ padding: "13px 16px", fontSize: 15, background: inputBg, color: text, border: `1px solid ${inputBorder}`, borderRadius: 12, outline: "none", transition: "border .18s" }} onFocus={e => (e.target.style.border = `1.5px solid ${accent}`)} onBlur={e => (e.target.style.border = `1px solid ${inputBorder}`)} />
             <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" style={{ padding: "13px 16px", fontSize: 15, background: inputBg, color: text, border: `1px solid ${inputBorder}`, borderRadius: 12, outline: "none", transition: "border .18s" }} onFocus={e => (e.target.style.border = `1.5px solid ${accent}`)} onBlur={e => (e.target.style.border = `1px solid ${inputBorder}`)} />
-            <button type="submit" style={{ marginTop: 4, padding: "13px 0", background: accent, color: "#fff", fontWeight: 600, fontSize: 16, border: "none", borderRadius: 12, cursor: "pointer", transition: "all .12s", boxShadow: "0 4px 16px rgba(59,130,246,0.35)", letterSpacing: ".2px" }}>Ingresar</button>
+            <button type="submit" style={{ marginTop: 4, padding: "13px 0", background: accent, color: "#fff", fontWeight: 600, fontSize: 16, border: "none", borderRadius: 12, cursor: "pointer", transition: "all .12s", boxShadow: "0 4px 16px rgba(42, 101, 112, 0.35)", letterSpacing: ".2px" }}>Ingresar</button>
           </form>
           <div style={{ textAlign: "center", color: textMuted, margin: "4px 0", fontSize: 12, fontWeight: 500 }}>— o continúa con —</div>
           <button onClick={handleGoogleLogin} style={{ background: surface, color: text, border: `1px solid ${inputBorder}`, padding: "12px 0", borderRadius: 12, fontWeight: 600, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
@@ -1667,12 +1935,12 @@ function App() {
       };
 
       tabContent = (
-        <div className="home-dashboard" style={{ width: "100%", maxWidth: 520, margin: "0 auto", padding: "28px 0 16px" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ color: text, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
+        <div className="home-dashboard" style={{ margin: "0 auto", padding: "16px 0 8px" }}>
+          <div className="home-dashboard__intro">
+            <div style={{ color: text, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>
               {equipoActivo.nombre}
             </div>
-            <div style={{ marginTop: 8, fontSize: 15, fontWeight: 500, color: textSecondary }}>
+            <div style={{ marginTop: 4, fontSize: 14, fontWeight: 500, color: textSecondary }}>
               Resumen del equipo
             </div>
           </div>
@@ -1682,132 +1950,45 @@ function App() {
               Cargando calendario…
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{
-                background: cardBgElevated,
-                borderRadius: 14,
-                border: `1px solid ${inputBorder}`,
-                borderLeft: `4px solid ${accent}`,
-                padding: "16px 18px",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <IconCalendar size={18} color={accentLight} />
-                    <span style={{ color: accentLight, fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                      Próximo entreno
-                    </span>
-                  </div>
-                  {proximoEntreno && (
-                    <span style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 99,
-                      background: accentSoft,
-                      color: accentLight,
-                      border: `1px solid rgba(59,130,246,0.35)`,
-                    }}>
-                      {etiquetaDiaRelativo(proximoEntreno.fecha, hoyStr, mananaStr)}
-                    </span>
-                  )}
-                </div>
-                {proximoEntreno ? (
-                  <>
-                    <div style={{ color: text, fontWeight: 600, fontSize: 17, marginBottom: 6 }}>
-                      {proximoEntreno.tematica?.trim() || "Entrenamiento"}
-                    </div>
-                    <div style={{ color: textMuted, fontSize: 14, marginBottom: 12 }}>
-                      {formatearFechaCorta(proximoEntreno.fecha)}
-                      {proximoEntreno.ejercicios?.trim() ? ` · ${proximoEntreno.ejercicios.trim().slice(0, 60)}${proximoEntreno.ejercicios.trim().length > 60 ? "…" : ""}` : ""}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => abrirEnCalendario(proximoEntreno.fecha)}
-                      style={{
-                        background: "transparent",
-                        color: accentLight,
-                        border: `1px solid rgba(59,130,246,0.35)`,
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      Ver en calendario
-                    </button>
-                  </>
-                ) : (
-                  <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.5 }}>
-                    No hay entreno programado para hoy ni para mañana.
-                  </div>
-                )}
-              </div>
-
-              <div style={{
-                background: cardBgElevated,
-                borderRadius: 14,
-                border: `1px solid ${inputBorder}`,
-                borderLeft: `4px solid ${colorPartido}`,
-                padding: "16px 18px",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <IconCalendar size={18} color={colorPartido} />
-                    <span style={{ color: colorPartido, fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                      Próximo partido
-                    </span>
-                  </div>
-                  {proximoPartido && (
-                    <span style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 99,
-                      background: "rgba(139,92,246,0.18)",
-                      color: "#C4B5FD",
-                      border: "1px solid rgba(139,92,246,0.45)",
-                    }}>
-                      {etiquetaDiaRelativo(proximoPartido.fecha, hoyStr, mananaStr)}
-                    </span>
-                  )}
-                </div>
-                {proximoPartido ? (
-                  <>
-                    <div style={{ color: text, fontWeight: 600, fontSize: 17, marginBottom: 6 }}>
-                      vs {proximoPartido.rival?.trim() || "Rival por confirmar"}
-                    </div>
-                    <div style={{ color: textMuted, fontSize: 14, marginBottom: 12 }}>
-                      {formatearFechaCorta(proximoPartido.fecha)}
-                      {proximoPartido.local === "fuera" ? " · Fuera" : " · En casa"}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => abrirEnCalendario(proximoPartido.fecha)}
-                      style={{
-                        background: "transparent",
-                        color: "#C4B5FD",
-                        border: "1px solid rgba(139,92,246,0.45)",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      Ver en calendario
-                    </button>
-                  </>
-                ) : (
-                  <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.5 }}>
-                    No hay partidos programados.
-                  </div>
-                )}
-              </div>
+            <div className="home-dashboard__cards">
+              <HomeEventCard
+                tipo="entreno"
+                sesion={proximoEntreno}
+                hoyStr={hoyStr}
+                mananaStr={mananaStr}
+                accent={accent}
+                accentLight={accentLight}
+                accentSoft={accentSoft}
+                accentBorder={accentBorder}
+                colorPartido={colorPartido}
+                colorPartidoLight={colorPartidoLight}
+                colorPartidoSoft={colorPartidoSoft}
+                colorPartidoBorder={colorPartidoBorder}
+                text={text}
+                textMuted={textMuted}
+                textSecondary={textSecondary}
+                success={success}
+                onOpen={abrirEnCalendario}
+              />
+              <HomeEventCard
+                tipo="partido"
+                sesion={proximoPartido}
+                hoyStr={hoyStr}
+                mananaStr={mananaStr}
+                accent={accent}
+                accentLight={accentLight}
+                accentSoft={accentSoft}
+                accentBorder={accentBorder}
+                colorPartido={colorPartido}
+                colorPartidoLight={colorPartidoLight}
+                colorPartidoSoft={colorPartidoSoft}
+                colorPartidoBorder={colorPartidoBorder}
+                text={text}
+                textMuted={textMuted}
+                textSecondary={textSecondary}
+                success={success}
+                onOpen={abrirEnCalendario}
+              />
             </div>
           )}
         </div>
@@ -1848,27 +2029,11 @@ function App() {
           )}
           {/* Panel mensual */}
           {!fechaSesionSeleccionada && (
-            <div className="content-wide" style={{
-              marginBottom: 6,
-              background: cardBgElevated,
-              borderRadius: 16,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "18px 7px 20px 7px",
-              border: `1.1px solid ${inputBorder}`
-            }}>
-              {/* Controles Mes */}
-              <div style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 9,
-                padding: "2px 10px 2px 10px"
-              }}>
+            <div className="content-wide calendar-panel">
+              <div className="calendar-nav">
                 <button
+                  type="button"
+                  className="calendar-nav-btn"
                   onClick={() => {
                     if (mesActual === 0) {
                       setMesActual(11);
@@ -1877,29 +2042,15 @@ function App() {
                       setMesActual(mesActual - 1);
                     }
                   }}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: accent,
-                    fontWeight: "bold",
-                    fontSize: 25,
-                    cursor: "pointer",
-                    borderRadius: 7,
-                    padding: "7px 10px",
-                    outline: "none"
-                  }}
                   tabIndex={0}
                   aria-label="Mes anterior"
                 >{"‹"}</button>
-                <span style={{
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 18.5,
-                  letterSpacing: ".06em"
-                }}>
+                <span className="calendar-month-title">
                   {monthNames[mesActual]} {anioActual}
                 </span>
                 <button
+                  type="button"
+                  className="calendar-nav-btn"
                   onClick={() => {
                     if (mesActual === 11) {
                       setMesActual(0);
@@ -1908,50 +2059,19 @@ function App() {
                       setMesActual(mesActual + 1);
                     }
                   }}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: accent,
-                    fontWeight: "bold",
-                    fontSize: 25,
-                    cursor: "pointer",
-                    borderRadius: 7,
-                    padding: "7px 10px",
-                    outline: "none"
-                  }}
                   tabIndex={0}
                   aria-label="Mes siguiente"
                 >{"›"}</button>
               </div>
-              {/* Días del encabezado */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(7,1fr)",
-                  gap: 6,
-                  justifyItems: "center",
-                  width: "100%",
-                  marginBottom: 4
-                }}
-              >
+              <div className="calendar-weekdays">
                 {dayNames.map(d => (
-                  <div key={d} style={{
-                    color: "#888",
-                    fontWeight: 700,
-                    fontSize: 15.5,
-                    letterSpacing: ".02em"
-                  }}>{d}</div>
+                  <div key={d} className="calendar-weekday">{d}</div>
                 ))}
               </div>
-              {/* Matriz semanas */}
-              <div style={{
-                display: "grid",
-                gridTemplateRows: `repeat(${weeksMatrix.length},1fr)`,
-                gridTemplateColumns: "repeat(7,1fr)",
-                gap: 5,
-                width: "100%",
-                margin: "0 auto"
-              }}>
+              <div
+                className="calendar-grid"
+                style={{ gridTemplateRows: `repeat(${weeksMatrix.length}, 1fr)` }}
+              >
                 {weeksMatrix.map((semana, widx) =>
                   semana.map(({ date, otherMonth }, didx) => {
                     const ymd = formatDateYYYYMMDD(date);
@@ -1963,50 +2083,25 @@ function App() {
                     return (
                       <button
                         key={widx + "-" + didx}
+                        type="button"
                         disabled={otherMonth}
                         onClick={() => setFechaSesionSeleccionada(ymd)}
+                        className={`calendar-day${otherMonth ? " calendar-day--other" : ""}${ymd === hoy ? " calendar-day--today" : ""}`}
                         style={{
-                          background: otherMonth ? "#202125" : "#292A33",
-                          color: otherMonth ? "#525463" : "#FFF",
-                          filter: ymd === hoy ? "brightness(1.09)" : "none",
-                          fontWeight: 700,
-                          fontSize: 16.2,
-                          width: 44,
-                          height: 44,
-                          maxWidth: 44,
-                          maxHeight: 44,
-                          border: `1.7px solid ${tieneSesion ? colorEvento : inputBorder}`,
-                          borderRadius: 12,
-                          boxShadow: "0 1.3px 3px 0 rgba(59,130,246,0.10)",
-                          cursor: otherMonth ? "not-allowed" : "pointer",
-                          position: "relative",
-                          transition: "border .14s"
+                          borderColor: tieneSesion ? colorEvento : undefined,
                         }}
                         tabIndex={otherMonth ? -1 : 0}
                       >
                         {date.getDate()}
                         {tieneSesion && (
-                          <span style={{
-                            position: "absolute",
-                            left: "50%",
-                            bottom: 5,
-                            transform: "translateX(-50%)",
-                            width: 10,
-                            height: 10,
-                            borderRadius: 99,
-                            background: colorEvento,
-                            boxShadow: "0 1px 8px 0 rgba(59,130,246,0.13)",
-                            display: "block",
-                          }} />
+                          <span
+                            className="calendar-day__dot"
+                            style={{ background: colorEvento }}
+                          />
                         )}
-                        {ymd === hoy &&
-                          <span style={{
-                            position: "absolute",
-                            top: 2.5, right: 2.5,
-                            background: accent,
-                            borderRadius: 6, width: 11, height: 5,
-                            opacity: 0.88
-                          }} title="Hoy" />}
+                        {ymd === hoy && (
+                          <span className="calendar-day__today-mark" title="Hoy" />
+                        )}
                       </button>
                     );
                   })
@@ -2043,7 +2138,7 @@ function App() {
                   padding: "9px 18px",
                   marginBottom: 18,
                   width: "fit-content",
-                  boxShadow: "0 2px 8px rgba(59,130,246,0.10)",
+                  boxShadow: "0 2px 8px rgba(42, 101, 112, 0.10)",
                   cursor: "pointer",
                   alignSelf: "flex-start",
                   marginTop: -4,
@@ -2074,7 +2169,7 @@ function App() {
                     borderRadius: 99,
                     background: tipoSesion === "partido" ? "rgba(139,92,246,0.2)" : accentSoft,
                     color: tipoSesion === "partido" ? colorPartido : accentLight,
-                    border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "rgba(59,130,246,0.35)"}`,
+                    border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "rgba(42, 101, 112, 0.35)"}`,
                     textTransform: "uppercase",
                     letterSpacing: "0.06em"
                   }}>
@@ -2104,7 +2199,7 @@ function App() {
                             fontWeight: 700,
                             fontSize: 16,
                             cursor: "pointer",
-                            boxShadow: "0 4px 14px rgba(59,130,246,0.28)",
+                            boxShadow: "0 4px 14px rgba(42, 101, 112, 0.28)",
                           }}
                           onClick={() => handleCrearSesion("entreno")}
                           disabled={guardandoSesion}
@@ -2294,6 +2389,8 @@ function App() {
                             setBusquedaJugadoraClub={setBusquedaJugadoraClub}
                             onAgregarJugadoraExterna={handleAgregarJugadoraExterna}
                             onQuitarJugadoraExterna={handleQuitarJugadoraExterna}
+                            onGoToPlantilla={() => setTab("plantilla")}
+                            text={text}
                           />
                         </div>
                       </div>
@@ -2389,8 +2486,25 @@ function App() {
               Cargando estadísticas...
             </div>
           ) : jugadoras.length === 0 ? (
-            <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5 }}>
-              No hay jugadoras en la plantilla.
+            <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5, textAlign: "center" }}>
+              No hay jugadoras en la plantilla.{" "}
+              <button
+                type="button"
+                onClick={() => setTab("plantilla")}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: accent,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  padding: 0,
+                  fontFamily: "inherit",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 3,
+                }}
+              >
+                Ir a Plantilla
+              </button>
             </div>
           ) : sesionesFiltradas.length === 0 ? (
             <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5, textAlign: "center", lineHeight: 1.5 }}>
@@ -2419,7 +2533,7 @@ function App() {
                     className={`stats-type-nav-btn${statsVista === key ? " stats-type-nav-btn--active" : ""}`}
                     style={{
                       flex: 1,
-                      border: statsVista === key ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(59,130,246,0.35)" : inputBorder}` : "1px solid transparent",
+                      border: statsVista === key ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(42, 101, 112, 0.35)" : inputBorder}` : "1px solid transparent",
                       background: statsVista === key
                         ? (key === "partidos" ? "rgba(139,92,246,0.18)" : key === "entrenos" ? accentSoft : "rgba(148,163,184,0.12)")
                         : "transparent",
@@ -2437,7 +2551,7 @@ function App() {
                     tipo="entreno"
                     totalSesiones={totalEntrenos}
                     estadisticas={estadisticas}
-                    theme={{ accent, accentLight, colorPartido, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated }}
+                    theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
                   />
                 )}
                 {(statsVista === "partidos" || statsVista === "todo") && (
@@ -2445,7 +2559,7 @@ function App() {
                     tipo="partido"
                     totalSesiones={totalPartidos}
                     estadisticas={estadisticas}
-                    theme={{ accent, accentLight, colorPartido, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated }}
+                    theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
                   />
                 )}
               </div>
@@ -2455,7 +2569,7 @@ function App() {
       );
     } else if (tab === "plantilla") {
       tabContent = (
-        <div style={{ display: "flex", flexDirection: "column", gap: 27, width: "100%", alignItems: "center", padding: "13px 0 33px 0" }}>
+        <div className="plantilla-tab" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%", padding: "13px 0 33px 0" }}>
           <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginBottom: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <IconUsers size={22} color={accent} />
             Plantilla de Jugadoras
@@ -2470,6 +2584,7 @@ function App() {
             setJugadoraApodo={setJugadoraApodo}
             addJugadoraLoading={addJugadoraLoading}
             accent={accent}
+            accentShadow={accentShadow}
             inputBorder={inputBorder}
             inputBg={inputBg}
             surface={surface}
@@ -2487,9 +2602,9 @@ function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: 24, width: "100%" }}>
                       <div style={{ color: accent, fontWeight: 700, fontSize: 22, width: 37, textAlign: "center" }}>{j.dorsal}</div>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 0 }}>
-                        <span style={{ color: "#fff", fontWeight: 600, fontSize: 17.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{j.nombre}</span>
+                        <span style={{ color: text, fontWeight: 600, fontSize: 17.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{j.nombre}</span>
                         {(j.apodo && j.apodo.trim() !== "") && (
-                          <span style={{ color: "#BFD6FF", fontSize: 13.5, fontWeight: 500, opacity: .82 }}>"{j.apodo}"</span>
+                          <span style={{ color: textSecondary, fontSize: 13.5, fontWeight: 500, opacity: .82 }}>"{j.apodo}"</span>
                         )}
                       </div>
                     </div>
@@ -2509,34 +2624,38 @@ function App() {
   const esSuperadmin = userData?.rol === "superadmin";
 
   const renderEquiposLista = ({ titulo, mostrarClub, permitirCrear }) => (
-    <div style={{ color: "#fff", fontSize: 22.5, fontWeight: "bold", textAlign: "center", letterSpacing: "0.04em", textShadow: "0 2px 10px rgba(0,0,0,0.08)", padding: "18px 0 13px 0", width: "100%" }}>
-      <span style={{ color: accent, fontSize: 27 }}>{titulo}</span>
+    <div className="section-heading">
+      <span className="section-heading__accent">{titulo}</span>
       {permitirCrear && userData?.clubId && (
-        <form onSubmit={handleCrearEquipo} className="content-medium" style={{ margin: "35px auto 14px auto", width: "96%", display: "flex", alignItems: "center", background: "#22232A", borderRadius: 14, boxShadow: "0 1px 10px 0 rgba(0,0,0,0.10)", border: `1.2px solid ${inputBorder}` }}>
-          <input type="text" placeholder="Nuevo nombre de Equipo" value={nuevoEquipoNombre} onChange={e => setNuevoEquipoNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: "#fff", outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={crearEquipoLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "0 1px 10px 0 rgba(0,0,0,0.10)")} />
-          <button type="submit" style={{ background: accent, color: "#fff", border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px 0 rgba(59,130,246,0.08), 0 1px 1px 0 rgba(0,0,0,0.13)", letterSpacing: 0.3 }} disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()} onMouseOver={e => (e.currentTarget.style.filter = "brightness(1.13)")} onMouseOut={e => (e.currentTarget.style.filter = "none")}>Crear</button>
+        <form onSubmit={handleCrearEquipo} className="content-medium form-shell" style={{ margin: "35px auto 14px auto", width: "96%" }}>
+          <input type="text" placeholder="Nuevo nombre de Equipo" value={nuevoEquipoNombre} onChange={e => setNuevoEquipoNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={crearEquipoLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
+          <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()}>Crear</button>
         </form>
       )}
       <div className="content-medium responsive-grid-list" style={{ width: "98%", margin: "17px auto 0" }}>
         {equiposLoading ? (
-          <div style={{ color: "#aaa", fontSize: 17, fontStyle: "italic", padding: "12px 0", gridColumn: "1 / -1" }}>Cargando equipos...</div>
+          <div className="empty-state-text" style={{ fontSize: 17, padding: "12px 0", gridColumn: "1 / -1" }}>Cargando equipos...</div>
         ) : equipos.length === 0 ? (
-          <div style={{ color: "#757690", fontStyle: "italic", fontSize: 16.5, gridColumn: "1 / -1" }}>
+          <div className="empty-state-text" style={{ fontSize: 16.5, gridColumn: "1 / -1" }}>
             {permitirCrear ? "No hay equipos aún. ¡Crea el primero!" : "No hay equipos registrados."}
           </div>
         ) : (
           equipos.map(equipo => (
-            <div key={equipo.id} style={{ background: "#242530", borderRadius: 14, boxShadow: "0 2px 12px 0 rgba(0,0,0,0.12)", padding: "16px 20px", color: "#fff", display: "flex", alignItems: "center", fontSize: 17.5, fontWeight: 600, borderLeft: `4.5px solid ${equipo.clubId === userData?.clubId ? accent : "#64748B"}`, justifyContent: "space-between", borderBottom: `1.2px solid #232230`, transition: "background .13s, border .13s" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, minWidth: 0, flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0, width: "100%" }}>
-                  <span style={{ color: accent, fontWeight: "bold", fontSize: 18, flexShrink: 0 }}>●</span>
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{equipo.nombre}</span>
+            <div
+              key={equipo.id}
+              className="entity-list-card"
+              style={{ borderLeftColor: equipo.clubId === userData?.clubId ? accent : textMuted }}
+            >
+              <div className="entity-list-card__body">
+                <div className="entity-list-card__title-row">
+                  <span className="entity-list-card__dot">●</span>
+                  <span className="entity-list-card__title">{equipo.nombre}</span>
                 </div>
                 {mostrarClub && (
-                  <span style={{ color: textMuted, fontSize: 13, fontWeight: 500, paddingLeft: 29 }}>{getClubNombre(equipo.clubId)}</span>
+                  <span className="entity-list-card__meta">{getClubNombre(equipo.clubId)}</span>
                 )}
               </div>
-              <button style={{ background: accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 21px", fontWeight: "bold", fontSize: 16, cursor: "pointer", marginLeft: 14, flexShrink: 0, transition: "filter .16s", boxShadow: "0 2px 8px rgba(59,130,246,0.10)", letterSpacing: "0.015em" }} onMouseOver={e => e.currentTarget.style.filter = "brightness(1.11)"} onMouseOut={e => e.currentTarget.style.filter = "none"} onClick={() => setEquipoActivo(equipo)}>Entrar</button>
+              <button type="button" className="entity-list-card__action" onClick={() => setEquipoActivo(equipo)}>Entrar</button>
             </div>
           ))
         )}
@@ -2544,38 +2663,77 @@ function App() {
     </div>
   );
 
-  const renderTeamLayout = () => (
-    <div className="app-team-layout">
-      <TabNav tabsMenu={tabsMenu} tab={tab} setTab={setTab} accent={accent} accentSoft={accentSoft} textMuted={textMuted} inputBorder={inputBorder} variant="desktop" />
-      <div className="app-team-content">
-        {tabContent}
-        <TabNav tabsMenu={tabsMenu} tab={tab} setTab={setTab} accent={accent} accentSoft={accentSoft} textMuted={textMuted} inputBorder={inputBorder} variant="mobile" />
+  const getNombreClubActivo = () => {
+    if (userData?.clubNombre && (!equipoActivo?.clubId || equipoActivo.clubId === userData.clubId)) {
+      return userData.clubNombre;
+    }
+    if (equipoActivo?.clubId) {
+      const nombre = getClubNombre(equipoActivo.clubId);
+      if (nombre !== "Club") return nombre;
+    }
+    return userData?.clubNombre || "Club";
+  };
+
+  const renderTeamLayout = () => {
+    const contextProps = {
+      clubNombre: getNombreClubActivo(),
+      equipoNombre: equipoActivo.nombre,
+      onCambiarEquipo: () => setEquipoActivo(null),
+      accent,
+      accentLight,
+      accentSoft,
+      accentBorder,
+      text,
+      textSecondary,
+      textMuted,
+    };
+    const tabNavProps = { tabsMenu, tab, setTab, accent, accentSoft, textMuted, inputBorder };
+
+    return (
+      <div className="app-team-layout">
+        <aside className="app-team-sidebar">
+          <TeamContextHeader {...contextProps} variant="sidebar" />
+          <TabNav {...tabNavProps} variant="desktop" />
+        </aside>
+        <div className="app-team-content">
+          <TeamContextHeader {...contextProps} variant="compact" />
+          <div className="app-tab-panel">
+            {tabContent ?? (
+              <div style={{ color: textMuted, textAlign: "center", padding: "24px 12px" }}>
+                Selecciona una sección del menú.
+              </div>
+            )}
+          </div>
+          <TabNav {...tabNavProps} variant="mobile" />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
   return (
-    <div className="app-shell" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
-      <BlurredBackground />
+    <div
+      className="app-shell"
+      data-device-preview={devicePreview}
+      style={{ fontFamily: "'Inter',system-ui,sans-serif" }}
+    >
+      <BlurredBackground isDark={isDarkMode} />
       {/* Header */}
       <header className="app-header">
         <div className="app-header-bar" style={{ ...glassCardStyle, borderRadius: 16, boxShadow: cardShadow, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", border: `1px solid ${inputBorder}` }}>
           <AppBrand accent={accent} text={text} fontSize={22} />
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {equipoActivo && (userData?.clubId || esSuperadmin) && (
-              <button onClick={() => setEquipoActivo(null)} style={{ background: surface, color: textSecondary, border: `1px solid ${inputBorder}`, borderRadius: 10, padding: "8px 14px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", transition: "all .16s", display: "flex", alignItems: "center", gap: 4 }} tabIndex={0}>
-                <IconChevronLeft color={textSecondary} />
-                Equipos
-              </button>
-            )}
-            <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(59,130,246,0.3)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
+          <div className="app-header-actions">
+            <span className="app-header-role" style={{ color: textMuted }}>
+              Rol:&nbsp;<span style={{ color: accentLight, fontWeight: 600 }}>{userData?.rol ?? "N/A"}</span>
+            </span>
+            <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
+            <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
+            <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(42, 101, 112, 0.30)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
           </div>
         </div>
-        <div className="app-header-meta" style={{ color: textMuted, fontWeight: 500, fontSize: 13, textAlign: "right", letterSpacing: ".02em" }}>
-          Rol:&nbsp;<span style={{ color: accentLight, fontWeight: 600 }}>{userData?.rol ?? "N/A"}</span>
-        </div>
       </header>
+      <div className="device-preview-viewport">
+        <div className="device-preview-frame">
       <main className="app-main">
-        <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: "center" }}>
+        <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav ? "stretch" : "center", width: "100%" }}>
           {esSuperadmin ? (
             equipoActivo ? (
               renderTeamLayout()
@@ -2594,7 +2752,7 @@ function App() {
                         flex: 1,
                         padding: "10px 14px",
                         borderRadius: 9,
-                        border: superadminVista === key ? `1px solid rgba(59,130,246,0.35)` : "1px solid transparent",
+                        border: superadminVista === key ? `1px solid rgba(42, 101, 112, 0.35)` : "1px solid transparent",
                         background: superadminVista === key ? accentSoft : "transparent",
                         color: superadminVista === key ? accentLight : textMuted,
                         fontWeight: 600,
@@ -2610,7 +2768,7 @@ function App() {
 
                 {superadminVista === "clubes" ? (
                   <>
-                    <h2 style={{ color: accent, fontWeight: "bold", marginBottom: 16, fontSize: 30, letterSpacing: 0.7, textAlign: "center", textShadow: "0 4px 18px rgba(59,130,246,0.13)" }}>Panel de Gestión de Clubes</h2>
+                    <h2 style={{ color: accent, fontWeight: "bold", marginBottom: 16, fontSize: 30, letterSpacing: 0.7, textAlign: "center", textShadow: "0 4px 18px rgba(42, 101, 112, 0.13)" }}>Panel de Gestión de Clubes</h2>
                     <div style={{ width: "97%", marginBottom: 22, padding: "14px 18px", background: cardBgElevated, borderRadius: 12, border: `1px solid ${inputBorder}` }}>
                       {userData?.clubId ? (
                         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -2627,31 +2785,31 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <form onSubmit={handleCrearClub} className="content-wide" style={{ display: "flex", gap: 0, width: "96%", marginBottom: 30, alignItems: "center", background: "#22232A", borderRadius: 14, boxShadow: "0 1px 10px 0 rgba(0,0,0,0.10)", border: `1.2px solid ${inputBorder}` }}>
-                      <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: "#fff", outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "0 1px 10px 0 rgba(0,0,0,0.10)")} />
-                      <button type="submit" style={{ background: accent, color: "#fff", border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px 0 rgba(59,130,246,0.08), 0 1px 1px 0 rgba(0,0,0,0.13)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()} onMouseOver={e => (e.currentTarget.style.filter = "brightness(1.13)")} onMouseOut={e => (e.currentTarget.style.filter = "none")}>Crear</button>
+                    <form onSubmit={handleCrearClub} className="content-wide form-shell" style={{ width: "96%", marginBottom: 30 }}>
+                      <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
+                      <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()}>Crear</button>
                     </form>
                     <div style={{ width: "97%", marginTop: 8, marginBottom: 0, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                      <div style={{ color: "#fff", fontWeight: 700, fontSize: 17, marginBottom: 9, letterSpacing: ".03em" }}>Clubes registrados:</div>
+                      <div style={{ color: text, fontWeight: 700, fontSize: 17, marginBottom: 9, letterSpacing: ".03em" }}>Clubes registrados:</div>
                       {gestionLoading ? (
-                        <div style={{ color: "#aaa", padding: "18px 0 0 6px", fontSize: 17 }}>Cargando...</div>
+                        <div className="empty-state-text" style={{ padding: "18px 0 0 6px", fontSize: 17 }}>Cargando...</div>
                       ) : clubes.length === 0 ? (
-                        <div style={{ color: "#757690", fontStyle: "italic", padding: "10px 0 0 5px", fontSize: 16.5 }}>No hay clubes registrados.</div>
+                        <div className="empty-state-text" style={{ padding: "10px 0 0 5px", fontSize: 16.5 }}>No hay clubes registrados.</div>
                       ) : (
-                        <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr", gap: 14, marginTop: 0 }} className="responsive-grid-list">
+                        <div className="responsive-grid-list" style={{ width: "100%" }}>
                           {clubes.map(club => (
-                            <div key={club.id} style={{ width: "100%", background: "#242530", borderRadius: 14, boxShadow: "0 2px 16px 0 rgba(0,0,0,0.13)", padding: "16px 20px", color: "#fff", fontSize: 18.5, fontWeight: 600, letterSpacing: "0.03em", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderLeft: `5px solid ${userData?.clubId === club.id ? accent : "#64748B"}`, borderBottom: `1.2px solid #242530`, transition: "background .13s, border .13s" }}>
-                              <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-                                <span style={{ color: accent, marginRight: 15, fontWeight: "bold", fontSize: 21 }}>●</span>
-                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{club.nombre}</span>
-                                {userData?.clubId === club.id && (
-                                  <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, color: accentLight, background: accentSoft, padding: "3px 8px", borderRadius: 6, flexShrink: 0 }}>MI CLUB</span>
-                                )}
+                            <div key={club.id} className="entity-list-card" style={{ borderLeftColor: userData?.clubId === club.id ? accent : textMuted }}>
+                              <div className="entity-list-card__body">
+                                <div className="entity-list-card__title-row">
+                                  <span className="entity-list-card__dot">●</span>
+                                  <span className="entity-list-card__title">{club.nombre}</span>
+                                  {userData?.clubId === club.id && (
+                                    <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, color: accentLight, background: accentSoft, padding: "3px 8px", borderRadius: 6, flexShrink: 0 }}>MI CLUB</span>
+                                  )}
+                                </div>
                               </div>
                               {userData?.clubId !== club.id && (
-                                <button type="button" onClick={() => handleSelectClub(club)} style={{ background: accent, color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
-                                  Mi club
-                                </button>
+                                <button type="button" className="entity-list-card__action" onClick={() => handleSelectClub(club)}>Mi club</button>
                               )}
                             </div>
                           ))}
@@ -2706,25 +2864,30 @@ function App() {
                   renderTeamLayout()
                 ) : (
                   renderEquiposLista({
-                    titulo: <>Equipos del Club: <span style={{ color: "#fff" }}>{userData.clubNombre}</span></>,
+                    titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
                     mostrarClub: false,
                     permitirCrear: true,
                   })
                 )
               ) : (
-                <div style={{ color: "#fff", fontSize: 23, textAlign: "center", fontWeight: "bolder", marginTop: 65, letterSpacing: "0.04em", textShadow: "0 2px 10px rgba(0,0,0,0.09)", padding: "24px 0" }}>
+                <div className="section-heading" style={{ marginTop: 65, fontSize: 23, fontWeight: 800 }}>
                   <div>Paso 1:<br /><span style={{ color: accent }}>Selecciona tu Club</span> para empezar</div>
                   <div style={{ marginTop: 35, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 15 }}>
                     {selectClubLoading ? (
-                      <div style={{ color: "#aaa", fontSize: 18, fontStyle: "italic" }}>Cargando clubes...</div>
+                      <div className="empty-state-text" style={{ fontSize: 18 }}>Cargando clubes...</div>
                     ) : clubes.length === 0 ? (
-                      <div style={{ color: "#757690", fontStyle: "italic", fontSize: 16.5 }}>No hay clubes disponibles.</div>
+                      <div className="empty-state-text" style={{ fontSize: 16.5 }}>No hay clubes disponibles.</div>
                     ) : (
                       <div className="content-medium responsive-grid-list" style={{ width: "98%" }}>
                         {clubes.map(club => (
-                          <div key={club.id} style={{ background: "#242530", borderRadius: 14, boxShadow: "0 2px 11px 0 rgba(0,0,0,0.13)", padding: "17px 20px", color: "#fff", display: "flex", alignItems: "center", fontSize: 17.5, fontWeight: 600, borderLeft: `4.5px solid ${accent}`, justifyContent: "space-between", marginBottom: 4, borderBottom: `1.2px solid #232230`, transition: "background .13s, border .13s" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ color: accent, marginRight: 12, fontWeight: "bold", fontSize: 18 }}>●</span>{club.nombre}</div>
-                            <button style={{ background: accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 21px", fontWeight: "bold", fontSize: 16, cursor: "pointer", marginLeft: 14, transition: "filter .16s", boxShadow: "0 2px 8px rgba(59,130,246,0.10)", letterSpacing: "0.015em" }} onMouseOver={e => e.currentTarget.style.filter = "brightness(1.11)"} onMouseOut={e => e.currentTarget.style.filter = "none"} onClick={() => handleSelectClub(club)}>Seleccionar</button>
+                          <div key={club.id} className="entity-list-card">
+                            <div className="entity-list-card__body">
+                              <div className="entity-list-card__title-row">
+                                <span className="entity-list-card__dot">●</span>
+                                <span className="entity-list-card__title">{club.nombre}</span>
+                              </div>
+                            </div>
+                            <button type="button" className="entity-list-card__action" onClick={() => handleSelectClub(club)}>Seleccionar</button>
                           </div>
                         ))}
                       </div>
@@ -2737,6 +2900,8 @@ function App() {
           {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
         </div>
       </main>
+        </div>
+      </div>
     </div>
   );
 }
