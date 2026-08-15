@@ -143,6 +143,15 @@ function IconMoon({ size = 18, color = "currentColor" }) {
   );
 }
 
+function IconSettings({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6.1 6.1l1.55 1.55M16.35 16.35l1.55 1.55M6.1 17.9l1.55-1.55M16.35 7.65l1.55-1.55" />
+    </svg>
+  );
+}
+
 function ThemeToggleButton({ colorMode, onToggle }) {
   const isDark = colorMode === "dark";
   return (
@@ -156,6 +165,36 @@ function ThemeToggleButton({ colorMode, onToggle }) {
       {isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
     </button>
   );
+}
+
+function OptionsToggleButton({ active, onClick }) {
+  return (
+    <button
+      type="button"
+      className={`theme-toggle-btn${active ? " theme-toggle-btn--active" : ""}`}
+      onClick={onClick}
+      aria-label={active ? "Cerrar opciones" : "Abrir opciones"}
+      aria-pressed={active}
+      title="Opciones"
+    >
+      <IconSettings size={16} />
+    </button>
+  );
+}
+
+function normalizarNombreUsuario(valor) {
+  return (valor || "").trim().replace(/\s+/g, " ");
+}
+
+function validarNombreUsuario(valor) {
+  const nombre = normalizarNombreUsuario(valor);
+  if (!nombre) return { ok: false, mensaje: "Escribe un nombre de usuario." };
+  if (nombre.length < 2) return { ok: false, mensaje: "Mínimo 2 caracteres." };
+  if (nombre.length > 24) return { ok: false, mensaje: "Máximo 24 caracteres." };
+  if (!/^[\p{L}\p{N}._\- ]+$/u.test(nombre)) {
+    return { ok: false, mensaje: "Solo letras, números, espacios, . _ -" };
+  }
+  return { ok: true, nombre };
 }
 
 function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24 }) {
@@ -1201,6 +1240,11 @@ function App() {
   const [tab, setTab] = useState("home");
   const [devicePreview, setDevicePreview] = useState("mobile");
   const [colorMode, setColorMode] = useState(() => getStoredTheme());
+  const [mostrarOpciones, setMostrarOpciones] = useState(false);
+  const [nombreUsuarioDraft, setNombreUsuarioDraft] = useState("");
+  const [guardandoNombreUsuario, setGuardandoNombreUsuario] = useState(false);
+  const [nombreUsuarioFeedback, setNombreUsuarioFeedback] = useState("");
+  const [nombreUsuarioError, setNombreUsuarioError] = useState("");
 
   useEffect(() => {
     applyThemeToDocument(colorMode);
@@ -1359,17 +1403,23 @@ function App() {
           const docRef = doc(db, "Usuarios", u.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setUserData(docSnap.data());
+            const data = docSnap.data();
+            setUserData(data);
+            setNombreUsuarioDraft(data.nombreUsuario || "");
           } else {
             const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
             await setDoc(docRef, nuevoUsuario);
             setUserData(nuevoUsuario);
+            setNombreUsuarioDraft("");
           }
         } catch (err) {
           setUserData(null);
+          setNombreUsuarioDraft("");
         }
       } else {
         setUserData(null);
+        setNombreUsuarioDraft("");
+        setMostrarOpciones(false);
       }
     });
     return () => unsubscribe();
@@ -1716,6 +1766,45 @@ function App() {
     }
   };
 
+  const abrirOpciones = () => {
+    setNombreUsuarioDraft(userData?.nombreUsuario || "");
+    setNombreUsuarioError("");
+    setNombreUsuarioFeedback("");
+    setMostrarOpciones(true);
+  };
+
+  const cerrarOpciones = () => {
+    setMostrarOpciones(false);
+    setNombreUsuarioError("");
+    setNombreUsuarioFeedback("");
+    setNombreUsuarioDraft(userData?.nombreUsuario || "");
+  };
+
+  const handleGuardarNombreUsuario = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    const validacion = validarNombreUsuario(nombreUsuarioDraft);
+    if (!validacion.ok) {
+      setNombreUsuarioError(validacion.mensaje);
+      setNombreUsuarioFeedback("");
+      return;
+    }
+    setGuardandoNombreUsuario(true);
+    setNombreUsuarioError("");
+    setNombreUsuarioFeedback("");
+    setErrorMsg("");
+    try {
+      const userRef = doc(db, "Usuarios", user.uid);
+      await updateDoc(userRef, { nombreUsuario: validacion.nombre });
+      setUserData(prev => ({ ...prev, nombreUsuario: validacion.nombre }));
+      setNombreUsuarioDraft(validacion.nombre);
+      setNombreUsuarioFeedback("Nombre de usuario guardado.");
+    } catch (err) {
+      setNombreUsuarioError("No se pudo guardar el nombre de usuario.");
+    }
+    setGuardandoNombreUsuario(false);
+  };
+
   const getClubNombre = (clubId) => clubes.find(c => c.id === clubId)?.nombre || "Club";
 
   const handleCrearClub = async (e) => {
@@ -1802,6 +1891,10 @@ function App() {
     setUserData(null);
     setEquipoActivo(null);
     setTab("home");
+    setMostrarOpciones(false);
+    setNombreUsuarioDraft("");
+    setNombreUsuarioError("");
+    setNombreUsuarioFeedback("");
   };
 
   // Crear sesión si no existe (usada en panel sesión)
@@ -2674,6 +2767,105 @@ function App() {
     return userData?.clubNombre || "Club";
   };
 
+  const renderOpcionesPanel = () => (
+    <div className="options-panel section-heading">
+      <div className="options-panel__intro">
+        <h2 className="options-panel__title" style={{ color: text }}>Opciones</h2>
+        <p className="options-panel__subtitle" style={{ color: textSecondary }}>
+          Personaliza tu perfil en 675app.
+        </p>
+      </div>
+
+      <form className="options-panel__card" onSubmit={handleGuardarNombreUsuario} style={{ background: cardBgElevated, border: `1px solid ${inputBorder}` }}>
+        <label className="options-panel__label" htmlFor="nombre-usuario-input" style={{ color: text }}>
+          Nombre de usuario
+        </label>
+        <p className="options-panel__hint" style={{ color: textMuted }}>
+          Así te verán en la app. Puedes cambiarlo cuando quieras.
+        </p>
+        <div className="options-panel__row">
+          <input
+            id="nombre-usuario-input"
+            type="text"
+            value={nombreUsuarioDraft}
+            onChange={(e) => {
+              setNombreUsuarioDraft(e.target.value);
+              setNombreUsuarioError("");
+              setNombreUsuarioFeedback("");
+            }}
+            placeholder="Ej. RubenCoach"
+            maxLength={24}
+            autoComplete="nickname"
+            disabled={guardandoNombreUsuario}
+            style={{
+              flex: 1,
+              padding: "13px 16px",
+              fontSize: 15,
+              background: inputBg,
+              color: text,
+              border: `1px solid ${nombreUsuarioError ? error : inputBorder}`,
+              borderRadius: 12,
+              outline: "none",
+              fontFamily: "inherit",
+            }}
+          />
+          <button
+            type="submit"
+            disabled={guardandoNombreUsuario || !nombreUsuarioDraft.trim()}
+            style={{
+              background: accent,
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "13px 18px",
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: guardandoNombreUsuario || !nombreUsuarioDraft.trim() ? "not-allowed" : "pointer",
+              opacity: guardandoNombreUsuario || !nombreUsuarioDraft.trim() ? 0.65 : 1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {guardandoNombreUsuario ? "Guardando…" : "Guardar"}
+          </button>
+        </div>
+        {nombreUsuarioError && (
+          <div className="options-panel__feedback options-panel__feedback--error" style={{ color: error }}>
+            {nombreUsuarioError}
+          </div>
+        )}
+        {nombreUsuarioFeedback && !nombreUsuarioError && (
+          <div className="options-panel__feedback options-panel__feedback--ok" style={{ color: success }}>
+            {nombreUsuarioFeedback}
+          </div>
+        )}
+        <div className="options-panel__meta" style={{ color: textMuted }}>
+          Correo: <span style={{ color: textSecondary }}>{user?.email || userData?.email || "—"}</span>
+          {" · "}
+          Rol: <span style={{ color: accentLight }}>{userData?.rol ?? "N/A"}</span>
+        </div>
+      </form>
+
+      <button
+        type="button"
+        className="options-panel__back"
+        onClick={cerrarOpciones}
+        style={{
+          marginTop: 8,
+          background: "transparent",
+          color: textMuted,
+          border: `1px solid ${inputBorder}`,
+          borderRadius: 10,
+          padding: "10px 16px",
+          fontWeight: 600,
+          fontSize: 14,
+          cursor: "pointer",
+        }}
+      >
+        Volver
+      </button>
+    </div>
+  );
+
   const renderTeamLayout = () => {
     const contextProps = {
       clubNombre: getNombreClubActivo(),
@@ -2722,9 +2914,19 @@ function App() {
           <AppBrand accent={accent} text={text} fontSize={22} />
           <div className="app-header-actions">
             <span className="app-header-role" style={{ color: textMuted }}>
+              {userData?.nombreUsuario ? (
+                <>
+                  <span style={{ color: accentLight, fontWeight: 600 }}>{userData.nombreUsuario}</span>
+                  <span className="app-header-role__sep"> · </span>
+                </>
+              ) : null}
               Rol:&nbsp;<span style={{ color: accentLight, fontWeight: 600 }}>{userData?.rol ?? "N/A"}</span>
             </span>
             <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
+            <OptionsToggleButton
+              active={mostrarOpciones}
+              onClick={() => (mostrarOpciones ? cerrarOpciones() : abrirOpciones())}
+            />
             <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
             <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(42, 101, 112, 0.30)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
           </div>
@@ -2733,8 +2935,10 @@ function App() {
       <div className="device-preview-viewport">
         <div className="device-preview-frame">
       <main className="app-main">
-        <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav ? "stretch" : "center", width: "100%" }}>
-          {esSuperadmin ? (
+        <div className={`app-card${showTeamNav && !mostrarOpciones ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav && !mostrarOpciones ? "stretch" : "center", width: "100%" }}>
+          {mostrarOpciones ? (
+            renderOpcionesPanel()
+          ) : esSuperadmin ? (
             equipoActivo ? (
               renderTeamLayout()
             ) : (
