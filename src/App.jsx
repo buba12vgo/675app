@@ -886,7 +886,9 @@ function App() {
           if (docSnap.exists()) {
             setUserData(docSnap.data());
           } else {
-            setUserData(null);
+            const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
+            await setDoc(docRef, nuevoUsuario);
+            setUserData(nuevoUsuario);
           }
         } catch (err) {
           setUserData(null);
