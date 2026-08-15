@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { auth, googleProvider, db } from "./firebase";
+import { auth, googleProvider, db, storage } from "./firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -220,6 +221,9 @@ function BlurredBackground({ isDark = true }) {
   );
 }
 
+const CLUB_LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml";
+const CLUB_LOGO_MAX_BYTES = 2 * 1024 * 1024;
+
 function getClubInitials(nombre) {
   return (nombre || "C")
     .split(/\s+/)
@@ -230,8 +234,140 @@ function getClubInitials(nombre) {
     .toUpperCase();
 }
 
+function getLogoExtension(file) {
+  if (file.type === "image/svg+xml") return "svg";
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
+function ClubLogoMark({
+  logoUrl,
+  clubNombre,
+  accentLight,
+  accentSoft,
+  accentBorder,
+  className = "team-context-logo",
+  size = 42,
+}) {
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt={`Logo de ${clubNombre || "club"}`}
+        className={`${className} club-logo-mark`}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={className}
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        background: accentSoft,
+        color: accentLight,
+        border: `1px solid ${accentBorder}`,
+      }}
+    >
+      {getClubInitials(clubNombre)}
+    </div>
+  );
+}
+
+function ClubLogoUpload({
+  clubId,
+  clubNombre,
+  logoUrl,
+  uploading,
+  onUpload,
+  onRemove,
+  accent,
+  accentLight,
+  accentSoft,
+  accentBorder,
+  inputBorder,
+  text,
+  textMuted,
+  textSecondary,
+  cardBgElevated,
+  compact = false,
+}) {
+  const inputId = `club-logo-${clubId}`;
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) onUpload(file);
+  };
+
+  return (
+    <div className={`club-logo-upload${compact ? " club-logo-upload--compact" : ""}`}>
+      <ClubLogoMark
+        logoUrl={logoUrl}
+        clubNombre={clubNombre}
+        accentLight={accentLight}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
+        className={compact ? "club-logo-upload__preview" : "team-context-logo"}
+        size={compact ? 48 : 64}
+      />
+      <div className="club-logo-upload__body">
+        <div className="club-logo-upload__title" style={{ color: text }}>
+          {compact ? clubNombre : "Logo del club"}
+        </div>
+        {!compact && (
+          <div className="club-logo-upload__subtitle" style={{ color: textSecondary }}>
+            {clubNombre}
+          </div>
+        )}
+        <div className="club-logo-upload__actions">
+          <label
+            htmlFor={inputId}
+            className="club-logo-upload__btn"
+            style={{
+              background: accent,
+              color: "#fff",
+              opacity: uploading ? 0.7 : 1,
+              pointerEvents: uploading ? "none" : "auto",
+            }}
+          >
+            {uploading ? "Subiendo…" : logoUrl ? "Cambiar logo" : "Subir logo"}
+          </label>
+          <input
+            id={inputId}
+            type="file"
+            accept={CLUB_LOGO_ACCEPT}
+            onChange={handleFileChange}
+            disabled={uploading}
+            hidden
+          />
+          {logoUrl && (
+            <button
+              type="button"
+              className="club-logo-upload__btn club-logo-upload__btn--ghost"
+              style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+              onClick={onRemove}
+              disabled={uploading}
+            >
+              Quitar
+            </button>
+          )}
+        </div>
+        <div className="club-logo-upload__hint" style={{ color: textMuted }}>
+          PNG, JPG, WEBP o SVG · máx. 2 MB
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TeamContextHeader({
   clubNombre,
+  clubLogoUrl,
   equipoNombre,
   onCambiarEquipo,
   accent,
@@ -246,17 +382,13 @@ function TeamContextHeader({
   return (
     <div className={`team-context-header team-context-header--${variant}`}>
       <div className="team-context-brand">
-        <div
-          className="team-context-logo"
-          aria-hidden="true"
-          style={{
-            background: accentSoft,
-            color: accentLight,
-            border: `1px solid ${accentBorder}`,
-          }}
-        >
-          {getClubInitials(clubNombre)}
-        </div>
+        <ClubLogoMark
+          logoUrl={clubLogoUrl}
+          clubNombre={clubNombre}
+          accentLight={accentLight}
+          accentSoft={accentSoft}
+          accentBorder={accentBorder}
+        />
         <div className="team-context-text">
           <div className="team-context-club" style={{ color: textSecondary }}>{clubNombre}</div>
           <div className="team-context-team" style={{ color: text }}>{equipoNombre}</div>
@@ -1184,6 +1316,8 @@ function App() {
   
   // SaaS state
   const [clubes, setClubes] = useState([]);
+  const [activeClub, setActiveClub] = useState(null);
+  const [logoUploadClubId, setLogoUploadClubId] = useState(null);
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
@@ -1395,6 +1529,25 @@ function App() {
       if (typeof unsub === "function") unsub();
     };
   }, [userData?.rol]);
+
+  const resolvedClubId = equipoActivo?.clubId || userData?.clubId || null;
+
+  useEffect(() => {
+    if (!resolvedClubId) {
+      setActiveClub(null);
+      return;
+    }
+
+    const unsub = onSnapshot(
+      doc(db, "Clubes", resolvedClubId),
+      (snap) => {
+        setActiveClub(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      },
+      () => setActiveClub(null)
+    );
+
+    return () => unsub();
+  }, [resolvedClubId]);
 
   // Reseteos al cambiar de contexto
   useEffect(() => {
@@ -1716,7 +1869,106 @@ function App() {
     }
   };
 
-  const getClubNombre = (clubId) => clubes.find(c => c.id === clubId)?.nombre || "Club";
+  const getClubNombre = (clubId) => {
+    const fromList = clubes.find(c => c.id === clubId)?.nombre;
+    if (fromList) return fromList;
+    if (activeClub?.id === clubId && activeClub?.nombre) return activeClub.nombre;
+    return "Club";
+  };
+
+  const getClubFromId = (clubId) => {
+    if (!clubId) return null;
+    if (activeClub?.id === clubId) return activeClub;
+    return clubes.find(c => c.id === clubId) || null;
+  };
+
+  const getClubLogoUrl = (clubId) => getClubFromId(clubId)?.logoUrl || null;
+
+  const canEditClubLogo = (clubId) =>
+    Boolean(clubId && (userData?.rol === "superadmin" || userData?.clubId === clubId));
+
+  const handleUploadClubLogo = async (clubId, file) => {
+    if (!clubId || !file) return;
+    setLogoUploadClubId(clubId);
+    setErrorMsg("");
+    try {
+      const allowed = CLUB_LOGO_ACCEPT.split(",");
+      if (!allowed.includes(file.type)) {
+        setErrorMsg("Formato no válido. Usa JPG, PNG, WEBP o SVG.");
+        return;
+      }
+      if (file.size > CLUB_LOGO_MAX_BYTES) {
+        setErrorMsg("El logo debe pesar menos de 2 MB.");
+        return;
+      }
+
+      const ext = getLogoExtension(file);
+      const storageRef = ref(storage, `clubes/${clubId}/logo.${ext}`);
+      await uploadBytes(storageRef, file, { contentType: file.type });
+      const url = await getDownloadURL(storageRef);
+      await updateDoc(doc(db, "Clubes", clubId), {
+        logoUrl: url,
+        logoUpdatedAt: new Date(),
+      });
+    } catch (err) {
+      setErrorMsg("No se pudo subir el logo. Revisa los permisos de Firebase Storage.");
+    } finally {
+      setLogoUploadClubId(null);
+    }
+  };
+
+  const handleRemoveClubLogo = async (clubId) => {
+    if (!clubId) return;
+    setLogoUploadClubId(clubId);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Clubes", clubId), {
+        logoUrl: null,
+        logoUpdatedAt: new Date(),
+      });
+    } catch (err) {
+      setErrorMsg("No se pudo quitar el logo del club.");
+    } finally {
+      setLogoUploadClubId(null);
+    }
+  };
+
+  const renderClubLogoEditor = (club, { compact = false } = {}) => {
+    if (!club?.id || !canEditClubLogo(club.id)) return null;
+
+    const logoProps = {
+      clubId: club.id,
+      clubNombre: club.nombre,
+      logoUrl: getClubLogoUrl(club.id),
+      uploading: logoUploadClubId === club.id,
+      onUpload: (file) => handleUploadClubLogo(club.id, file),
+      onRemove: () => handleRemoveClubLogo(club.id),
+      accent,
+      accentLight,
+      accentSoft,
+      accentBorder,
+      inputBorder,
+      text,
+      textMuted,
+      textSecondary,
+      cardBgElevated,
+      compact,
+    };
+
+    return (
+      <div
+        className="club-branding-card"
+        style={{
+          background: cardBgElevated,
+          border: `1px solid ${inputBorder}`,
+          width: compact ? "100%" : "97%",
+          margin: compact ? "0 0 16px" : "0 auto 20px",
+        }}
+      >
+        <ClubLogoUpload {...logoProps} />
+      </div>
+    );
+  };
 
   const handleCrearClub = async (e) => {
     e.preventDefault();
@@ -2674,9 +2926,15 @@ function App() {
     return userData?.clubNombre || "Club";
   };
 
+  const getLogoClubActivo = () => {
+    const clubId = equipoActivo?.clubId || userData?.clubId;
+    return getClubLogoUrl(clubId);
+  };
+
   const renderTeamLayout = () => {
     const contextProps = {
       clubNombre: getNombreClubActivo(),
+      clubLogoUrl: getLogoClubActivo(),
       equipoNombre: equipoActivo.nombre,
       onCambiarEquipo: () => setEquipoActivo(null),
       accent,
@@ -2785,6 +3043,7 @@ function App() {
                         </div>
                       )}
                     </div>
+                    {userData?.clubId && renderClubLogoEditor(getClubFromId(userData.clubId) || { id: userData.clubId, nombre: userData.clubNombre })}
                     <form onSubmit={handleCrearClub} className="content-wide form-shell" style={{ width: "96%", marginBottom: 30 }}>
                       <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
                       <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()}>Crear</button>
@@ -2799,14 +3058,45 @@ function App() {
                         <div className="responsive-grid-list" style={{ width: "100%" }}>
                           {clubes.map(club => (
                             <div key={club.id} className="entity-list-card" style={{ borderLeftColor: userData?.clubId === club.id ? accent : textMuted }}>
+                              <ClubLogoMark
+                                logoUrl={club.logoUrl}
+                                clubNombre={club.nombre}
+                                accentLight={accentLight}
+                                accentSoft={accentSoft}
+                                accentBorder={accentBorder}
+                                className="entity-list-card__logo"
+                                size={40}
+                              />
                               <div className="entity-list-card__body">
                                 <div className="entity-list-card__title-row">
-                                  <span className="entity-list-card__dot">●</span>
                                   <span className="entity-list-card__title">{club.nombre}</span>
                                   {userData?.clubId === club.id && (
                                     <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, color: accentLight, background: accentSoft, padding: "3px 8px", borderRadius: 6, flexShrink: 0 }}>MI CLUB</span>
                                   )}
                                 </div>
+                                {canEditClubLogo(club.id) && (
+                                  <div className="entity-list-card__logo-actions">
+                                    <label
+                                      htmlFor={`club-logo-list-${club.id}`}
+                                      className="entity-list-card__logo-btn"
+                                      style={{ color: accent, borderColor: inputBorder, background: cardBgElevated }}
+                                    >
+                                      {logoUploadClubId === club.id ? "Subiendo…" : club.logoUrl ? "Cambiar logo" : "Subir logo"}
+                                    </label>
+                                    <input
+                                      id={`club-logo-list-${club.id}`}
+                                      type="file"
+                                      accept={CLUB_LOGO_ACCEPT}
+                                      hidden
+                                      disabled={logoUploadClubId === club.id}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        e.target.value = "";
+                                        if (file) handleUploadClubLogo(club.id, file);
+                                      }}
+                                    />
+                                  </div>
+                                )}
                               </div>
                               {userData?.clubId !== club.id && (
                                 <button type="button" className="entity-list-card__action" onClick={() => handleSelectClub(club)}>Mi club</button>
@@ -2863,11 +3153,14 @@ function App() {
                 equipoActivo ? (
                   renderTeamLayout()
                 ) : (
-                  renderEquiposLista({
-                    titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
-                    mostrarClub: false,
-                    permitirCrear: true,
-                  })
+                  <>
+                    {renderClubLogoEditor(getClubFromId(userData.clubId) || { id: userData.clubId, nombre: userData.clubNombre })}
+                    {renderEquiposLista({
+                      titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
+                      mostrarClub: false,
+                      permitirCrear: true,
+                    })}
+                  </>
                 )
               ) : (
                 <div className="section-heading" style={{ marginTop: 65, fontSize: 23, fontWeight: 800 }}>
