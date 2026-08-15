@@ -1022,6 +1022,105 @@ textarea:focus-visible {
   flex-shrink: 0;
 }
 
+.club-logo-mark {
+  object-fit: contain;
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.club-branding-card {
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+}
+
+.club-logo-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.club-logo-upload--compact {
+  gap: 12px;
+}
+
+.club-logo-upload__preview {
+  border-radius: 12px;
+}
+
+.club-logo-upload__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.club-logo-upload__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.club-logo-upload__subtitle {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.club-logo-upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.club-logo-upload__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.club-logo-upload__btn--ghost {
+  border: 1px solid var(--color-border);
+}
+
+.club-logo-upload__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.entity-list-card__logo {
+  flex-shrink: 0;
+}
+
+.entity-list-card__logo-actions {
+  margin-top: 8px;
+}
+
+.entity-list-card__logo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .team-context-text {
   min-width: 0;
   flex: 1;
