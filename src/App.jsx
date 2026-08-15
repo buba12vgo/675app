@@ -740,6 +740,37 @@ function normalizarTipoSesion(sesion) {
   return sesion?.tipo === "partido" ? "partido" : "entreno";
 }
 
+function formatearFechaCorta(fechaStr) {
+  if (!fechaStr) return "";
+  const [y, m, d] = fechaStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function etiquetaDiaRelativo(fechaStr, hoyStr, mananaStr) {
+  if (fechaStr === hoyStr) return "Hoy";
+  if (fechaStr === mananaStr) return "Mañana";
+  return formatearFechaCorta(fechaStr);
+}
+
+function getProximosEventosInicio(sesiones, hoy = new Date()) {
+  const hoyStr = formatDateYYYYMMDD(hoy);
+  const manana = new Date(hoy);
+  manana.setDate(hoy.getDate() + 1);
+  const mananaStr = formatDateYYYYMMDD(manana);
+
+  const futuras = [...sesiones]
+    .filter(s => s.fecha && s.fecha >= hoyStr)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  const proximoEntreno = futuras.find(
+    s => normalizarTipoSesion(s) === "entreno" && (s.fecha === hoyStr || s.fecha === mananaStr)
+  ) || null;
+
+  const proximoPartido = futuras.find(s => normalizarTipoSesion(s) === "partido") || null;
+
+  return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
+}
+
 function getRangoFechasEstadisticas(periodo, desde, hasta) {
   const hoy = new Date();
   if (periodo === "semanal") {
@@ -1266,7 +1297,7 @@ function App() {
   // --- CALENDARIO SESIONES equipoActivo (en vivo) ---
   useEffect(() => {
     let unsub;
-    if (equipoActivo && (tab === "sesiones" || tab === "players")) {
+    if (equipoActivo && (tab === "sesiones" || tab === "players" || tab === "home")) {
       setSesionesLoading(true);
       const sesionesCol = collection(db, "Sesiones");
       const q = query(sesionesCol, where("equipoId", "==", equipoActivo.id));
@@ -1625,10 +1656,160 @@ function App() {
   let tabContent = null;
   if (equipoActivo) {
     if (tab === "home") {
+      const { proximoEntreno, proximoPartido, hoyStr, mananaStr } = getProximosEventosInicio(sesionesEquipo);
+      const abrirEnCalendario = (fecha) => {
+        if (!fecha) return;
+        const [y, m] = fecha.split("-").map(Number);
+        setAnioActual(y);
+        setMesActual(m - 1);
+        setFechaSesionSeleccionada(fecha);
+        setTab("sesiones");
+      };
+
       tabContent = (
-        <div style={{ color: text, fontSize: 20, fontWeight: 600, textAlign: "center", padding: "38px 0 16px 0" }}>
-          Bienvenido al equipo <span style={{ color: accentLight }}>{equipoActivo.nombre}</span>
-          <div style={{ marginTop: 16, fontSize: 15, fontWeight: 500, color: textSecondary }}>Aquí iría el Dashboard principal del equipo.</div>
+        <div className="home-dashboard" style={{ width: "100%", maxWidth: 520, margin: "0 auto", padding: "28px 0 16px" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ color: text, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
+              {equipoActivo.nombre}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 15, fontWeight: 500, color: textSecondary }}>
+              Resumen del equipo
+            </div>
+          </div>
+
+          {sesionesLoading ? (
+            <div style={{ color: textMuted, fontSize: 15, fontStyle: "italic", textAlign: "center" }}>
+              Cargando calendario…
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{
+                background: cardBgElevated,
+                borderRadius: 14,
+                border: `1px solid ${inputBorder}`,
+                borderLeft: `4px solid ${accent}`,
+                padding: "16px 18px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <IconCalendar size={18} color={accentLight} />
+                    <span style={{ color: accentLight, fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Próximo entreno
+                    </span>
+                  </div>
+                  {proximoEntreno && (
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 99,
+                      background: accentSoft,
+                      color: accentLight,
+                      border: `1px solid rgba(59,130,246,0.35)`,
+                    }}>
+                      {etiquetaDiaRelativo(proximoEntreno.fecha, hoyStr, mananaStr)}
+                    </span>
+                  )}
+                </div>
+                {proximoEntreno ? (
+                  <>
+                    <div style={{ color: text, fontWeight: 600, fontSize: 17, marginBottom: 6 }}>
+                      {proximoEntreno.tematica?.trim() || "Entrenamiento"}
+                    </div>
+                    <div style={{ color: textMuted, fontSize: 14, marginBottom: 12 }}>
+                      {formatearFechaCorta(proximoEntreno.fecha)}
+                      {proximoEntreno.ejercicios?.trim() ? ` · ${proximoEntreno.ejercicios.trim().slice(0, 60)}${proximoEntreno.ejercicios.trim().length > 60 ? "…" : ""}` : ""}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => abrirEnCalendario(proximoEntreno.fecha)}
+                      style={{
+                        background: "transparent",
+                        color: accentLight,
+                        border: `1px solid rgba(59,130,246,0.35)`,
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      Ver en calendario
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.5 }}>
+                    No hay entreno programado para hoy ni para mañana.
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                background: cardBgElevated,
+                borderRadius: 14,
+                border: `1px solid ${inputBorder}`,
+                borderLeft: `4px solid ${colorPartido}`,
+                padding: "16px 18px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <IconCalendar size={18} color={colorPartido} />
+                    <span style={{ color: colorPartido, fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Próximo partido
+                    </span>
+                  </div>
+                  {proximoPartido && (
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 99,
+                      background: "rgba(139,92,246,0.18)",
+                      color: "#C4B5FD",
+                      border: "1px solid rgba(139,92,246,0.45)",
+                    }}>
+                      {etiquetaDiaRelativo(proximoPartido.fecha, hoyStr, mananaStr)}
+                    </span>
+                  )}
+                </div>
+                {proximoPartido ? (
+                  <>
+                    <div style={{ color: text, fontWeight: 600, fontSize: 17, marginBottom: 6 }}>
+                      vs {proximoPartido.rival?.trim() || "Rival por confirmar"}
+                    </div>
+                    <div style={{ color: textMuted, fontSize: 14, marginBottom: 12 }}>
+                      {formatearFechaCorta(proximoPartido.fecha)}
+                      {proximoPartido.local === "fuera" ? " · Fuera" : " · En casa"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => abrirEnCalendario(proximoPartido.fecha)}
+                      style={{
+                        background: "transparent",
+                        color: "#C4B5FD",
+                        border: "1px solid rgba(139,92,246,0.45)",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      Ver en calendario
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.5 }}>
+                    No hay partidos programados.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       );
     } else if (tab === "sesiones") {
