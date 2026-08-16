@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { auth, googleProvider, db } from "./firebase";
 import {
-  CLUB_LOGO_ACCEPT,
-  CLUB_LOGO_MAX_BYTES,
-  getClubLogoErrorMessage,
-  isAllowedLogoFile,
-  prepareClubLogoUrl,
-} from "./clubLogo.js";
-import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -165,27 +158,41 @@ function ThemeToggleButton({ colorMode, onToggle }) {
   );
 }
 
-function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24 }) {
+function IconSettings({ size = 20, color = "currentColor" }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 11, userSelect: "none" }}>
-      <div style={{
-        width: 36,
-        height: 36,
-        borderRadius: 11,
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M19.4 19.4l-1.4-1.4M6 6L4.6 4.6M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" />
+    </svg>
+  );
+}
+
+function formatRolLabel(rol) {
+  if (!rol) return "N/A";
+  return rol.charAt(0).toUpperCase() + rol.slice(1);
+}
+
+function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24, onGoHome }) {
+  return (
+    <button
+      type="button"
+      className="app-brand"
+      onClick={onGoHome}
+      aria-label="Volver a inicio"
+      title="Volver a inicio"
+    >
+      <div className="app-brand__mark" style={{
         background: `linear-gradient(135deg, ${accent} 0%, ${THEME.accentDark} 100%)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: `0 4px 14px ${THEME.accentShadow}`
+        boxShadow: `0 4px 14px ${THEME.accentShadow}`,
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M7 12h10M12 7v10" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       </div>
-      <span style={{ fontWeight: 800, fontSize, letterSpacing: "-0.04em", color: text, lineHeight: 1 }}>
+      <span className="app-brand__text" style={{ fontSize, color: text }}>
         675<span style={{ color: accent }}>app</span>
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -238,44 +245,12 @@ function getClubInitials(nombre) {
     .toUpperCase();
 }
 
-function ClubLogoMark({
-  logoUrl,
-  clubNombre,
-  accentLight,
-  accentSoft,
-  accentBorder,
-  className = "team-context-logo",
-  size = 42,
-}) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [logoUrl]);
-
-  if (logoUrl && !imageFailed) {
-    const imageClassName = className === "team-context-logo"
-      ? "club-logo-mark"
-      : `${className} club-logo-mark`;
-
-    return (
-      <img
-        src={logoUrl}
-        alt={`Logo de ${clubNombre || "club"}`}
-        className={imageClassName}
-        style={{ width: size, height: size }}
-        onError={() => setImageFailed(true)}
-      />
-    );
-  }
-
+function ClubInitialsMark({ clubNombre, accentLight, accentSoft, accentBorder, className = "team-context-logo" }) {
   return (
     <div
       className={className}
       aria-hidden={!clubNombre}
       style={{
-        width: size,
-        height: size,
         background: accentSoft,
         color: accentLight,
         border: `1px solid ${accentBorder}`,
@@ -286,115 +261,94 @@ function ClubLogoMark({
   );
 }
 
-function ClubLogoUpload({
-  clubId,
-  clubNombre,
-  logoUrl,
-  uploading,
-  onUpload,
-  onRemove,
+function UserOptionsPanel({
+  userNombre,
+  onNombreChange,
+  onSubmit,
+  saving,
+  email,
   accent,
-  accentLight,
-  accentSoft,
-  accentBorder,
-  inputBorder,
   text,
-  textMuted,
   textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
   cardBgElevated,
-  compact = false,
 }) {
-  const inputId = `club-logo-${clubId}`;
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) onUpload(file);
-  };
-
   return (
-    <div className={`club-logo-upload${compact ? " club-logo-upload--compact" : ""}`}>
-      <ClubLogoMark
-        logoUrl={logoUrl}
-        clubNombre={clubNombre}
-        accentLight={accentLight}
-        accentSoft={accentSoft}
-        accentBorder={accentBorder}
-        className={compact ? "club-logo-upload__preview" : "team-context-logo"}
-        size={compact ? 48 : 64}
-      />
-      <div className="club-logo-upload__body">
-        <div className="club-logo-upload__title" style={{ color: text }}>
-          {compact ? clubNombre : "Logo del club"}
-        </div>
-        {!compact && (
-          <div className="club-logo-upload__subtitle" style={{ color: textSecondary }}>
-            {clubNombre}
+    <div className="user-options-panel content-medium" style={{ width: "96%", margin: "0 auto", padding: "8px 0 24px" }}>
+      <h2 style={{ color: accent, fontWeight: 800, fontSize: 26, textAlign: "center", marginBottom: 8 }}>Opciones</h2>
+      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 24, fontSize: 14 }}>
+        Personaliza tu perfil en la app.
+      </p>
+      <form
+        onSubmit={onSubmit}
+        className="user-options-form"
+        style={{
+          background: cardBgElevated,
+          border: `1px solid ${inputBorder}`,
+          borderRadius: 16,
+          padding: "20px 18px",
+        }}
+      >
+        <label htmlFor="user-nombre" style={{ display: "block", color: text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>
+          Tu nombre
+        </label>
+        <input
+          id="user-nombre"
+          type="text"
+          value={userNombre}
+          onChange={(e) => onNombreChange(e.target.value)}
+          placeholder="Ej. Buba"
+          maxLength={80}
+          required
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "14px 16px",
+            fontSize: 16,
+            borderRadius: 12,
+            border: `1px solid ${inputBorder}`,
+            background: inputBg,
+            color: text,
+            outline: "none",
+            fontFamily: "inherit",
+          }}
+        />
+        {email && (
+          <div style={{ marginTop: 14, fontSize: 13, color: textMuted }}>
+            Cuenta: {email}
           </div>
         )}
-        <div className="club-logo-upload__actions">
-          <label
-            htmlFor={inputId}
-            className="club-logo-upload__btn"
-            style={{
-              background: accent,
-              color: "#fff",
-              opacity: uploading ? 0.7 : 1,
-              pointerEvents: uploading ? "none" : "auto",
-            }}
-          >
-            {uploading ? "Subiendo…" : logoUrl ? "Cambiar logo" : "Subir logo"}
-          </label>
-          <input
-            id={inputId}
-            type="file"
-            accept={CLUB_LOGO_ACCEPT}
-            onChange={handleFileChange}
-            disabled={uploading}
-            hidden
-          />
-          {logoUrl && (
-            <button
-              type="button"
-              className="club-logo-upload__btn club-logo-upload__btn--ghost"
-              style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
-              onClick={onRemove}
-              disabled={uploading}
-            >
-              Quitar
-            </button>
-          )}
-        </div>
-        <div className="club-logo-upload__hint" style={{ color: textMuted }}>
-          PNG, JPG, WEBP o SVG · máx. 2 MB · se guarda en Firestore
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ClubLogoNotice({ message, success, accent }) {
-  if (!message) return null;
-
-  return (
-    <div
-      className="club-logo-notice"
-      style={{
-        color: success ? accent : undefined,
-        borderColor: success ? "rgba(42, 101, 112, 0.35)" : undefined,
-      }}
-    >
-      {message}
+        <button
+          type="submit"
+          disabled={saving || !userNombre.trim()}
+          style={{
+            marginTop: 18,
+            width: "100%",
+            background: accent,
+            color: "#fff",
+            border: "none",
+            borderRadius: 12,
+            padding: "13px 16px",
+            fontWeight: 700,
+            fontSize: 15,
+            cursor: saving ? "wait" : "pointer",
+            opacity: saving || !userNombre.trim() ? 0.7 : 1,
+            fontFamily: "inherit",
+          }}
+        >
+          {saving ? "Guardando…" : "Guardar nombre"}
+        </button>
+      </form>
     </div>
   );
 }
 
 function TeamContextHeader({
   clubNombre,
-  clubLogoUrl,
   equipoNombre,
   onCambiarEquipo,
-  accent,
   accentLight,
   accentSoft,
   accentBorder,
@@ -406,8 +360,7 @@ function TeamContextHeader({
   return (
     <div className={`team-context-header team-context-header--${variant}`}>
       <div className="team-context-brand">
-        <ClubLogoMark
-          logoUrl={clubLogoUrl}
+        <ClubInitialsMark
           clubNombre={clubNombre}
           accentLight={accentLight}
           accentSoft={accentSoft}
@@ -1341,13 +1294,14 @@ function App() {
   // SaaS state
   const [clubes, setClubes] = useState([]);
   const [activeClub, setActiveClub] = useState(null);
-  const [logoUploadClubId, setLogoUploadClubId] = useState(null);
-  const [logoUploadNotice, setLogoUploadNotice] = useState(null);
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
   const [superadminVista, setSuperadminVista] = useState("clubes"); // "clubes" | "equipos"
   const [equiposFiltroSuperadmin, setEquiposFiltroSuperadmin] = useState("todos"); // "todos" | "propio"
+  const [userNombreInput, setUserNombreInput] = useState("");
+  const [savingUserNombre, setSavingUserNombre] = useState(false);
+  const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
 
   // Equipos state
   const [equipos, setEquipos] = useState([]);
@@ -1505,8 +1459,13 @@ function App() {
     { key: "home", label: "Inicio", Icon: IconHome },
     { key: "sesiones", label: "Calendario", Icon: IconCalendar },
     { key: "players", label: "Estadísticas", Icon: IconChart },
-    { key: "plantilla", label: "Plantilla", Icon: IconUsers }
+    { key: "plantilla", label: "Plantilla", Icon: IconUsers },
+    { key: "opciones", label: "Opciones", Icon: IconSettings },
   ];
+
+  useEffect(() => {
+    setUserNombreInput(userData?.nombre || "");
+  }, [userData?.nombre]);
 
   // Escucha auth y datos de usuario
   useEffect(() => {
@@ -1578,6 +1537,7 @@ function App() {
   useEffect(() => {
     setEquipoActivo(null);
     setTab("home");
+    setShowOpcionesPanel(false);
   }, [userData?.clubId, userData?.rol]);
 
   useEffect(() => {
@@ -1901,131 +1861,59 @@ function App() {
     return "Club";
   };
 
-  const getClubFromId = (clubId) => {
-    if (!clubId) return null;
-    if (activeClub?.id === clubId) return activeClub;
-    return clubes.find(c => c.id === clubId) || null;
-  };
-
-  const getClubLogoUrl = (clubId) => getClubFromId(clubId)?.logoUrl || null;
-
-  const syncClubLogoLocally = (clubId, logoUrl, logoSource) => {
-    setActiveClub(prev => (
-      prev?.id === clubId
-        ? { ...prev, logoUrl: logoUrl || null, logoSource: logoSource || null }
-        : prev
-    ));
-    setClubes(prev => prev.map(club => (
-      club.id === clubId
-        ? { ...club, logoUrl: logoUrl || null, logoSource: logoSource || null }
-        : club
-    )));
-  };
-
-  const canEditClubLogo = (clubId) =>
-    Boolean(clubId && (userData?.rol === "superadmin" || userData?.clubId === clubId));
-
-  const handleUploadClubLogo = async (clubId, file) => {
-    if (!clubId || !file) return;
-    setLogoUploadClubId(clubId);
-    setErrorMsg("");
-    setLogoUploadNotice(null);
-    try {
-      if (!isAllowedLogoFile(file)) {
-        setErrorMsg("Formato no válido. Usa JPG, PNG, WEBP o SVG.");
-        return;
-      }
-      if (file.size > CLUB_LOGO_MAX_BYTES) {
-        setErrorMsg("El logo debe pesar menos de 2 MB.");
-        return;
-      }
-
-      const { logoUrl, logoSource } = await prepareClubLogoUrl({ file });
-      await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl,
-        logoSource,
-        logoUpdatedAt: new Date(),
-      });
-
-      const savedSnap = await getDoc(doc(db, "Clubes", clubId));
-      const savedLogoUrl = savedSnap.data()?.logoUrl;
-      if (!savedSnap.exists() || !savedLogoUrl) {
-        throw new Error("El escudo no se guardó. Revisa permisos de Firestore para el club.");
-      }
-
-      syncClubLogoLocally(clubId, savedLogoUrl, logoSource);
-      setLogoUploadNotice({ clubId, message: "Escudo guardado correctamente." });
-    } catch (err) {
-      const message = getClubLogoErrorMessage(err);
-      setErrorMsg(message);
-      if (err?.code === "permission-denied") {
-        setErrorMsg("No tienes permiso para guardar el escudo de este club en Firestore.");
-      }
-    } finally {
-      setLogoUploadClubId(null);
+  const handleGoHome = () => {
+    setShowOpcionesPanel(false);
+    if (equipoActivo) {
+      setTab("home");
+    }
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
-  const handleRemoveClubLogo = async (clubId) => {
-    if (!clubId) return;
-    setLogoUploadClubId(clubId);
+  const handleOpenOpciones = () => {
     setErrorMsg("");
-    setLogoUploadNotice(null);
+    if (equipoActivo) {
+      setTab("opciones");
+    } else {
+      setShowOpcionesPanel(true);
+    }
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSaveUserNombre = async (e) => {
+    e.preventDefault();
+    if (!user || !userNombreInput.trim()) return;
+    setSavingUserNombre(true);
+    setErrorMsg("");
     try {
-      await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl: null,
-        logoSource: null,
-        logoUpdatedAt: new Date(),
-      });
-      syncClubLogoLocally(clubId, null, null);
-      setLogoUploadNotice({ clubId, message: "Escudo eliminado." });
+      const nombre = userNombreInput.trim();
+      await updateDoc(doc(db, "Usuarios", user.uid), { nombre });
+      setUserData(prev => ({ ...prev, nombre }));
     } catch (err) {
       setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para quitar el escudo de este club."
-        : "No se pudo quitar el logo del club.");
+        ? "No tienes permiso para guardar tu nombre."
+        : "No se pudo guardar tu nombre.");
     } finally {
-      setLogoUploadClubId(null);
+      setSavingUserNombre(false);
     }
   };
 
-  const renderClubLogoEditor = (club, { compact = false } = {}) => {
-    if (!club?.id || !canEditClubLogo(club.id)) return null;
-
-    const logoProps = {
-      clubId: club.id,
-      clubNombre: club.nombre,
-      logoUrl: getClubLogoUrl(club.id) || club.logoUrl || null,
-      uploading: logoUploadClubId === club.id,
-      onUpload: (file) => handleUploadClubLogo(club.id, file),
-      onRemove: () => handleRemoveClubLogo(club.id),
-      accent,
-      accentLight,
-      accentSoft,
-      accentBorder,
-      inputBorder,
-      text,
-      textMuted,
-      textSecondary,
-      cardBgElevated,
-      compact,
-    };
-
-    return (
-      <div
-        className="club-branding-card"
-        style={{
-          background: cardBgElevated,
-          border: `1px solid ${inputBorder}`,
-          width: compact ? "100%" : "97%",
-          margin: compact ? "0 0 16px" : "0 auto 20px",
-        }}
-      >
-        <ClubLogoUpload {...logoProps} />
-        {logoUploadNotice?.clubId === club.id && (
-          <ClubLogoNotice message={logoUploadNotice.message} success accent={accent} />
-        )}
-      </div>
-    );
+  const userOptionsProps = {
+    userNombre: userNombreInput,
+    onNombreChange: setUserNombreInput,
+    onSubmit: handleSaveUserNombre,
+    saving: savingUserNombre,
+    email: user?.email,
+    accent,
+    text,
+    textSecondary,
+    textMuted,
+    inputBorder,
+    inputBg,
+    cardBgElevated,
   };
 
   const handleCrearClub = async (e) => {
@@ -2926,6 +2814,8 @@ function App() {
           </div>
         </div>
       );
+    } else if (tab === "opciones") {
+      tabContent = <UserOptionsPanel {...userOptionsProps} />;
     }
   }
 
@@ -2984,18 +2874,11 @@ function App() {
     return userData?.clubNombre || "Club";
   };
 
-  const getLogoClubActivo = () => {
-    const clubId = equipoActivo?.clubId || userData?.clubId;
-    return getClubLogoUrl(clubId) || activeClub?.logoUrl || null;
-  };
-
   const renderTeamLayout = () => {
     const contextProps = {
       clubNombre: getNombreClubActivo(),
-      clubLogoUrl: getLogoClubActivo(),
       equipoNombre: equipoActivo.nombre,
       onCambiarEquipo: () => setEquipoActivo(null),
-      accent,
       accentLight,
       accentSoft,
       accentBorder,
@@ -3035,11 +2918,26 @@ function App() {
       {/* Header */}
       <header className="app-header">
         <div className="app-header-bar" style={{ ...glassCardStyle, borderRadius: 16, boxShadow: cardShadow, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", border: `1px solid ${inputBorder}` }}>
-          <AppBrand accent={accent} text={text} fontSize={22} />
+          <AppBrand accent={accent} text={text} fontSize={22} onGoHome={handleGoHome} />
           <div className="app-header-actions">
             <span className="app-header-role" style={{ color: textMuted }}>
-              Rol:&nbsp;<span style={{ color: accentLight, fontWeight: 600 }}>{userData?.rol ?? "N/A"}</span>
+              Rol{" "}
+              <span style={{ color: accentLight, fontWeight: 600 }}>
+                {formatRolLabel(userData?.rol)}
+              </span>
+              {userData?.nombre?.trim() ? ` - ${userData.nombre.trim()}` : ""}
             </span>
+            {!equipoActivo && (
+              <button
+                type="button"
+                className="app-header-options-btn"
+                onClick={handleOpenOpciones}
+                style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+              >
+                <IconSettings size={16} color={textMuted} />
+                <span>Opciones</span>
+              </button>
+            )}
             <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
             <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
             <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(42, 101, 112, 0.30)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
@@ -3050,7 +2948,20 @@ function App() {
         <div className="device-preview-frame">
       <main className="app-main">
         <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav ? "stretch" : "center", width: "100%" }}>
-          {esSuperadmin ? (
+          {showOpcionesPanel ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowOpcionesPanel(false)}
+                className="user-options-back"
+                style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+              >
+                <IconChevronLeft size={16} color={textMuted} />
+                <span>Volver</span>
+              </button>
+              <UserOptionsPanel {...userOptionsProps} />
+            </>
+          ) : esSuperadmin ? (
             equipoActivo ? (
               renderTeamLayout()
             ) : (
@@ -3101,7 +3012,6 @@ function App() {
                         </div>
                       )}
                     </div>
-                    {userData?.clubId && renderClubLogoEditor(getClubFromId(userData.clubId) || { id: userData.clubId, nombre: userData.clubNombre })}
                     <form onSubmit={handleCrearClub} className="content-wide form-shell" style={{ width: "96%", marginBottom: 30 }}>
                       <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
                       <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()}>Crear</button>
@@ -3116,45 +3026,14 @@ function App() {
                         <div className="responsive-grid-list" style={{ width: "100%" }}>
                           {clubes.map(club => (
                             <div key={club.id} className="entity-list-card" style={{ borderLeftColor: userData?.clubId === club.id ? accent : textMuted }}>
-                              <ClubLogoMark
-                                logoUrl={getClubLogoUrl(club.id) || club.logoUrl || null}
-                                clubNombre={club.nombre}
-                                accentLight={accentLight}
-                                accentSoft={accentSoft}
-                                accentBorder={accentBorder}
-                                className="entity-list-card__logo"
-                                size={40}
-                              />
                               <div className="entity-list-card__body">
                                 <div className="entity-list-card__title-row">
+                                  <span className="entity-list-card__dot">●</span>
                                   <span className="entity-list-card__title">{club.nombre}</span>
                                   {userData?.clubId === club.id && (
                                     <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, color: accentLight, background: accentSoft, padding: "3px 8px", borderRadius: 6, flexShrink: 0 }}>MI CLUB</span>
                                   )}
                                 </div>
-                                {canEditClubLogo(club.id) && (
-                                  <div className="entity-list-card__logo-actions">
-                                    <label
-                                      htmlFor={`club-logo-list-${club.id}`}
-                                      className="entity-list-card__logo-btn"
-                                      style={{ color: accent, borderColor: inputBorder, background: cardBgElevated }}
-                                    >
-                                      {logoUploadClubId === club.id ? "Subiendo…" : (getClubLogoUrl(club.id) || club.logoUrl) ? "Cambiar logo" : "Subir logo"}
-                                    </label>
-                                    <input
-                                      id={`club-logo-list-${club.id}`}
-                                      type="file"
-                                      accept={CLUB_LOGO_ACCEPT}
-                                      hidden
-                                      disabled={logoUploadClubId === club.id}
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        e.target.value = "";
-                                        if (file) handleUploadClubLogo(club.id, file);
-                                      }}
-                                    />
-                                  </div>
-                                )}
                               </div>
                               {userData?.clubId !== club.id && (
                                 <button type="button" className="entity-list-card__action" onClick={() => handleSelectClub(club)}>Mi club</button>
@@ -3212,7 +3091,6 @@ function App() {
                   renderTeamLayout()
                 ) : (
                   <>
-                    {renderClubLogoEditor(getClubFromId(userData.clubId) || { id: userData.clubId, nombre: userData.clubNombre })}
                     {renderEquiposLista({
                       titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
                       mostrarClub: false,
@@ -3248,10 +3126,7 @@ function App() {
               )}
             </>
           )}
-          {logoUploadNotice && (
-            <ClubLogoNotice message={logoUploadNotice.message} success accent={accent} />
-          )}
-          {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: logoUploadNotice ? 12 : 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
+          {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
         </div>
       </main>
         </div>

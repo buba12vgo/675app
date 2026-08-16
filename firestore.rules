@@ -30,18 +30,18 @@ service cloud.firestore {
       return isSuperadmin() || belongsToClub(equipoClubId(equipoId));
     }
 
-    function clubLogoFieldsOnly() {
+    function userProfileFieldsOnly() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['logoUrl', 'logoSource', 'logoUpdatedAt']);
+        .hasOnly(['clubId', 'clubNombre', 'nombre']);
     }
 
-    function validClubLogoData() {
-      let logoUrl = request.resource.data.logoUrl;
-      return (logoUrl == null || (logoUrl is string && logoUrl.size() <= 800000))
-        && (
-          !('logoSource' in request.resource.data)
-          || request.resource.data.logoSource == null
-          || request.resource.data.logoSource in ['storage', 'inline']
+    function validUserProfileUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny(['nombre'])
+        || (
+          request.resource.data.nombre is string
+          && request.resource.data.nombre.size() > 0
+          && request.resource.data.nombre.size() <= 80
         );
     }
 
@@ -50,7 +50,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && request.auth.uid == userId && (
         isSuperadmin()
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clubId', 'clubNombre'])
+        || (userProfileFieldsOnly() && validUserProfileUpdate())
       );
       allow delete: if isSuperadmin();
     }
@@ -58,9 +58,7 @@ service cloud.firestore {
     match /Clubes/{clubId} {
       allow read: if isSignedIn();
       allow create: if isSuperadmin();
-      allow update: if isSuperadmin() || (
-        belongsToClub(clubId) && clubLogoFieldsOnly() && validClubLogoData()
-      );
+      allow update: if isSuperadmin();
       allow delete: if isSuperadmin();
     }
 
