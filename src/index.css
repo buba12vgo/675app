@@ -1537,6 +1537,141 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
+.plantilla-jugadora-row {
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 11px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+  padding: 13px 14px;
+  gap: 12px;
+}
+
+.plantilla-jugadora-row--editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.plantilla-jugadora-row__info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  flex: 1;
+}
+
+.plantilla-jugadora-row__dorsal {
+  font-weight: 700;
+  font-size: 22px;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.plantilla-jugadora-row__name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plantilla-jugadora-row__name {
+  font-weight: 600;
+  font-size: 17px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.plantilla-jugadora-row__apodo {
+  font-size: 13.5px;
+  font-weight: 500;
+  opacity: 0.82;
+}
+
+.plantilla-jugadora-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.plantilla-jugadora-row__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  padding: 0;
+}
+
+.plantilla-jugadora-row__icon-btn--edit {
+  color: var(--text-muted, #94a3b8);
+}
+
+.plantilla-jugadora-row__icon-btn--edit:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.plantilla-jugadora-row__icon-btn--delete {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.plantilla-jugadora-row__icon-btn--delete:hover {
+  background: rgba(248, 113, 113, 0.16);
+}
+
+.plantilla-jugadora-row__edit-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.plantilla-jugadora-row__edit-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.plantilla-jugadora-row__btn {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.plantilla-jugadora-row__btn--save {
+  color: #fff;
+}
+
+.plantilla-jugadora-row__btn--save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.plantilla-jugadora-row__btn--cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .stats-table {
   width: 100%;
   max-width: 500px;

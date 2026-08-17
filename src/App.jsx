@@ -183,6 +183,23 @@ function IconSettings({ size = 20, color = "currentColor" }) {
   );
 }
 
+function IconGear({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+function IconX({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
 function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24, onGoHome }) {
   return (
     <button
@@ -949,6 +966,129 @@ function PlantillaForm({
     </form>
   );
 }
+
+function PlantillaJugadoraRow({
+  jugadora,
+  isEditing,
+  editNombre,
+  setEditNombre,
+  editDorsal,
+  setEditDorsal,
+  editApodo,
+  setEditApodo,
+  editLoading,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
+  accent,
+  accentShadow,
+  inputBorder,
+  inputBg,
+  surface,
+  text,
+  textSecondary,
+  error,
+}) {
+  const inputStyle = {
+    padding: "8px 10px",
+    fontSize: 15,
+    border: `1px solid ${inputBorder}`,
+    borderRadius: 8,
+    background: inputBg,
+    color: text,
+    outline: "none",
+    fontWeight: 500,
+    minWidth: 0,
+  };
+
+  if (isEditing) {
+    return (
+      <div className="plantilla-jugadora-row plantilla-jugadora-row--editing" style={{ background: surface, borderLeftColor: accent }}>
+        <div className="plantilla-jugadora-row__edit-fields">
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={editNombre}
+            onChange={e => setEditNombre(e.target.value)}
+            required
+            style={{ ...inputStyle, flex: 1 }}
+          />
+          <input
+            type="number"
+            placeholder="Dorsal"
+            value={editDorsal}
+            onChange={e => setEditDorsal(e.target.value.replace(/^0+/, ""))}
+            min={1}
+            required
+            style={{ ...inputStyle, width: 64 }}
+          />
+          <input
+            type="text"
+            placeholder="Apodo"
+            value={editApodo}
+            onChange={e => setEditApodo(e.target.value)}
+            style={{ ...inputStyle, flex: 1 }}
+          />
+        </div>
+        <div className="plantilla-jugadora-row__edit-actions">
+          <button
+            type="button"
+            className="plantilla-jugadora-row__btn plantilla-jugadora-row__btn--save"
+            style={{ background: accent, boxShadow: `0 2px 10px ${accentShadow}` }}
+            onClick={() => onSaveEdit(jugadora.id)}
+            disabled={editLoading || !editNombre.trim() || !editDorsal.trim()}
+          >
+            {editLoading ? "Guardando…" : "Guardar"}
+          </button>
+          <button
+            type="button"
+            className="plantilla-jugadora-row__btn plantilla-jugadora-row__btn--cancel"
+            onClick={onCancelEdit}
+            disabled={editLoading}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="plantilla-jugadora-row" style={{ background: surface, borderLeftColor: accent }}>
+      <div className="plantilla-jugadora-row__info">
+        <div className="plantilla-jugadora-row__dorsal" style={{ color: accent }}>{jugadora.dorsal}</div>
+        <div className="plantilla-jugadora-row__name-block">
+          <span className="plantilla-jugadora-row__name" style={{ color: text }}>{jugadora.nombre}</span>
+          {jugadora.apodo?.trim() && (
+            <span className="plantilla-jugadora-row__apodo" style={{ color: textSecondary }}>"{jugadora.apodo}"</span>
+          )}
+        </div>
+      </div>
+      <div className="plantilla-jugadora-row__actions">
+        <button
+          type="button"
+          className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--edit"
+          onClick={() => onStartEdit(jugadora)}
+          aria-label={`Editar ${jugadora.nombre}`}
+          title="Editar jugadora"
+        >
+          <IconGear size={17} />
+        </button>
+        <button
+          type="button"
+          className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--delete"
+          onClick={() => onDelete(jugadora)}
+          aria-label={`Eliminar ${jugadora.nombre}`}
+          title="Eliminar jugadora"
+          style={{ color: error }}
+        >
+          <IconX size={17} />
+        </button>
+      </div>
+    </div>
+  );
+}
 // ---------------------------------------------------------------------
 
 function getIconoClimaDecorativo(fechaStr) {
@@ -1214,6 +1354,11 @@ function App() {
   const [jugadoraDorsal, setJugadoraDorsal] = useState("");
   const [jugadoraApodo, setJugadoraApodo] = useState("");
   const [addJugadoraLoading, setAddJugadoraLoading] = useState(false);
+  const [jugadoraEditandoId, setJugadoraEditandoId] = useState(null);
+  const [editJugadoraNombre, setEditJugadoraNombre] = useState("");
+  const [editJugadoraDorsal, setEditJugadoraDorsal] = useState("");
+  const [editJugadoraApodo, setEditJugadoraApodo] = useState("");
+  const [editJugadoraLoading, setEditJugadoraLoading] = useState(false);
 
   // Sesiones state
   const [fechaSesion, setFechaSesion] = useState(() => {
@@ -1395,6 +1540,11 @@ function App() {
     setJugadoraDorsal("");
     setJugadoraApodo("");
     setAddJugadoraLoading(false);
+    setJugadoraEditandoId(null);
+    setEditJugadoraNombre("");
+    setEditJugadoraDorsal("");
+    setEditJugadoraApodo("");
+    setEditJugadoraLoading(false);
   }, [equipoActivo]);
 
   // Fetch de clubes para usuarios sin club
@@ -1937,13 +2087,50 @@ function App() {
     setAddJugadoraLoading(false);
   };
 
-  const handleEliminarJugadora = async (jugadoraId) => {
+  const handleEliminarJugadora = async (jugadora) => {
+    const confirmar = window.confirm(`¿Eliminar a ${jugadora.nombre} de la plantilla?`);
+    if (!confirmar) return;
     setErrorMsg("");
+    if (jugadoraEditandoId === jugadora.id) {
+      setJugadoraEditandoId(null);
+    }
     try {
-      await deleteDoc(doc(db, "Jugadoras", jugadoraId));
+      await deleteDoc(doc(db, "Jugadoras", jugadora.id));
     } catch (err) {
       setErrorMsg("No se pudo eliminar la jugadora.");
     }
+  };
+
+  const handleIniciarEditJugadora = (jugadora) => {
+    setJugadoraEditandoId(jugadora.id);
+    setEditJugadoraNombre(jugadora.nombre || "");
+    setEditJugadoraDorsal(String(jugadora.dorsal ?? ""));
+    setEditJugadoraApodo(jugadora.apodo || "");
+    setErrorMsg("");
+  };
+
+  const handleCancelarEditJugadora = () => {
+    setJugadoraEditandoId(null);
+    setEditJugadoraNombre("");
+    setEditJugadoraDorsal("");
+    setEditJugadoraApodo("");
+  };
+
+  const handleGuardarJugadora = async (jugadoraId) => {
+    if (!editJugadoraNombre.trim() || !editJugadoraDorsal.trim()) return;
+    setEditJugadoraLoading(true);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Jugadoras", jugadoraId), {
+        nombre: editJugadoraNombre.trim(),
+        dorsal: Number(editJugadoraDorsal),
+        apodo: editJugadoraApodo.trim(),
+      });
+      handleCancelarEditJugadora();
+    } catch (err) {
+      setErrorMsg("No se pudo guardar los cambios.");
+    }
+    setEditJugadoraLoading(false);
   };
 
   const handleEmailLogin = async (e) => {
@@ -2760,18 +2947,30 @@ function App() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%", marginTop: 4 }}>
                 {jugadoras.map(j => (
-                  <div key={j.id} style={{ background: surface, borderRadius: 10, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 11px rgba(0,0,0,0.10)", borderLeft: `4px solid ${accent}`, padding: "13px 16px", marginBottom: 1, gap: 17 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 24, width: "100%" }}>
-                      <div style={{ color: accent, fontWeight: 700, fontSize: 22, width: 37, textAlign: "center" }}>{j.dorsal}</div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 0 }}>
-                        <span style={{ color: text, fontWeight: 600, fontSize: 17.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>{j.nombre}</span>
-                        {(j.apodo && j.apodo.trim() !== "") && (
-                          <span style={{ color: textSecondary, fontSize: 13.5, fontWeight: 500, opacity: .82 }}>"{j.apodo}"</span>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => handleEliminarJugadora(j.id)} style={{ background: "rgba(248,113,113,0.1)", color: error, border: "1px solid rgba(248,113,113,0.3)", borderRadius: 8, fontSize: 14, fontWeight: 600, padding: "7px 13px", cursor: "pointer", marginLeft: 8, transition: "filter .11s" }} tabIndex={0}>Eliminar</button>
-                  </div>
+                  <PlantillaJugadoraRow
+                    key={j.id}
+                    jugadora={j}
+                    isEditing={jugadoraEditandoId === j.id}
+                    editNombre={editJugadoraNombre}
+                    setEditNombre={setEditJugadoraNombre}
+                    editDorsal={editJugadoraDorsal}
+                    setEditDorsal={setEditJugadoraDorsal}
+                    editApodo={editJugadoraApodo}
+                    setEditApodo={setEditJugadoraApodo}
+                    editLoading={editJugadoraLoading}
+                    onStartEdit={handleIniciarEditJugadora}
+                    onCancelEdit={handleCancelarEditJugadora}
+                    onSaveEdit={handleGuardarJugadora}
+                    onDelete={handleEliminarJugadora}
+                    accent={accent}
+                    accentShadow={accentShadow}
+                    inputBorder={inputBorder}
+                    inputBg={inputBg}
+                    surface={surface}
+                    text={text}
+                    textSecondary={textSecondary}
+                    error={error}
+                  />
                 ))}
               </div>
             )}
