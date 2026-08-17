@@ -269,12 +269,22 @@ function UserOptionsPanel({
   saving,
   email,
   accent,
+  accentLight,
+  accentSoft,
+  accentBorder,
   text,
   textSecondary,
   textMuted,
   inputBorder,
   inputBg,
   cardBgElevated,
+  clubNombre,
+  clubId,
+  solicitudClubNombre,
+  solicitudClubId,
+  clubes,
+  onSolicitarClub,
+  esEntrenador,
 }) {
   return (
     <div className="user-options-panel content-medium" style={{ width: "96%", margin: "0 auto", padding: "8px 0 24px" }}>
@@ -342,6 +352,90 @@ function UserOptionsPanel({
           {saving ? "Guardando…" : "Guardar nombre"}
         </button>
       </form>
+
+      {esEntrenador && (
+        <div
+          style={{
+            marginTop: 20,
+            background: cardBgElevated,
+            border: `1px solid ${inputBorder}`,
+            borderRadius: 16,
+            padding: "20px 18px",
+          }}
+        >
+          <div style={{ color: text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>Tu club</div>
+          {clubNombre ? (
+            <div style={{ color: accentLight, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{clubNombre}</div>
+          ) : (
+            <div style={{ color: textMuted, fontSize: 14, marginBottom: 8 }}>Sin club asignado</div>
+          )}
+          {solicitudClubId && (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: accentSoft,
+                border: `1px solid ${accentBorder}`,
+                color: text,
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              {clubNombre
+                ? <>Cambio pendiente a <span style={{ color: accentLight, fontWeight: 700 }}>{solicitudClubNombre}</span>. El superadmin debe aprobarlo.</>
+                : <>Solicitud pendiente para <span style={{ color: accentLight, fontWeight: 700 }}>{solicitudClubNombre}</span>.</>}
+            </div>
+          )}
+          <div style={{ color: textSecondary, fontSize: 13, lineHeight: 1.5, marginBottom: clubes?.length ? 12 : 0 }}>
+            {clubNombre
+              ? "Para cambiar de club, solicítalo abajo. Solo el superadmin puede aprobar el cambio."
+              : "Solicita un club desde la pantalla principal. Solo el superadmin puede aprobarlo."}
+          </div>
+          {clubNombre && clubes?.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+              {clubes
+                .filter((club) => club.id !== clubId)
+                .map((club) => (
+                  <div
+                    key={club.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: `1px solid ${inputBorder}`,
+                      background: inputBg,
+                    }}
+                  >
+                    <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>{club.nombre}</span>
+                    <button
+                      type="button"
+                      onClick={() => onSolicitarClub?.(club)}
+                      disabled={solicitudClubId === club.id}
+                      style={{
+                        background: solicitudClubId === club.id ? "transparent" : accent,
+                        color: solicitudClubId === club.id ? textMuted : "#fff",
+                        border: solicitudClubId === club.id ? `1px solid ${inputBorder}` : "none",
+                        borderRadius: 8,
+                        padding: "6px 12px",
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: solicitudClubId === club.id ? "default" : "pointer",
+                        fontFamily: "inherit",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {solicitudClubId === club.id ? "Solicitado" : "Solicitar cambio"}
+                    </button>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -501,14 +595,6 @@ function AsistenciaValoracionPanel({
   resumenPresentes,
   btnTodasPresentes = "Todas presentes",
   btnTodasAusentes = "Todas ausentes",
-  equipoActivoId,
-  jugadorasClub = [],
-  jugadorasClubLoading = false,
-  getNombreEquipo,
-  busquedaJugadoraClub = "",
-  setBusquedaJugadoraClub,
-  onAgregarJugadoraExterna,
-  onQuitarJugadoraExterna,
   onGoToPlantilla,
   text,
 }) {
@@ -521,17 +607,6 @@ function AsistenciaValoracionPanel({
     : (totalJugadoras > 0
       ? `${presentesCount} de ${totalJugadoras} presentes · ${totalJugadoras - presentesCount} ausentes`
       : "Sin jugadoras en plantilla");
-
-  const idsEnSesion = useMemo(() => new Set(jugadoras.map(j => j.id)), [jugadoras]);
-  const resultadosBusqueda = useMemo(() => {
-    if (!equipoActivoId || !getNombreEquipo || !busquedaJugadoraClub.trim()) return [];
-    return filtrarJugadorasClubBusqueda(jugadorasClub, {
-      equipoActivoId,
-      idsEnSesion,
-      busqueda: busquedaJugadoraClub,
-      getNombreEquipo,
-    });
-  }, [jugadorasClub, equipoActivoId, idsEnSesion, busquedaJugadoraClub, getNombreEquipo]);
 
   const marcarTodasPresentes = () => {
     setAsistencias(prev => {
@@ -662,65 +737,6 @@ function AsistenciaValoracionPanel({
           </div>
         )}
       </div>
-      {equipoActivoId && setBusquedaJugadoraClub && onAgregarJugadoraExterna && (
-        <div className="session-club-search" style={{ flexShrink: 0 }}>
-          <input
-            type="search"
-            value={busquedaJugadoraClub}
-            onChange={e => setBusquedaJugadoraClub(e.target.value)}
-            placeholder="Buscar jugadora de otro equipo del club…"
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              fontSize: 14,
-              border: `1px solid ${inputBorder}`,
-              borderRadius: 9,
-              background: cardBgElevated,
-              color: "#fff",
-              outline: "none",
-              fontWeight: 500,
-            }}
-          />
-          {jugadorasClubLoading && busquedaJugadoraClub.trim() && (
-            <div style={{ color: textMuted, fontSize: 13, marginTop: 8, fontStyle: "italic" }}>
-              Cargando jugadoras del club…
-            </div>
-          )}
-          {!jugadorasClubLoading && busquedaJugadoraClub.trim() && resultadosBusqueda.length === 0 && (
-            <div style={{ color: textMuted, fontSize: 13, marginTop: 8, fontStyle: "italic" }}>
-              No hay coincidencias en otros equipos.
-            </div>
-          )}
-          {resultadosBusqueda.length > 0 && (
-            <div className="session-club-search-results" style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-              {resultadosBusqueda.map(j => (
-                <button
-                  key={j.id}
-                  type="button"
-                  onClick={() => onAgregarJugadoraExterna(j.id)}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "9px 11px",
-                    borderRadius: 9,
-                    border: `1px solid ${inputBorder}`,
-                    background: "rgba(42, 101, 112, 0.08)",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  <span style={{ color: accent, fontWeight: 700, marginRight: 8 }}>#{j.dorsal}</span>
-                  <span style={{ fontWeight: 600 }}>{j.nombre}</span>
-                  <span style={{ color: textMuted, fontSize: 12.5, marginLeft: 8 }}>
-                    {getNombreEquipo(j.equipoId)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
       <div className="session-asistencia-list">
         {jugadorasLoading ? (
           <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>Cargando jugadoras...</div>
@@ -754,7 +770,6 @@ function AsistenciaValoracionPanel({
           jugadoras.map(j => {
             const estaPresente = !!asistencias[j.id];
             const valoracionActual = valoraciones[j.id];
-            const esExterna = equipoActivoId && j.equipoId !== equipoActivoId;
             return (
               <div
                 key={j.id}
@@ -766,11 +781,6 @@ function AsistenciaValoracionPanel({
                     <span className="asistencia-row__nombre">{j.nombre}</span>
                     {(j.apodo && j.apodo.trim() !== "") && (
                       <span className="asistencia-row__apodo">"{j.apodo}"</span>
-                    )}
-                    {esExterna && getNombreEquipo && (
-                      <span className="asistencia-row__equipo" style={{ color: textSecondary }}>
-                        {getNombreEquipo(j.equipoId)}
-                      </span>
                     )}
                   </div>
                 </div>
@@ -797,18 +807,6 @@ function AsistenciaValoracionPanel({
                     </div>
                   )}
                   <div className="asistencia-action-group">
-                    {esExterna && onQuitarJugadoraExterna && (
-                      <button
-                        type="button"
-                        className="asistencia-remove-btn"
-                        aria-label="Quitar jugadora de la sesión"
-                        title="Quitar de esta sesión"
-                        onClick={() => onQuitarJugadoraExterna(j.id)}
-                        style={{ borderColor: inputBorder, color: textMuted }}
-                      >
-                        ×
-                      </button>
-                    )}
                     <button
                       type="button"
                       className="asistencia-toggle-btn"
@@ -1298,38 +1296,10 @@ function calcularEstadisticasJugadoras(jugadoras, sesiones) {
   }));
 }
 
-function normalizarTextoBusqueda(texto) {
-  return (texto || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-}
-
-function combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds) {
-  const map = new Map(jugadoras.map(j => [j.id, j]));
-  jugadorasExternasIds.forEach(id => {
-    const j = jugadorasClub.find(x => x.id === id);
-    if (j && !map.has(j.id)) map.set(j.id, j);
-  });
-  return Array.from(map.values()).sort((a, b) => a.dorsal - b.dorsal);
-}
-
-function filtrarJugadorasClubBusqueda(jugadorasClub, { equipoActivoId, idsEnSesion, busqueda, getNombreEquipo }) {
-  const q = normalizarTextoBusqueda(busqueda.trim());
-  if (!q) return [];
-  return jugadorasClub
-    .filter(j => j.equipoId !== equipoActivoId)
-    .filter(j => !idsEnSesion.has(j.id))
-    .filter(j => {
-      const nombreEquipo = getNombreEquipo(j.equipoId);
-      const haystack = `${j.nombre} ${j.apodo || ""} ${j.dorsal} ${nombreEquipo}`;
-      return normalizarTextoBusqueda(haystack).includes(q);
-    })
-    .slice(0, 8);
-}
-
 function resetCamposSesion(setters) {
   const {
     setTematica, setEjercicios, setAsistencias, setValoraciones,
     setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
-    setJugadorasExternasIds, setBusquedaJugadoraClub,
   } = setters;
   setTematica("");
   setEjercicios("");
@@ -1339,8 +1309,6 @@ function resetCamposSesion(setters) {
   setRivalPartido("");
   setLocalPartido("casa");
   setSesionVista("datos");
-  if (setJugadorasExternasIds) setJugadorasExternasIds([]);
-  if (setBusquedaJugadoraClub) setBusquedaJugadoraClub("");
 }
 
 function App() {
@@ -1363,6 +1331,8 @@ function App() {
   const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [seedNotice, setSeedNotice] = useState(null);
+  const [solicitudesClub, setSolicitudesClub] = useState([]);
+  const [solicitudesLoading, setSolicitudesLoading] = useState(false);
 
   // Equipos state
   const [equipos, setEquipos] = useState([]);
@@ -1406,11 +1376,6 @@ function App() {
   // Estado de jugadoras
   const [jugadoras, setJugadoras] = useState([]);
   const [jugadorasLoading, setJugadorasLoading] = useState(false);
-  const [jugadorasClub, setJugadorasClub] = useState([]);
-  const [jugadorasClubLoading, setJugadorasClubLoading] = useState(false);
-  const [equiposClub, setEquiposClub] = useState([]);
-  const [jugadorasExternasIds, setJugadorasExternasIds] = useState([]);
-  const [busquedaJugadoraClub, setBusquedaJugadoraClub] = useState("");
 
   // Formulario plantilla
   const [jugadoraNombre, setJugadoraNombre] = useState("");
@@ -1486,35 +1451,9 @@ function App() {
   const sesionSetters = {
     setTematica, setEjercicios, setAsistencias, setValoraciones,
     setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
-    setJugadorasExternasIds, setBusquedaJugadoraClub,
   };
 
-  const getNombreEquipoById = (equipoId) => equiposClub.find(e => e.id === equipoId)?.nombre || "Otro equipo";
-
-  const jugadorasSesion = useMemo(
-    () => combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds),
-    [jugadoras, jugadorasClub, jugadorasExternasIds]
-  );
-
-  const handleAgregarJugadoraExterna = (jugadoraId) => {
-    setJugadorasExternasIds(prev => (prev.includes(jugadoraId) ? prev : [...prev, jugadoraId]));
-    setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
-    setBusquedaJugadoraClub("");
-  };
-
-  const handleQuitarJugadoraExterna = (jugadoraId) => {
-    setJugadorasExternasIds(prev => prev.filter(id => id !== jugadoraId));
-    setAsistencias(prev => {
-      const nuevo = { ...prev };
-      delete nuevo[jugadoraId];
-      return nuevo;
-    });
-    setValoraciones(prev => {
-      const nuevo = { ...prev };
-      delete nuevo[jugadoraId];
-      return nuevo;
-    });
-  };
+  const jugadorasSesion = jugadoras;
 
   const tabsMenu = [
     { key: "home", label: "Inicio", Icon: IconHome },
@@ -1530,20 +1469,33 @@ function App() {
 
   // Escucha auth y datos de usuario
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+    let unsubAuth;
+    let unsubProfile;
+
+    unsubAuth = onAuthStateChanged(auth, async (u) => {
+      if (unsubProfile) {
+        unsubProfile();
+        unsubProfile = null;
+      }
+
       setUser(u);
       setErrorMsg("");
       if (u) {
         try {
           const docRef = doc(db, "Usuarios", u.uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setUserData(docSnap.data());
-          } else {
+          if (!docSnap.exists()) {
             const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
             await setDoc(docRef, nuevoUsuario);
-            setUserData(nuevoUsuario);
           }
+
+          unsubProfile = onSnapshot(
+            docRef,
+            (snap) => {
+              setUserData(snap.exists() ? snap.data() : null);
+            },
+            () => setUserData(null)
+          );
         } catch (err) {
           setUserData(null);
         }
@@ -1551,7 +1503,11 @@ function App() {
         setUserData(null);
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      if (typeof unsubProfile === "function") unsubProfile();
+      if (typeof unsubAuth === "function") unsubAuth();
+    };
   }, []);
   // Escucha clubes para superadmin
   useEffect(() => {
@@ -1607,10 +1563,6 @@ function App() {
     setJugadoraDorsal("");
     setJugadoraApodo("");
     setAddJugadoraLoading(false);
-    setJugadorasExternasIds([]);
-    setBusquedaJugadoraClub("");
-    setJugadorasClub([]);
-    setEquiposClub([]);
   }, [equipoActivo]);
 
   // Fetch de clubes para usuarios sin club
@@ -1632,6 +1584,56 @@ function App() {
       fetchClubes();
     }
   }, [userData?.rol, userData?.clubId]);
+
+  useEffect(() => {
+    const fetchClubesParaCambio = async () => {
+      if (!showOpcionesPanel || userData?.rol === "superadmin" || !userData?.clubId) return;
+      try {
+        const clubCol = collection(db, "Clubes");
+        const snap = await getDocs(clubCol);
+        setClubes(snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
+      } catch (err) {
+        setClubes([]);
+      }
+    };
+    fetchClubesParaCambio();
+  }, [showOpcionesPanel, userData?.rol, userData?.clubId]);
+
+  useEffect(() => {
+    if (userData?.rol !== "superadmin") {
+      setSolicitudesClub([]);
+      setSolicitudesLoading(false);
+      return;
+    }
+
+    setSolicitudesLoading(true);
+    const unsub = onSnapshot(
+      collection(db, "Usuarios"),
+      (snapshot) => {
+        setSolicitudesClub(
+          snapshot.docs
+            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .filter((usuario) => usuario.solicitudClubId)
+            .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
+        );
+        setSolicitudesLoading(false);
+      },
+      () => {
+        setSolicitudesClub([]);
+        setSolicitudesLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [userData?.rol]);
+
+  useEffect(() => {
+    if (!equipoActivo || userData?.rol === "superadmin") return;
+    if (userData?.clubId && equipoActivo.clubId !== userData.clubId) {
+      setEquipoActivo(null);
+      setErrorMsg("No puedes acceder a equipos de otros clubes.");
+    }
+  }, [equipoActivo, userData?.clubId, userData?.rol]);
 
   // Leer equipos según rol y contexto
   useEffect(() => {
@@ -1715,49 +1717,6 @@ function App() {
     };
   }, [equipoActivo, userData?.clubId, userData?.rol, tab]);
 
-  // Jugadoras y equipos del club (para convocar de otros equipos en sesiones)
-  useEffect(() => {
-    const clubId = equipoActivo?.clubId || userData?.clubId;
-    if (!equipoActivo || !clubId || tab !== "sesiones") {
-      setJugadorasClub([]);
-      setEquiposClub([]);
-      setJugadorasClubLoading(false);
-      return;
-    }
-
-    setJugadorasClubLoading(true);
-    const equiposCol = collection(db, "Equipos");
-    const qEquipos = query(equiposCol, where("clubId", "==", clubId));
-    const unsubEquipos = onSnapshot(
-      qEquipos,
-      (snapshot) => {
-        setEquiposClub(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      },
-      () => setEquiposClub([])
-    );
-
-    const jugadorasCol = collection(db, "Jugadoras");
-    const qJugadoras = query(jugadorasCol, where("clubId", "==", clubId));
-    const unsubJugadoras = onSnapshot(
-      qJugadoras,
-      (snapshot) => {
-        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        docs.sort((a, b) => a.dorsal - b.dorsal);
-        setJugadorasClub(docs);
-        setJugadorasClubLoading(false);
-      },
-      () => {
-        setJugadorasClub([]);
-        setJugadorasClubLoading(false);
-      }
-    );
-
-    return () => {
-      unsubEquipos();
-      unsubJugadoras();
-    };
-  }, [equipoActivo, userData?.clubId, tab]);
-
   // --- CALENDARIO SESIONES equipoActivo (en vivo) ---
   useEffect(() => {
     let unsub;
@@ -1817,8 +1776,6 @@ function App() {
             setEjercicios(docSesion.data().ejercicios || "");
             setAsistencias(docSesion.data().asistencias || {});
             setValoraciones(docSesion.data().valoraciones || {});
-            setJugadorasExternasIds(docSesion.data().jugadorasExternas || []);
-            setBusquedaJugadoraClub("");
             setTipoSesion(normalizarTipoSesion(docSesion.data()));
             setRivalPartido(docSesion.data().rival || "");
             setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
@@ -1846,7 +1803,7 @@ function App() {
   // Refiltra asistencias y valoraciones cuando cambia la lista de la sesión
   useEffect(() => {
     if (!sesionDoc) return;
-    const lista = combinarJugadorasSesion(jugadoras, jugadorasClub, jugadorasExternasIds);
+    const lista = jugadoras;
     if (!lista.length) return;
 
     setAsistencias(prevAsist => {
@@ -1866,7 +1823,7 @@ function App() {
       });
       return nuevo;
     });
-  }, [jugadoras, jugadorasClub, jugadorasExternasIds, sesionDoc]);
+  }, [jugadoras, sesionDoc]);
 
   // Actualiza asistencias cuando cambia listado y NO hay sesión ya creada
   useEffect(() => {
@@ -1887,19 +1844,83 @@ function App() {
   }, [fechaSesionSeleccionada]);
 
   // Funciones de acción
+  const handleSolicitarClub = async (club) => {
+    if (!user || !club?.id || userData?.rol === "superadmin") return;
+    if (userData?.clubId === club.id) {
+      setErrorMsg("Ya perteneces a este club.");
+      return;
+    }
+    setErrorMsg("");
+    try {
+      const userRef = doc(db, "Usuarios", user.uid);
+      await updateDoc(userRef, {
+        solicitudClubId: club.id,
+        solicitudClubNombre: club.nombre,
+      });
+    } catch (err) {
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para solicitar este club."
+        : "No se pudo enviar la solicitud de club.");
+    }
+  };
+
   const handleSelectClub = async (club) => {
-    if (!user) return;
+    if (!user || !club?.id || userData?.rol !== "superadmin") return;
     setErrorMsg("");
     try {
       const userRef = doc(db, "Usuarios", user.uid);
       await updateDoc(userRef, {
         clubId: club.id,
         clubNombre: club.nombre,
+        solicitudClubId: null,
+        solicitudClubNombre: null,
       });
-      setUserData(prev => ({ ...prev, clubId: club.id, clubNombre: club.nombre }));
+      setUserData(prev => ({
+        ...prev,
+        clubId: club.id,
+        clubNombre: club.nombre,
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      }));
     } catch (err) {
       setErrorMsg("No se pudo asignar el club.");
     }
+  };
+
+  const handleAprobarSolicitudClub = async (usuario) => {
+    if (!usuario?.id || !usuario?.solicitudClubId || userData?.rol !== "superadmin") return;
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Usuarios", usuario.id), {
+        clubId: usuario.solicitudClubId,
+        clubNombre: usuario.solicitudClubNombre || getClubNombre(usuario.solicitudClubId),
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      });
+    } catch (err) {
+      setErrorMsg("No se pudo aprobar la solicitud de club.");
+    }
+  };
+
+  const handleRechazarSolicitudClub = async (usuario) => {
+    if (!usuario?.id || userData?.rol !== "superadmin") return;
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Usuarios", usuario.id), {
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      });
+    } catch (err) {
+      setErrorMsg("No se pudo rechazar la solicitud de club.");
+    }
+  };
+
+  const handleEntrarEquipo = (equipo) => {
+    if (userData?.rol !== "superadmin" && userData?.clubId && equipo.clubId !== userData.clubId) {
+      setErrorMsg("No puedes acceder a equipos de otros clubes.");
+      return;
+    }
+    setEquipoActivo(equipo);
   };
 
   const handleQuitarMiClub = async () => {
@@ -1969,27 +1990,32 @@ function App() {
     saving: savingUserNombre,
     email: user?.email,
     accent,
+    accentLight,
+    accentSoft,
+    accentBorder,
     text,
     textSecondary,
     textMuted,
     inputBorder,
     inputBg,
     cardBgElevated,
+    clubNombre: userData?.clubNombre,
+    clubId: userData?.clubId,
+    solicitudClubNombre: userData?.solicitudClubNombre,
+    solicitudClubId: userData?.solicitudClubId,
+    clubes,
+    onSolicitarClub: handleSolicitarClub,
+    esEntrenador: userData?.rol === "entrenador",
   };
 
   const handleSeedDemoData = async () => {
-    const isSuperadmin = userData?.rol === "superadmin";
-    const clubIdFilter = isSuperadmin ? null : userData?.clubId || null;
-
-    if (!isSuperadmin && !clubIdFilter) {
-      setErrorMsg("Selecciona un club antes de generar datos de prueba.");
+    if (userData?.rol !== "superadmin") {
+      setErrorMsg("No tienes permiso para generar datos de prueba.");
       return;
     }
 
     const confirmed = window.confirm(
-      isSuperadmin
-        ? "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
-        : `¿Generar datos de prueba para ${userData.clubNombre}?\n\nSe añadirán hasta 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.`
+      "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
     );
     if (!confirmed) return;
 
@@ -1997,7 +2023,7 @@ function App() {
     setErrorMsg("");
     setSeedNotice(null);
     try {
-      const summary = await seedDemoData(db, { clubIdFilter });
+      const summary = await seedDemoData(db, { clubIdFilter: null });
       setSeedNotice(
         `Datos generados: ${summary.clubes} club${summary.clubes === 1 ? "" : "es"} · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
       );
@@ -2010,7 +2036,7 @@ function App() {
     }
   };
 
-  const canSeedDemoData = userData?.rol === "superadmin" || Boolean(userData?.clubId);
+  const canSeedDemoData = userData?.rol === "superadmin";
   const demoSeedProps = {
     onSeed: handleSeedDemoData,
     seeding: seedingDemo,
@@ -2129,7 +2155,7 @@ function App() {
         local: "casa",
         asistencias: asist,
         valoraciones: {},
-        jugadorasExternas: jugadorasExternasIds,
+        jugadorasExternas: [],
         creadoEn: new Date(),
       });
       const snap = await getDoc(sesionDocRef);
@@ -2169,7 +2195,7 @@ function App() {
         tipo: tipoSesion,
         asistencias,
         valoraciones: valoracionesFiltradas,
-        jugadorasExternas: jugadorasExternasIds,
+        jugadorasExternas: [],
         actualizadoEn: new Date(),
       };
       if (tipoSesion === "partido") {
@@ -2685,14 +2711,6 @@ function App() {
                               : undefined}
                             btnTodasPresentes={tipoSesion === "partido" ? "Todas convocadas" : "Todas presentes"}
                             btnTodasAusentes={tipoSesion === "partido" ? "Ninguna convocada" : "Todas ausentes"}
-                            equipoActivoId={equipoActivo?.id}
-                            jugadorasClub={jugadorasClub}
-                            jugadorasClubLoading={jugadorasClubLoading}
-                            getNombreEquipo={getNombreEquipoById}
-                            busquedaJugadoraClub={busquedaJugadoraClub}
-                            setBusquedaJugadoraClub={setBusquedaJugadoraClub}
-                            onAgregarJugadoraExterna={handleAgregarJugadoraExterna}
-                            onQuitarJugadoraExterna={handleQuitarJugadoraExterna}
                             onGoToPlantilla={() => setTab("plantilla")}
                             text={text}
                           />
@@ -2929,7 +2947,12 @@ function App() {
   const showTeamNav = equipoActivo && (userData?.clubId || userData?.rol === "superadmin");
   const esSuperadmin = userData?.rol === "superadmin";
 
-  const renderEquiposLista = ({ titulo, mostrarClub, permitirCrear }) => (
+  const renderEquiposLista = ({ titulo, mostrarClub, permitirCrear }) => {
+    const equiposVisibles = esSuperadmin
+      ? equipos
+      : equipos.filter((equipo) => equipo.clubId === userData?.clubId);
+
+    return (
     <div className="section-heading">
       <span className="section-heading__accent">{titulo}</span>
       {permitirCrear && userData?.clubId && (
@@ -2941,12 +2964,12 @@ function App() {
       <div className="content-medium responsive-grid-list" style={{ width: "98%", margin: "17px auto 0" }}>
         {equiposLoading ? (
           <div className="empty-state-text" style={{ fontSize: 17, padding: "12px 0", gridColumn: "1 / -1" }}>Cargando equipos...</div>
-        ) : equipos.length === 0 ? (
+        ) : equiposVisibles.length === 0 ? (
           <div className="empty-state-text" style={{ fontSize: 16.5, gridColumn: "1 / -1" }}>
             {permitirCrear ? "No hay equipos aún. ¡Crea el primero!" : "No hay equipos registrados."}
           </div>
         ) : (
-          equipos.map(equipo => (
+          equiposVisibles.map(equipo => (
             <div
               key={equipo.id}
               className="entity-list-card"
@@ -2961,13 +2984,14 @@ function App() {
                   <span className="entity-list-card__meta">{getClubNombre(equipo.clubId)}</span>
                 )}
               </div>
-              <button type="button" className="entity-list-card__action" onClick={() => setEquipoActivo(equipo)}>Entrar</button>
+              <button type="button" className="entity-list-card__action" onClick={() => handleEntrarEquipo(equipo)}>Entrar</button>
             </div>
           ))
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   const getNombreClubActivo = () => {
     if (userData?.clubNombre && (!equipoActivo?.clubId || equipoActivo.clubId === userData.clubId)) {
@@ -3136,6 +3160,72 @@ function App() {
                       )}
                     </div>
                     <DemoSeedCard {...demoSeedProps} />
+                    {solicitudesLoading ? (
+                      <div className="empty-state-text" style={{ width: "97%", marginBottom: 16, fontSize: 15 }}>Cargando solicitudes de club…</div>
+                    ) : solicitudesClub.length > 0 && (
+                      <div
+                        style={{
+                          width: "97%",
+                          marginBottom: 20,
+                          padding: "16px 18px",
+                          background: cardBgElevated,
+                          borderRadius: 12,
+                          border: `1px solid ${inputBorder}`,
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <div style={{ color: text, fontWeight: 700, fontSize: 16, marginBottom: 10 }}>
+                          Solicitudes de club pendientes
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {solicitudesClub.map((usuario) => (
+                            <div
+                              key={usuario.id}
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 10,
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                padding: "10px 12px",
+                                borderRadius: 10,
+                                border: `1px solid ${inputBorder}`,
+                                background: inputBg,
+                              }}
+                            >
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ color: text, fontWeight: 600, fontSize: 14 }}>
+                                  {usuario.nombre?.trim() || usuario.email || "Entrenador"}
+                                </div>
+                                <div style={{ color: textSecondary, fontSize: 13, marginTop: 2 }}>
+                                  {usuario.clubNombre ? (
+                                    <>Cambio de <span style={{ fontWeight: 600 }}>{usuario.clubNombre}</span> a <span style={{ color: accentLight, fontWeight: 700 }}>{usuario.solicitudClubNombre}</span></>
+                                  ) : (
+                                    <>Solicita: <span style={{ color: accentLight, fontWeight: 700 }}>{usuario.solicitudClubNombre}</span></>
+                                  )}
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAprobarSolicitudClub(usuario)}
+                                  style={{ background: accent, color: "#fff", border: "none", borderRadius: 8, padding: "7px 12px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+                                >
+                                  Aprobar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRechazarSolicitudClub(usuario)}
+                                  style={{ background: "transparent", color: textMuted, border: `1px solid ${inputBorder}`, borderRadius: 8, padding: "7px 12px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+                                >
+                                  Rechazar
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <form onSubmit={handleCrearClub} className="content-wide form-shell" style={{ width: "96%", marginBottom: 30 }}>
                       <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
                       <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()}>Crear</button>
@@ -3170,7 +3260,7 @@ function App() {
                   </>
                 ) : (
                   <>
-                    {canSeedDemoData && <DemoSeedCard {...demoSeedProps} />}
+                    <DemoSeedCard {...demoSeedProps} />
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 8, width: "100%" }}>
                       {[
                         { key: "todos", label: "Todos los equipos" },
@@ -3216,12 +3306,6 @@ function App() {
                   renderTeamLayout()
                 ) : (
                   <>
-                    {canSeedDemoData && (
-                      <DemoSeedCard
-                        {...demoSeedProps}
-                        description={`Rellena ${userData.clubNombre} con 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.`}
-                      />
-                    )}
                     {renderEquiposLista({
                       titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
                       mostrarClub: false,
@@ -3231,7 +3315,25 @@ function App() {
                 )
               ) : (
                 <div className="section-heading" style={{ marginTop: 65, fontSize: 23, fontWeight: 800 }}>
-                  <div>Paso 1:<br /><span style={{ color: accent }}>Selecciona tu Club</span> para empezar</div>
+                  <div>Paso 1:<br /><span style={{ color: accent }}>Solicita unirte a tu Club</span></div>
+                  {userData?.solicitudClubId && !userData?.clubId && (
+                    <div
+                      style={{
+                        marginTop: 20,
+                        width: "98%",
+                        padding: "14px 16px",
+                        borderRadius: 12,
+                        background: accentSoft,
+                        border: `1px solid ${accentBorder}`,
+                        color: text,
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        fontWeight: 500,
+                      }}
+                    >
+                      Tu solicitud para <span style={{ color: accentLight, fontWeight: 700 }}>{userData.solicitudClubNombre}</span> está pendiente de aprobación por el superadmin.
+                    </div>
+                  )}
                   <div style={{ marginTop: 35, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 15 }}>
                     {selectClubLoading ? (
                       <div className="empty-state-text" style={{ fontSize: 18 }}>Cargando clubes...</div>
@@ -3247,7 +3349,14 @@ function App() {
                                 <span className="entity-list-card__title">{club.nombre}</span>
                               </div>
                             </div>
-                            <button type="button" className="entity-list-card__action" onClick={() => handleSelectClub(club)}>Seleccionar</button>
+                            <button
+                              type="button"
+                              className="entity-list-card__action"
+                              onClick={() => handleSolicitarClub(club)}
+                              disabled={userData?.solicitudClubId === club.id}
+                            >
+                              {userData?.solicitudClubId === club.id ? "Solicitado" : "Solicitar"}
+                            </button>
                           </div>
                         ))}
                       </div>

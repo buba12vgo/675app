@@ -1,0 +1,145 @@
+import { readFileSync } from "node:fs";
+import {
+  initializeTestEnvironment,
+  assertFails,
+  assertSucceeds,
+} from "@firebase/rules-unit-testing";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+
+const PROJECT_ID = "app-33232-rules-test";
+const rules = readFileSync(new URL("../firestore.rules", import.meta.url), "utf8");
+
+const testEnv = await initializeTestEnvironment({
+  projectId: PROJECT_ID,
+  firestore: { rules },
+});
+
+let passed = 0;
+let failed = 0;
+
+async function test(name, fn) {
+  try {
+    await fn();
+    passed += 1;
+    console.log(`✔ ${name}`);
+  } catch (err) {
+    failed += 1;
+    console.error(`✘ ${name}`);
+    console.error(`  ${err?.message || err}`);
+  }
+}
+
+try {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, "Usuarios/coach-a"), {
+      email: "coach-a@test.com",
+      rol: "entrenador",
+      clubId: "club-a",
+      clubNombre: "Club A",
+    });
+    await setDoc(doc(db, "Usuarios/coach-new"), {
+      email: "coach-new@test.com",
+      rol: "entrenador",
+    });
+    await setDoc(doc(db, "Usuarios/superadmin"), {
+      email: "admin@test.com",
+      rol: "superadmin",
+    });
+    await setDoc(doc(db, "Equipos/eq-a"), { nombre: "Senior A", clubId: "club-a" });
+    await setDoc(doc(db, "Equipos/eq-a2"), { nombre: "Junior A", clubId: "club-a" });
+    await setDoc(doc(db, "Equipos/eq-b"), { nombre: "Senior B", clubId: "club-b" });
+    await setDoc(doc(db, "Jugadoras/j-a"), { nombre: "Ana", clubId: "club-a", equipoId: "eq-a", dorsal: 1 });
+    await setDoc(doc(db, "Jugadoras/j-a2"), { nombre: "Carla", clubId: "club-a", equipoId: "eq-a2", dorsal: 3 });
+    await setDoc(doc(db, "Jugadoras/j-b"), { nombre: "Bea", clubId: "club-b", equipoId: "eq-b", dorsal: 2 });
+  });
+
+  const coachA = testEnv.authenticatedContext("coach-a").firestore();
+  const coachNew = testEnv.authenticatedContext("coach-new").firestore();
+  const superadmin = testEnv.authenticatedContext("superadmin").firestore();
+
+  await test("Entrenador lee equipos de su club", async () => {
+    await assertSucceeds(getDoc(doc(coachA, "Equipos/eq-a")));
+  });
+
+  await test("Entrenador no lee equipos de otro club", async () => {
+    await assertFails(getDoc(doc(coachA, "Equipos/eq-b")));
+  });
+
+  await test("Entrenador no lista equipos de otro club", async () => {
+    await assertFails(getDocs(collection(coachA, "Equipos")));
+  });
+
+  await test("Entrenador lee jugadora de su equipo", async () => {
+    await assertSucceeds(getDoc(doc(coachA, "Jugadoras/j-a")));
+  });
+
+  await test("Entrenador no lee jugadoras de otro club", async () => {
+    await assertFails(getDoc(doc(coachA, "Jugadoras/j-b")));
+  });
+
+  await test("Entrenador lista jugadoras filtrando por equipo", async () => {
+    const q = query(collection(coachA, "Jugadoras"), where("equipoId", "==", "eq-a"));
+    await assertSucceeds(getDocs(q));
+  });
+
+  await test("Entrenador no lista jugadoras por club", async () => {
+    const q = query(collection(coachA, "Jugadoras"), where("clubId", "==", "club-a"));
+    await assertFails(getDocs(q));
+  });
+
+  await test("Entrenador no lista todas las jugadoras", async () => {
+    await assertFails(getDocs(collection(coachA, "Jugadoras")));
+  });
+
+  await test("Entrenador puede solicitar club", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coachNew, "Usuarios/coach-new"), {
+        solicitudClubId: "club-a",
+        solicitudClubNombre: "Club A",
+      })
+    );
+  });
+
+  await test("Entrenador no puede asignarse club directamente", async () => {
+    await assertFails(
+      updateDoc(doc(coachNew, "Usuarios/coach-new"), {
+        clubId: "club-a",
+        clubNombre: "Club A",
+      })
+    );
+  });
+
+  await test("Superadmin aprueba solicitud de club", async () => {
+    await assertSucceeds(
+      updateDoc(doc(superadmin, "Usuarios/coach-new"), {
+        clubId: "club-a",
+        clubNombre: "Club A",
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      })
+    );
+  });
+
+  await test("Superadmin lee equipos de cualquier club", async () => {
+    await assertSucceeds(getDoc(doc(superadmin, "Equipos/eq-b")));
+  });
+
+  await test("Superadmin lista jugadoras sin filtro", async () => {
+    await assertSucceeds(getDocs(collection(superadmin, "Jugadoras")));
+  });
+} finally {
+  await testEnv.cleanup();
+}
+
+console.log(`\n${passed} passed, ${failed} failed`);
+if (failed > 0) process.exit(1);

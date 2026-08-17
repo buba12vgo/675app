@@ -30,9 +30,18 @@ service cloud.firestore {
       return isSuperadmin() || belongsToClub(equipoClubId(equipoId));
     }
 
-    function userProfileFieldsOnly() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['clubId', 'clubNombre', 'nombre']);
+    function equipoIdFromQuery() {
+      return request.query.filters.size() > 0
+        && request.query.filters[0].fieldPath == 'equipoId'
+        && request.query.filters[0].op == '=='
+        ? request.query.filters[0].value
+        : null;
+    }
+
+    function coachSelfUpdateAllowed() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['nombre', 'solicitudClubId', 'solicitudClubNombre'])
+        && !changed.hasAny(['clubId', 'clubNombre']);
     }
 
     function validUserProfileUpdate() {
@@ -48,9 +57,8 @@ service cloud.firestore {
     match /Usuarios/{userId} {
       allow read: if isSignedIn() && (request.auth.uid == userId || isSuperadmin());
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && request.auth.uid == userId && (
-        isSuperadmin()
-        || (userProfileFieldsOnly() && validUserProfileUpdate())
+      allow update: if isSuperadmin() || (
+        isSignedIn() && request.auth.uid == userId && coachSelfUpdateAllowed() && validUserProfileUpdate()
       );
       allow delete: if isSuperadmin();
     }
@@ -73,12 +81,21 @@ service cloud.firestore {
     }
 
     match /Jugadoras/{jugadoraId} {
-      allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
+      allow get: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
+      allow list: if isSignedIn() && (
+        isSuperadmin() || (equipoIdFromQuery() != null && canAccessEquipo(equipoIdFromQuery()))
+      );
       allow create: if isSignedIn() && (
-        isSuperadmin() || belongsToClub(request.resource.data.clubId)
+        isSuperadmin() || (
+          belongsToClub(request.resource.data.clubId)
+          && canAccessEquipo(request.resource.data.equipoId)
+        )
       );
       allow update, delete: if isSignedIn() && (
-        isSuperadmin() || belongsToClub(resource.data.clubId)
+        isSuperadmin() || (
+          belongsToClub(resource.data.clubId)
+          && canAccessEquipo(resource.data.equipoId)
+        )
       );
     }
 
