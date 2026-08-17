@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { auth, googleProvider, db } from "./firebase";
 import {
   signInWithEmailAndPassword,
@@ -28,6 +28,21 @@ import {
   persistTheme,
   getGlassCardStyle,
 } from "./theme.js";
+import {
+  formatRolLabel,
+  getClubInitials,
+  getCalendarMatrix,
+  dayNames,
+  formatDateYYYYMMDD,
+  normalizarTipoSesion,
+  formatearFechaCorta,
+  etiquetaDiaRelativo,
+  getProximosEventosInicio,
+  getMetricasEvento,
+  getRangoFechasEstadisticas,
+  filtrarSesionesPorPeriodo,
+  calcularEstadisticasJugadoras,
+} from "./lib/appUtils.js";
 
 const THEME = THEMES.dark;
 
@@ -168,11 +183,6 @@ function IconSettings({ size = 20, color = "currentColor" }) {
   );
 }
 
-function formatRolLabel(rol) {
-  if (!rol) return "N/A";
-  return rol.charAt(0).toUpperCase() + rol.slice(1);
-}
-
 function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24, onGoHome }) {
   return (
     <button
@@ -235,16 +245,6 @@ function BlurredBackground({ isDark = true }) {
   );
 }
 
-
-function getClubInitials(nombre) {
-  return (nombre || "C")
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(p => p[0])
-    .join("")
-    .toUpperCase();
-}
 
 function ClubInitialsMark({ clubNombre, accentLight, accentSoft, accentBorder, className = "team-context-logo" }) {
   return (
@@ -951,117 +951,10 @@ function PlantillaForm({
 }
 // ---------------------------------------------------------------------
 
-/**
- * Utilidad para obtener un array de objetos {date, tipo, ...} para construir
- * una grilla de calendario mensual (lunes a domingo, muestra días del mes actual
- * y los necesarios de los bordes del anterior/siguiente).
- */
-function getCalendarMatrix(year, month) {
-  // month: 0-11
-  // lunes = 1, domingo = 0 JS
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  let firstWeekday = firstDay.getDay();
-  if (firstWeekday === 0) firstWeekday = 7; // que el lunes sea 1, domingo 7 (mostrar domingo al final)
-
-  // Backtrack days from prev month
-  const daysPrev = firstWeekday - 1;
-  const daysInMonth = lastDay.getDate();
-
-  // Días del mes anterior
-  let prevMonth = month - 1, prevYear = year;
-  if (month === 0) { prevMonth = 11; prevYear--; }
-  const prevLastDay = new Date(prevYear, prevMonth + 1, 0);
-  const prevLastDate = prevLastDay.getDate();
-
-  let matrix = [];
-
-  for (let d = prevLastDate - daysPrev + 1; d <= prevLastDate; d++) {
-    matrix.push({ date: new Date(prevYear, prevMonth, d), otherMonth: true });
-  }
-  // Días del mes actual
-  for (let d = 1; d <= daysInMonth; d++) {
-    matrix.push({ date: new Date(year, month, d), otherMonth: false });
-  }
-
-  // Días faltantes del mes siguiente
-  const restDays = 7 - (matrix.length % 7);
-  let nextMonth = month + 1, nextYear = year;
-  if (month === 11) { nextMonth = 0; nextYear++; }
-  if (restDays < 7) {
-    for (let d = 1; d <= restDays; d++) {
-      matrix.push({ date: new Date(nextYear, nextMonth, d), otherMonth: true });
-    }
-  }
-
-  // Devuelve semanas agrupadas
-  let semanas = [];
-  for (let i = 0; i < matrix.length; i += 7) {
-    semanas.push(matrix.slice(i, i + 7));
-  }
-  return semanas;
-}
-
-// Nombres de días comenzando Lunes
-const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-/**
- * Devuelve fecha YYYY-MM-DD en UTC (sin timezone issues, para comparaciones y claves).
- */
-function formatDateYYYYMMDD(date) {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function normalizarTipoSesion(sesion) {
-  return sesion?.tipo === "partido" ? "partido" : "entreno";
-}
-
-function formatearFechaCorta(fechaStr) {
-  if (!fechaStr) return "";
-  const [y, m, d] = fechaStr.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function etiquetaDiaRelativo(fechaStr, hoyStr, mananaStr) {
-  if (fechaStr === hoyStr) return "Hoy";
-  if (fechaStr === mananaStr) return "Mañana";
-  return formatearFechaCorta(fechaStr);
-}
-
-function getProximosEventosInicio(sesiones, hoy = new Date()) {
-  const hoyStr = formatDateYYYYMMDD(hoy);
-  const manana = new Date(hoy);
-  manana.setDate(hoy.getDate() + 1);
-  const mananaStr = formatDateYYYYMMDD(manana);
-
-  const futuras = [...sesiones]
-    .filter(s => s.fecha && s.fecha >= hoyStr)
-    .sort((a, b) => a.fecha.localeCompare(b.fecha));
-
-  const proximoEntreno = futuras.find(
-    s => normalizarTipoSesion(s) === "entreno" && (s.fecha === hoyStr || s.fecha === mananaStr)
-  ) || null;
-
-  const proximoPartido = futuras.find(s => normalizarTipoSesion(s) === "partido") || null;
-
-  return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
-}
-
 function getIconoClimaDecorativo(fechaStr) {
   const iconos = ["☀️", "⛅", "🌤️", "🌥️", "💨"];
   const hash = (fechaStr || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return iconos[hash % iconos.length];
-}
-
-function getMetricasEvento(sesion) {
-  const asist = sesion?.asistencias || {};
-  const entries = Object.entries(asist);
-  const total = entries.length;
-  const confirmadas = entries.filter(([, presente]) => presente === true).length;
-  return { confirmadas, total };
 }
 
 function HomeEventCard({
@@ -1157,57 +1050,6 @@ function HomeEventCard({
   );
 }
 
-function getRangoFechasEstadisticas(periodo, desde, hasta) {
-  const hoy = new Date();
-  if (periodo === "semanal") {
-    const day = hoy.getDay();
-    const diffToMon = day === 0 ? 6 : day - 1;
-    const lunes = new Date(hoy);
-    lunes.setDate(hoy.getDate() - diffToMon);
-    const domingo = new Date(lunes);
-    domingo.setDate(lunes.getDate() + 6);
-    return { inicio: formatDateYYYYMMDD(lunes), fin: formatDateYYYYMMDD(domingo) };
-  }
-  if (periodo === "mensual") {
-    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    return { inicio: formatDateYYYYMMDD(inicio), fin: formatDateYYYYMMDD(hoy) };
-  }
-  return { inicio: desde || "", fin: hasta || "" };
-}
-
-function filtrarSesionesPorPeriodo(sesiones, periodo, desde, hasta) {
-  const { inicio, fin } = getRangoFechasEstadisticas(periodo, desde, hasta);
-  if (!inicio || !fin) return sesiones;
-  return sesiones.filter(s => s.fecha >= inicio && s.fecha <= fin);
-}
-
-function calcularStatsPorLista(jugadoraId, sesiones) {
-  let presentes = 0;
-  let ausencias = 0;
-  let sumaNotas = 0;
-  let countNotas = 0;
-  sesiones.forEach(s => {
-    const asist = s.asistencias || {};
-    if (typeof asist[jugadoraId] === "undefined") return;
-    if (asist[jugadoraId] === false) {
-      ausencias++;
-      return;
-    }
-    presentes++;
-    const nota = (s.valoraciones || {})[jugadoraId];
-    if (typeof nota === "number" && nota >= 1 && nota <= 5) {
-      sumaNotas += nota;
-      countNotas++;
-    }
-  });
-  return {
-    total: sesiones.length,
-    presentes,
-    ausencias,
-    notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
-  };
-}
-
 function EstadisticasTablaTipo({
   tipo,
   totalSesiones,
@@ -1284,16 +1126,6 @@ function EstadisticasTablaTipo({
       </div>
     </div>
   );
-}
-
-function calcularEstadisticasJugadoras(jugadoras, sesiones) {
-  const entrenos = sesiones.filter(s => normalizarTipoSesion(s) === "entreno");
-  const partidos = sesiones.filter(s => normalizarTipoSesion(s) === "partido");
-  return jugadoras.map(j => ({
-    jugadora: j,
-    entrenos: calcularStatsPorLista(j.id, entrenos),
-    partidos: calcularStatsPorLista(j.id, partidos),
-  }));
 }
 
 function resetCamposSesion(setters) {

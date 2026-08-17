@@ -1,0 +1,175 @@
+export function formatRolLabel(rol) {
+  if (!rol) return "N/A";
+  return rol.charAt(0).toUpperCase() + rol.slice(1);
+}
+
+export function getClubInitials(nombre) {
+  return (nombre || "C")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
+}
+
+export function getCalendarMatrix(year, month) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  let firstWeekday = firstDay.getDay();
+  if (firstWeekday === 0) firstWeekday = 7;
+
+  const daysPrev = firstWeekday - 1;
+  const daysInMonth = lastDay.getDate();
+
+  let prevMonth = month - 1;
+  let prevYear = year;
+  if (month === 0) {
+    prevMonth = 11;
+    prevYear -= 1;
+  }
+  const prevLastDay = new Date(prevYear, prevMonth + 1, 0);
+  const prevLastDate = prevLastDay.getDate();
+
+  const matrix = [];
+
+  for (let d = prevLastDate - daysPrev + 1; d <= prevLastDate; d += 1) {
+    matrix.push({ date: new Date(prevYear, prevMonth, d), otherMonth: true });
+  }
+  for (let d = 1; d <= daysInMonth; d += 1) {
+    matrix.push({ date: new Date(year, month, d), otherMonth: false });
+  }
+
+  const restDays = 7 - (matrix.length % 7);
+  let nextMonth = month + 1;
+  let nextYear = year;
+  if (month === 11) {
+    nextMonth = 0;
+    nextYear += 1;
+  }
+  if (restDays < 7) {
+    for (let d = 1; d <= restDays; d += 1) {
+      matrix.push({ date: new Date(nextYear, nextMonth, d), otherMonth: true });
+    }
+  }
+
+  const semanas = [];
+  for (let i = 0; i < matrix.length; i += 7) {
+    semanas.push(matrix.slice(i, i + 7));
+  }
+  return semanas;
+}
+
+export const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+export function formatDateYYYYMMDD(date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function normalizarTipoSesion(sesion) {
+  return sesion?.tipo === "partido" ? "partido" : "entreno";
+}
+
+export function formatearFechaCorta(fechaStr) {
+  if (!fechaStr) return "";
+  const [y, m, d] = fechaStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+export function etiquetaDiaRelativo(fechaStr, hoyStr, mananaStr) {
+  if (fechaStr === hoyStr) return "Hoy";
+  if (fechaStr === mananaStr) return "Mañana";
+  return formatearFechaCorta(fechaStr);
+}
+
+export function getProximosEventosInicio(sesiones, hoy = new Date()) {
+  const hoyStr = formatDateYYYYMMDD(hoy);
+  const manana = new Date(hoy);
+  manana.setDate(hoy.getDate() + 1);
+  const mananaStr = formatDateYYYYMMDD(manana);
+
+  const futuras = [...sesiones]
+    .filter((s) => s.fecha && s.fecha >= hoyStr)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  const proximoEntreno =
+    futuras.find(
+      (s) => normalizarTipoSesion(s) === "entreno" && (s.fecha === hoyStr || s.fecha === mananaStr)
+    ) || null;
+
+  const proximoPartido = futuras.find((s) => normalizarTipoSesion(s) === "partido") || null;
+
+  return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
+}
+
+export function getMetricasEvento(sesion) {
+  const asist = sesion?.asistencias || {};
+  const entries = Object.entries(asist);
+  const total = entries.length;
+  const confirmadas = entries.filter(([, presente]) => presente === true).length;
+  return { confirmadas, total };
+}
+
+export function getRangoFechasEstadisticas(periodo, desde, hasta) {
+  const hoy = new Date();
+  if (periodo === "semanal") {
+    const day = hoy.getDay();
+    const diffToMon = day === 0 ? 6 : day - 1;
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - diffToMon);
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    return { inicio: formatDateYYYYMMDD(lunes), fin: formatDateYYYYMMDD(domingo) };
+  }
+  if (periodo === "mensual") {
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return { inicio: formatDateYYYYMMDD(inicio), fin: formatDateYYYYMMDD(hoy) };
+  }
+  return { inicio: desde || "", fin: hasta || "" };
+}
+
+export function filtrarSesionesPorPeriodo(sesiones, periodo, desde, hasta) {
+  const { inicio, fin } = getRangoFechasEstadisticas(periodo, desde, hasta);
+  if (!inicio || !fin) return sesiones;
+  return sesiones.filter((s) => s.fecha >= inicio && s.fecha <= fin);
+}
+
+export function calcularStatsPorLista(jugadoraId, sesiones) {
+  let presentes = 0;
+  let ausencias = 0;
+  let sumaNotas = 0;
+  let countNotas = 0;
+  sesiones.forEach((s) => {
+    const asist = s.asistencias || {};
+    if (typeof asist[jugadoraId] === "undefined") return;
+    if (asist[jugadoraId] === false) {
+      ausencias += 1;
+      return;
+    }
+    presentes += 1;
+    const nota = (s.valoraciones || {})[jugadoraId];
+    if (typeof nota === "number" && nota >= 1 && nota <= 5) {
+      sumaNotas += nota;
+      countNotas += 1;
+    }
+  });
+  return {
+    total: sesiones.length,
+    presentes,
+    ausencias,
+    notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
+  };
+}
+
+export function calcularEstadisticasJugadoras(jugadoras, sesiones) {
+  const entrenos = sesiones.filter((s) => normalizarTipoSesion(s) === "entreno");
+  const partidos = sesiones.filter((s) => normalizarTipoSesion(s) === "partido");
+  return jugadoras.map((j) => ({
+    jugadora: j,
+    entrenos: calcularStatsPorLista(j.id, entrenos),
+    partidos: calcularStatsPorLista(j.id, partidos),
+  }));
+}
