@@ -18,6 +18,14 @@ service cloud.firestore {
       return isSignedIn() && userData().rol == 'coordinador';
     }
 
+    function isEntrenador() {
+      return isSignedIn() && userData().rol == 'entrenador';
+    }
+
+    function isClubStaff() {
+      return isCoordinador() || isEntrenador();
+    }
+
     function userClubId() {
       return userData().clubId;
     }
@@ -56,7 +64,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         request.auth.uid == userId
         || isSuperadmin()
-        || (isCoordinador() && resource.data.clubId == userClubId())
+        || (isClubStaff() && resource.data.clubId == userClubId())
       );
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSuperadmin() || (

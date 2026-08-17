@@ -2033,14 +2033,18 @@ function App() {
       (snapshot) => {
         setClubUsuarios(
           snapshot.docs
-            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }))
             .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
         );
         setClubUsuariosLoading(false);
       },
-      () => {
+      (err) => {
+        console.error("Error cargando usuarios del club:", err);
         setClubUsuarios([]);
         setClubUsuariosLoading(false);
+        setErrorMsg(err?.code === "permission-denied"
+          ? "No tienes permiso para ver los entrenadores del club. Pide al administrador que publique las reglas de Firestore."
+          : "No se pudieron cargar los entrenadores del club.");
       }
     );
 

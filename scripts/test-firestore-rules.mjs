@@ -47,6 +47,12 @@ try {
       clubId: "club-a",
       clubNombre: "Club A",
     });
+    await setDoc(doc(db, "Usuarios/coord-a"), {
+      email: "coord-a@test.com",
+      rol: "coordinador",
+      clubId: "club-a",
+      clubNombre: "Club A",
+    });
     await setDoc(doc(db, "Usuarios/coach-new"), {
       email: "coach-new@test.com",
       rol: "entrenador",
@@ -65,6 +71,7 @@ try {
 
   const coachA = testEnv.authenticatedContext("coach-a").firestore();
   const coachNew = testEnv.authenticatedContext("coach-new").firestore();
+  const coordA = testEnv.authenticatedContext("coord-a").firestore();
   const superadmin = testEnv.authenticatedContext("superadmin").firestore();
 
   await test("Entrenador lee equipos de su club", async () => {
@@ -135,6 +142,12 @@ try {
         rol: "coordinador",
       })
     );
+  });
+
+  await test("Coordinador lista entrenadores de su club", async () => {
+    const q = query(collection(coordA, "Usuarios"), where("clubId", "==", "club-a"));
+    const snap = await assertSucceeds(getDocs(q));
+    if (snap.size < 1) throw new Error("Expected at least one club user");
   });
 
   await test("Superadmin lee equipos de cualquier club", async () => {
