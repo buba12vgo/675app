@@ -129,6 +129,14 @@ try {
     );
   });
 
+  await test("Superadmin asigna rol coordinador", async () => {
+    await assertSucceeds(
+      updateDoc(doc(superadmin, "Usuarios/coach-a"), {
+        rol: "coordinador",
+      })
+    );
+  });
+
   await test("Superadmin lee equipos de cualquier club", async () => {
     await assertSucceeds(getDoc(doc(superadmin, "Equipos/eq-b")));
   });

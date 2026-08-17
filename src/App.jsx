@@ -15,6 +15,7 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  writeBatch,
   query,
   where,
   deleteDoc
@@ -479,6 +480,7 @@ function SuperadminUsuariosPanel({
   onGuardarUsuario,
   onQuitarClub,
   savingUserId,
+  notice,
   accent,
   accentLight,
   accentSoft,
@@ -504,6 +506,11 @@ function SuperadminUsuariosPanel({
       <p style={{ color: textSecondary, textAlign: "center", marginBottom: 20, fontSize: 14, lineHeight: 1.5 }}>
         Asigna club y rol a cada usuario. Solo puede haber un coordinador por club.
       </p>
+      {notice && (
+        <div style={{ color: accentLight, background: accentSoft, border: `1px solid rgba(42, 101, 112, 0.35)`, marginBottom: 16, fontSize: 14, padding: "12px 16px", borderRadius: 12, textAlign: "center", fontWeight: 600 }}>
+          {notice}
+        </div>
+      )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 18 }}>
         <button
           type="button"
@@ -607,6 +614,17 @@ function UsuarioClubRow({
   inputBg,
   cardBgElevated,
 }) {
+  const clubOptions = (() => {
+    const list = [...clubes];
+    if (usuario.clubId && !list.some((club) => club.id === usuario.clubId)) {
+      list.push({
+        id: usuario.clubId,
+        nombre: usuario.clubNombre || "Club asignado",
+      });
+    }
+    return list;
+  })();
+
   const [clubId, setClubId] = useState(usuario.clubId || "");
   const [rol, setRol] = useState(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
 
@@ -614,6 +632,8 @@ function UsuarioClubRow({
     setClubId(usuario.clubId || "");
     setRol(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
   }, [usuario.clubId, usuario.rol, usuario.id]);
+
+  const effectiveClubId = clubId || usuario.clubId || "";
 
   const selectStyle = {
     padding: "8px 10px",
@@ -655,18 +675,23 @@ function UsuarioClubRow({
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
         <select value={clubId} onChange={(e) => setClubId(e.target.value)} style={{ ...selectStyle, flex: "1 1 140px" }}>
           <option value="">Sin club</option>
-          {clubes.map((club) => (
+          {clubOptions.map((club) => (
             <option key={club.id} value={club.id}>{club.nombre}</option>
           ))}
         </select>
-        <select value={rol} onChange={(e) => setRol(e.target.value)} style={{ ...selectStyle, flex: "0 0 130px" }} disabled={!clubId}>
+        <select
+          value={rol}
+          onChange={(e) => setRol(e.target.value)}
+          style={{ ...selectStyle, flex: "0 0 130px" }}
+          disabled={!effectiveClubId}
+        >
           <option value="entrenador">Entrenador</option>
           <option value="coordinador">Coordinador</option>
         </select>
         <button
           type="button"
-          onClick={() => onGuardar(usuario.id, clubId, rol)}
-          disabled={saving || (!clubId && rol === "coordinador")}
+          onClick={() => onGuardar(usuario, clubId, rol)}
+          disabled={saving || (rol === "coordinador" && !effectiveClubId)}
           style={{
             background: accent,
             color: "#fff",
@@ -1652,6 +1677,7 @@ function App() {
   const [usuarios, setUsuarios] = useState([]);
   const [usuariosLoading, setUsuariosLoading] = useState(false);
   const [usuariosFiltroClub, setUsuariosFiltroClub] = useState("todos");
+  const [usuariosNotice, setUsuariosNotice] = useState(null);
   const [savingUsuarioId, setSavingUsuarioId] = useState(null);
   const [clubUsuarios, setClubUsuarios] = useState([]);
   const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
@@ -1979,7 +2005,7 @@ function App() {
       (snapshot) => {
         setUsuarios(
           snapshot.docs
-            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }))
             .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
         );
         setUsuariosLoading(false);
@@ -2317,46 +2343,80 @@ function App() {
     }
   };
 
-  const handleGuardarUsuarioClub = async (userId, clubId, rol) => {
-    if (!userId || userData?.rol !== "superadmin") return;
-    if (rol === "coordinador" && !clubId) {
-      setErrorMsg("El coordinador debe tener un club asignado.");
+  const handleGuardarUsuarioClub = async (usuario, clubIdFromForm, rolSeleccionado) => {
+    if (!usuario?.id) {
+      setErrorMsg("Usuario no válido.");
+      return;
+    }
+    if (userData?.rol !== "superadmin") {
+      setErrorMsg("Solo el superadmin puede cambiar roles.");
       return;
     }
 
-    setSavingUsuarioId(userId);
+    const clubId = (clubIdFromForm || usuario.clubId || "").trim() || null;
+    const rolFinal = clubId && rolSeleccionado === "coordinador" ? "coordinador" : "entrenador";
+
+    if (rolSeleccionado === "coordinador" && !clubId) {
+      setErrorMsg("El coordinador debe tener un club asignado. Elige un club en el desplegable.");
+      return;
+    }
+
+    const clubNombre = clubId
+      ? (clubes.find((c) => c.id === clubId)?.nombre || usuario.clubNombre || getClubNombre(clubId))
+      : null;
+
+    setSavingUsuarioId(usuario.id);
     setErrorMsg("");
+    setUsuariosNotice(null);
     try {
-      if (clubId && rol === "coordinador") {
+      const batch = writeBatch(db);
+      const userRef = doc(db, "Usuarios", usuario.id);
+
+      if (clubId && rolFinal === "coordinador") {
         const actual = usuarios.find(
-          (u) => u.id !== userId && u.clubId === clubId && u.rol === "coordinador"
+          (u) => u.id !== usuario.id && u.clubId === clubId && u.rol === "coordinador"
         );
         if (actual) {
-          await updateDoc(doc(db, "Usuarios", actual.id), { rol: "entrenador" });
+          batch.update(doc(db, "Usuarios", actual.id), { rol: "entrenador" });
         }
       }
 
-      const payload = clubId
-        ? {
-            clubId,
-            clubNombre: getClubNombre(clubId),
-            rol,
-            solicitudClubId: null,
-            solicitudClubNombre: null,
-          }
-        : {
-            clubId: null,
-            clubNombre: null,
-            rol: "entrenador",
-            solicitudClubId: null,
-            solicitudClubNombre: null,
-          };
+      batch.update(userRef, {
+        clubId,
+        clubNombre,
+        rol: rolFinal,
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      });
 
-      await updateDoc(doc(db, "Usuarios", userId), payload);
+      await batch.commit();
+
+      setUsuarios((prev) =>
+        prev.map((u) => {
+          if (u.id === usuario.id) {
+            return {
+              ...u,
+              clubId,
+              clubNombre,
+              rol: rolFinal,
+              solicitudClubId: null,
+              solicitudClubNombre: null,
+            };
+          }
+          if (clubId && rolFinal === "coordinador" && u.clubId === clubId && u.rol === "coordinador") {
+            return { ...u, rol: "entrenador" };
+          }
+          return u;
+        })
+      );
+      setUsuariosNotice(
+        `${usuario.nombre?.trim() || usuario.email} guardado como ${formatRolLabel(rolFinal)}${clubNombre ? ` (${clubNombre})` : ""}.`
+      );
     } catch (err) {
+      console.error("Error guardando usuario:", err);
       setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para actualizar este usuario."
-        : "No se pudo guardar el usuario.");
+        ? "No tienes permiso para actualizar este usuario. Comprueba que tu cuenta tenga rol superadmin en Firestore."
+        : `No se pudo guardar el usuario${err?.message ? `: ${err.message}` : "."}`);
     } finally {
       setSavingUsuarioId(null);
     }
@@ -2479,6 +2539,7 @@ function App() {
     onGuardarUsuario: handleGuardarUsuarioClub,
     onQuitarClub: handleQuitarClubUsuario,
     savingUserId: savingUsuarioId,
+    notice: usuariosNotice,
     accent,
     accentLight,
     accentSoft,
