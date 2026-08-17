@@ -1691,10 +1691,17 @@ function App() {
   // Escucha en vivo las jugadoras del equipoActivo (SIN ORDERBY PARA EVITAR ERROR DE ÍNDICES)
   useEffect(() => {
     let unsub;
-    if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin") && (tab === "plantilla" || tab === "sesiones" || tab === "players")) {
+    if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
       setJugadorasLoading(true);
       const jugadorasCol = collection(db, "Jugadoras");
-      const q = query(jugadorasCol, where("equipoId", "==", equipoActivo.id));
+      const clubId = equipoActivo.clubId || userData?.clubId;
+      const q = userData?.rol === "superadmin" && !clubId
+        ? query(jugadorasCol, where("equipoId", "==", equipoActivo.id))
+        : query(
+            jugadorasCol,
+            where("clubId", "==", clubId),
+            where("equipoId", "==", equipoActivo.id)
+          );
       
       unsub = onSnapshot(
         q,
@@ -1704,9 +1711,12 @@ function App() {
           setJugadoras(docs);
           setJugadorasLoading(false);
         },
-        () => {
+        (err) => {
           setJugadoras([]);
           setJugadorasLoading(false);
+          if (err?.code === "permission-denied") {
+            setErrorMsg("No tienes permiso para ver la plantilla de este equipo.");
+          }
         }
       );
     } else {
@@ -1715,12 +1725,12 @@ function App() {
     return () => {
       if (typeof unsub === "function") unsub();
     };
-  }, [equipoActivo, userData?.clubId, userData?.rol, tab]);
+  }, [equipoActivo, userData?.clubId, userData?.rol]);
 
   // --- CALENDARIO SESIONES equipoActivo (en vivo) ---
   useEffect(() => {
     let unsub;
-    if (equipoActivo && (tab === "sesiones" || tab === "players" || tab === "home")) {
+    if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
       setSesionesLoading(true);
       const sesionesCol = collection(db, "Sesiones");
       const q = query(sesionesCol, where("equipoId", "==", equipoActivo.id));
@@ -1736,9 +1746,12 @@ function App() {
           );
           setSesionesLoading(false);
         },
-        () => {
+        (err) => {
           setSesionesEquipo([]);
           setSesionesLoading(false);
+          if (err?.code === "permission-denied") {
+            setErrorMsg("No tienes permiso para ver el calendario de este equipo.");
+          }
         }
       );
     } else {
@@ -1746,7 +1759,7 @@ function App() {
       setSesionesLoading(false);
     }
     return () => { if (typeof unsub === "function") unsub(); };
-  }, [equipoActivo, tab]);
+  }, [equipoActivo, userData?.clubId, userData?.rol]);
   // END calendario snapshot
 
   // Estado y consulta de Sesion para la pestaña 'sesiones' (ahora sólo usada en Panel Sesión, por fecha seleccionada)
