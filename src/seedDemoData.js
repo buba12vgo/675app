@@ -165,7 +165,7 @@ function groupBy(items, key) {
   }, new Map());
 }
 
-export async function seedDemoData(db) {
+export async function seedDemoData(db, { clubIdFilter = null } = {}) {
   const [clubSnap, equiposSnap, jugadorasSnap, sesionesSnap] = await Promise.all([
     getDocs(collection(db, "Clubes")),
     getDocs(collection(db, "Equipos")),
@@ -174,7 +174,14 @@ export async function seedDemoData(db) {
   ]);
 
   const existingClubes = clubSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-  const clubes = await ensureDemoClubs(db, existingClubes);
+  let clubes = await ensureDemoClubs(db, existingClubes);
+
+  if (clubIdFilter) {
+    clubes = clubes.filter((club) => club.id === clubIdFilter);
+    if (clubes.length === 0) {
+      throw new Error("No se encontró el club seleccionado.");
+    }
+  }
 
   const equiposByClub = groupBy(
     equiposSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })),

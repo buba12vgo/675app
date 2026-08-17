@@ -211,6 +211,18 @@ textarea:focus-visible {
   font-family: inherit;
 }
 
+.app-header-seed-btn {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
 .user-options-back {
   display: inline-flex;
   align-items: center;

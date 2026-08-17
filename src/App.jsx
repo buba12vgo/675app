@@ -346,6 +346,64 @@ function UserOptionsPanel({
   );
 }
 
+function DemoSeedCard({
+  onSeed,
+  seeding,
+  notice,
+  accent,
+  text,
+  textSecondary,
+  inputBorder,
+  cardBgElevated,
+  description = "Rellena cada club con 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.",
+}) {
+  return (
+    <div
+      className="demo-seed-card"
+      style={{
+        width: "97%",
+        marginBottom: 20,
+        padding: "16px 18px",
+        background: cardBgElevated,
+        borderRadius: 12,
+        border: `1px solid ${inputBorder}`,
+        boxSizing: "border-box",
+      }}
+    >
+      <div style={{ color: text, fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
+        Datos de prueba
+      </div>
+      <div style={{ color: textSecondary, fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
+        {description}
+      </div>
+      <button
+        type="button"
+        onClick={onSeed}
+        disabled={seeding}
+        style={{
+          background: accent,
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: "10px 16px",
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: seeding ? "wait" : "pointer",
+          opacity: seeding ? 0.75 : 1,
+          fontFamily: "inherit",
+        }}
+      >
+        {seeding ? "Generando datos…" : "Generar datos de prueba"}
+      </button>
+      {notice && (
+        <div className="demo-seed-notice" style={{ marginTop: 12, color: accent, fontSize: 13, fontWeight: 600, lineHeight: 1.45 }}>
+          {notice}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TeamContextHeader({
   clubNombre,
   equipoNombre,
@@ -1920,9 +1978,18 @@ function App() {
   };
 
   const handleSeedDemoData = async () => {
-    if (userData?.rol !== "superadmin") return;
+    const isSuperadmin = userData?.rol === "superadmin";
+    const clubIdFilter = isSuperadmin ? null : userData?.clubId || null;
+
+    if (!isSuperadmin && !clubIdFilter) {
+      setErrorMsg("Selecciona un club antes de generar datos de prueba.");
+      return;
+    }
+
     const confirmed = window.confirm(
-      "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
+      isSuperadmin
+        ? "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
+        : `¿Generar datos de prueba para ${userData.clubNombre}?\n\nSe añadirán hasta 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.`
     );
     if (!confirmed) return;
 
@@ -1930,17 +1997,29 @@ function App() {
     setErrorMsg("");
     setSeedNotice(null);
     try {
-      const summary = await seedDemoData(db);
+      const summary = await seedDemoData(db, { clubIdFilter });
       setSeedNotice(
-        `Datos generados: ${summary.clubes} clubes · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
+        `Datos generados: ${summary.clubes} club${summary.clubes === 1 ? "" : "es"} · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
       );
     } catch (err) {
       setErrorMsg(err?.code === "permission-denied"
         ? "No tienes permiso para generar datos de prueba."
-        : "No se pudieron generar los datos de prueba.");
+        : err?.message || "No se pudieron generar los datos de prueba.");
     } finally {
       setSeedingDemo(false);
     }
+  };
+
+  const canSeedDemoData = userData?.rol === "superadmin" || Boolean(userData?.clubId);
+  const demoSeedProps = {
+    onSeed: handleSeedDemoData,
+    seeding: seedingDemo,
+    notice: seedNotice,
+    accent,
+    text,
+    textSecondary,
+    inputBorder,
+    cardBgElevated,
   };
 
   const handleCrearClub = async (e) => {
@@ -2965,6 +3044,23 @@ function App() {
                 <span>Opciones</span>
               </button>
             )}
+            {canSeedDemoData && (
+              <button
+                type="button"
+                className="app-header-seed-btn"
+                onClick={handleSeedDemoData}
+                disabled={seedingDemo}
+                style={{
+                  color: accent,
+                  borderColor: inputBorder,
+                  background: cardBgElevated,
+                  opacity: seedingDemo ? 0.75 : 1,
+                  cursor: seedingDemo ? "wait" : "pointer",
+                }}
+              >
+                {seedingDemo ? "Generando…" : "Datos prueba"}
+              </button>
+            )}
             <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
             <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
             <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(42, 101, 112, 0.30)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
@@ -3039,48 +3135,7 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <div
-                      className="demo-seed-card"
-                      style={{
-                        width: "97%",
-                        marginBottom: 20,
-                        padding: "16px 18px",
-                        background: cardBgElevated,
-                        borderRadius: 12,
-                        border: `1px solid ${inputBorder}`,
-                      }}
-                    >
-                      <div style={{ color: text, fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
-                        Datos de prueba
-                      </div>
-                      <div style={{ color: textSecondary, fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
-                        Rellena cada club con 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleSeedDemoData}
-                        disabled={seedingDemo || gestionLoading}
-                        style={{
-                          background: accent,
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 16px",
-                          fontWeight: 700,
-                          fontSize: 14,
-                          cursor: seedingDemo ? "wait" : "pointer",
-                          opacity: seedingDemo ? 0.75 : 1,
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        {seedingDemo ? "Generando datos…" : "Generar datos de prueba"}
-                      </button>
-                      {seedNotice && (
-                        <div className="demo-seed-notice" style={{ marginTop: 12, color: accentLight, fontSize: 13, fontWeight: 600, lineHeight: 1.45 }}>
-                          {seedNotice}
-                        </div>
-                      )}
-                    </div>
+                    <DemoSeedCard {...demoSeedProps} />
                     <form onSubmit={handleCrearClub} className="content-wide form-shell" style={{ width: "96%", marginBottom: 30 }}>
                       <input type="text" placeholder="Nuevo nombre de Club" value={nuevoClubNombre} onChange={e => setNuevoClubNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={gestionLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
                       <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={gestionLoading || !nuevoClubNombre.trim()}>Crear</button>
@@ -3115,6 +3170,7 @@ function App() {
                   </>
                 ) : (
                   <>
+                    {canSeedDemoData && <DemoSeedCard {...demoSeedProps} />}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 8, width: "100%" }}>
                       {[
                         { key: "todos", label: "Todos los equipos" },
@@ -3160,6 +3216,12 @@ function App() {
                   renderTeamLayout()
                 ) : (
                   <>
+                    {canSeedDemoData && (
+                      <DemoSeedCard
+                        {...demoSeedProps}
+                        description={`Rellena ${userData.clubNombre} con 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.`}
+                      />
+                    )}
                     {renderEquiposLista({
                       titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
                       mostrarClub: false,
