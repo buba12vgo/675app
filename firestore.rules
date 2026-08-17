@@ -30,18 +30,6 @@ service cloud.firestore {
       return isSuperadmin() || belongsToClub(equipoClubId(equipoId));
     }
 
-    function equipoIdFromQuery() {
-      return request.query.filters.size() > 0
-        && request.query.filters[0].fieldPath == 'equipoId'
-        && request.query.filters[0].op == '=='
-        ? request.query.filters[0].value
-        : (request.query.filters.size() > 1
-          && request.query.filters[1].fieldPath == 'equipoId'
-          && request.query.filters[1].op == '=='
-          ? request.query.filters[1].value
-          : null);
-    }
-
     function coachSelfUpdateAllowed() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return changed.hasOnly(['nombre', 'solicitudClubId', 'solicitudClubNombre'])
@@ -85,9 +73,8 @@ service cloud.firestore {
     }
 
     match /Jugadoras/{jugadoraId} {
-      allow get: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
-      allow list: if isSignedIn() && (
-        isSuperadmin() || (equipoIdFromQuery() != null && canAccessEquipo(equipoIdFromQuery()))
+      allow read: if isSignedIn() && (
+        isSuperadmin() || canAccessEquipo(resource.data.equipoId)
       );
       allow create: if isSignedIn() && (
         isSuperadmin() || (
@@ -104,10 +91,7 @@ service cloud.firestore {
     }
 
     match /Sesiones/{sesionId} {
-      allow get: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
-      allow list: if isSignedIn() && (
-        isSuperadmin() || (equipoIdFromQuery() != null && canAccessEquipo(equipoIdFromQuery()))
-      );
+      allow read: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
       allow create: if isSignedIn() && canAccessEquipo(request.resource.data.equipoId);
       allow update: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
       allow delete: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
