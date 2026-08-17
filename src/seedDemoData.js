@@ -1,0 +1,305 @@
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
+
+const DEMO_CLUB_NAMES = ["CB Prueba Norte", "CB Prueba Centro", "CB Prueba Sur"];
+const TEAM_NAMES = ["Senior", "Junior", "Cadete", "Infantil A", "Infantil B", "Mini"];
+const TEAMS_PER_CLUB = 6;
+const PLAYERS_PER_TEAM = 10;
+const ENTRENOS_PER_TEAM = 14;
+const PARTIDOS_PER_TEAM = 3;
+
+const FIRST_NAMES = [
+  "Lucía", "María", "Paula", "Sara", "Claudia", "Laura", "Elena", "Noelia",
+  "Andrea", "Cristina", "Beatriz", "Irene", "Marta", "Silvia", "Raquel",
+  "Carla", "Nerea", "Alicia", "Patricia", "Rocío", "Daniela", "Victoria",
+  "Sofía", "Julia", "Alba", "Carmen", "Teresa", "Pilar", "Ainhoa", "Naia",
+];
+
+const LAST_NAMES = [
+  "García", "López", "Martínez", "Sánchez", "Pérez", "González", "Ruiz",
+  "Díaz", "Hernández", "Muñoz", "Romero", "Navarro", "Torres", "Domínguez",
+  "Vázquez", "Ramos", "Gil", "Serrano", "Blanco", "Suárez", "Castro",
+  "Ortega", "Rubio", "Marín", "Iglesias", "Nuñez", "Medina", "Garrido",
+];
+
+const APOYOS = ["Lu", "Pau", "Cris", "Bea", "Nere", "Alba", "Sofi", "Patri", "Roci", "Vicky"];
+
+const TEMATICAS = [
+  "Tiro exterior",
+  "Pick and roll",
+  "Defensa en transición",
+  "Juego en poste bajo",
+  "Salida de presión",
+  "Rebote ofensivo",
+  "Transiciones rápidas",
+  "Defensa individual",
+  "Ataque posicional",
+  "Fundamentos de pase",
+];
+
+const EJERCICIOS = [
+  "Calentamiento dinámico + rondos 3x3",
+  "Circuito de tiro y movimiento sin balón",
+  "4x4 en half court con reglas de pase",
+  "Situaciones 2x2 en lateral",
+  "Partido reducido con objetivos defensivos",
+  "Tiro libre + transición 5x0",
+  "Defensa ayudas y recuperación",
+  "Juego por bloqueos en zona",
+];
+
+const RIVALES = [
+  "CB Rivas", "AD San Fernando", "Canoe", "Tres Cantos", "Alcobendas",
+  "Torrelodones", "Las Rozas", "Fuenlabrada", "Getafe", "Leganés",
+];
+
+export {
+  DEMO_CLUB_NAMES,
+  TEAM_NAMES,
+  TEAMS_PER_CLUB,
+  PLAYERS_PER_TEAM,
+  ENTRENOS_PER_TEAM,
+  PARTIDOS_PER_TEAM,
+  TEMATICAS,
+  EJERCICIOS,
+  RIVALES,
+  APOYOS,
+};
+
+function pick(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function buildRandomDates(count, existingDates) {
+  const dates = new Set(existingDates);
+  const result = [];
+  let attempts = 0;
+
+  while (result.length < count && attempts < count * 20) {
+    attempts += 1;
+    const daysAgo = randomInt(1, 90);
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    const key = formatDate(date);
+    if (!dates.has(key)) {
+      dates.add(key);
+      result.push(key);
+    }
+  }
+
+  return result.sort();
+}
+
+function buildPlayerName(index) {
+  const first = FIRST_NAMES[(index + randomInt(0, FIRST_NAMES.length - 1)) % FIRST_NAMES.length];
+  const last = LAST_NAMES[(index * 3 + randomInt(0, LAST_NAMES.length - 1)) % LAST_NAMES.length];
+  return `${first} ${last}`;
+}
+
+function buildAsistenciasAndValoraciones(jugadoraIds) {
+  const asistencias = {};
+  const valoraciones = {};
+
+  jugadoraIds.forEach((id) => {
+    const presente = Math.random() > 0.25;
+    asistencias[id] = presente;
+    if (presente) {
+      valoraciones[id] = randomInt(3, 5);
+    }
+  });
+
+  return { asistencias, valoraciones };
+}
+
+async function commitBatch(db, operations) {
+  const chunkSize = 400;
+  for (let i = 0; i < operations.length; i += chunkSize) {
+    const batch = writeBatch(db);
+    operations.slice(i, i + chunkSize).forEach((op) => {
+      batch.set(op.ref, op.data);
+    });
+    await batch.commit();
+  }
+}
+
+async function ensureDemoClubs(db, existingClubes) {
+  const clubes = [...existingClubes];
+
+  if (clubes.length > 0) {
+    return clubes;
+  }
+
+  for (const nombre of DEMO_CLUB_NAMES) {
+    const ref = await addDoc(collection(db, "Clubes"), {
+      nombre,
+      creadoEn: new Date(),
+    });
+    clubes.push({ id: ref.id, nombre });
+  }
+
+  return clubes;
+}
+
+function groupBy(items, key) {
+  return items.reduce((map, item) => {
+    const groupKey = item[key];
+    if (!map.has(groupKey)) map.set(groupKey, []);
+    map.get(groupKey).push(item);
+    return map;
+  }, new Map());
+}
+
+export async function seedDemoData(db) {
+  const [clubSnap, equiposSnap, jugadorasSnap, sesionesSnap] = await Promise.all([
+    getDocs(collection(db, "Clubes")),
+    getDocs(collection(db, "Equipos")),
+    getDocs(collection(db, "Jugadoras")),
+    getDocs(collection(db, "Sesiones")),
+  ]);
+
+  const existingClubes = clubSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+  const clubes = await ensureDemoClubs(db, existingClubes);
+
+  const equiposByClub = groupBy(
+    equiposSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })),
+    "clubId"
+  );
+  const jugadorasByEquipo = groupBy(
+    jugadorasSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })),
+    "equipoId"
+  );
+  const sesionesByEquipo = groupBy(
+    sesionesSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })),
+    "equipoId"
+  );
+
+  const summary = {
+    clubes: clubes.length,
+    equiposCreados: 0,
+    jugadorasCreadas: 0,
+    sesionesCreadas: 0,
+  };
+
+  const operations = [];
+
+  for (const club of clubes) {
+    let teams = [...(equiposByClub.get(club.id) || [])];
+    const usedTeamNames = new Set(teams.map((team) => team.nombre));
+
+    for (const teamName of TEAM_NAMES) {
+      if (teams.length >= TEAMS_PER_CLUB) break;
+      if (usedTeamNames.has(teamName)) continue;
+
+      const teamRef = doc(collection(db, "Equipos"));
+      operations.push({
+        ref: teamRef,
+        data: {
+          nombre: teamName,
+          clubId: club.id,
+          creadoEn: new Date(),
+        },
+      });
+      teams.push({ id: teamRef.id, nombre: teamName, clubId: club.id, _pending: true });
+      usedTeamNames.add(teamName);
+      summary.equiposCreados += 1;
+    }
+
+    teams = teams.slice(0, TEAMS_PER_CLUB);
+
+    for (const team of teams) {
+      let players = team._pending
+        ? []
+        : [...(jugadorasByEquipo.get(team.id) || [])];
+      const usedDorsals = new Set(players.map((player) => Number(player.dorsal)));
+
+      for (let dorsal = 1; dorsal <= PLAYERS_PER_TEAM; dorsal += 1) {
+        if (players.length >= PLAYERS_PER_TEAM) break;
+        if (usedDorsals.has(dorsal)) continue;
+
+        const playerRef = doc(collection(db, "Jugadoras"));
+        operations.push({
+          ref: playerRef,
+          data: {
+            nombre: buildPlayerName(dorsal),
+            dorsal,
+            apodo: Math.random() > 0.45 ? pick(APOYOS) : "",
+            equipoId: team.id,
+            clubId: club.id,
+            creadoEn: new Date(),
+          },
+        });
+        players.push({ id: playerRef.id, dorsal });
+        usedDorsals.add(dorsal);
+        summary.jugadorasCreadas += 1;
+      }
+
+      const playerIds = players.map((player) => player.id);
+      const existingDates = team._pending
+        ? []
+        : (sesionesByEquipo.get(team.id) || []).map((session) => session.fecha).filter(Boolean);
+      const entrenoDates = buildRandomDates(ENTRENOS_PER_TEAM, existingDates);
+      const partidoDates = buildRandomDates(PARTIDOS_PER_TEAM, [...existingDates, ...entrenoDates]);
+
+      entrenoDates.forEach((fecha) => {
+        const { asistencias, valoraciones } = buildAsistenciasAndValoraciones(playerIds);
+        operations.push({
+          ref: doc(db, "Sesiones", `${team.id}_${fecha}`),
+          data: {
+            equipoId: team.id,
+            fecha,
+            tipo: "entreno",
+            tematica: pick(TEMATICAS),
+            ejercicios: pick(EJERCICIOS),
+            rival: "",
+            local: "casa",
+            asistencias,
+            valoraciones,
+            jugadorasExternas: [],
+            creadoEn: new Date(),
+          },
+        });
+        summary.sesionesCreadas += 1;
+      });
+
+      partidoDates.forEach((fecha) => {
+        const { asistencias, valoraciones } = buildAsistenciasAndValoraciones(playerIds);
+        operations.push({
+          ref: doc(db, "Sesiones", `${team.id}_${fecha}`),
+          data: {
+            equipoId: team.id,
+            fecha,
+            tipo: "partido",
+            tematica: "",
+            ejercicios: "",
+            rival: pick(RIVALES),
+            local: Math.random() > 0.5 ? "casa" : "fuera",
+            asistencias,
+            valoraciones,
+            jugadorasExternas: [],
+            creadoEn: new Date(),
+          },
+        });
+        summary.sesionesCreadas += 1;
+      });
+    }
+  }
+
+  await commitBatch(db, operations);
+  return summary;
+}

@@ -19,6 +19,7 @@ import {
   where,
   deleteDoc
 } from "firebase/firestore";
+import { seedDemoData } from "./seedDemoData.js";
 import {
   THEMES,
   STORAGE_THEME_KEY,
@@ -1302,6 +1303,8 @@ function App() {
   const [userNombreInput, setUserNombreInput] = useState("");
   const [savingUserNombre, setSavingUserNombre] = useState(false);
   const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
+  const [seedingDemo, setSeedingDemo] = useState(false);
+  const [seedNotice, setSeedNotice] = useState(null);
 
   // Equipos state
   const [equipos, setEquipos] = useState([]);
@@ -1914,6 +1917,30 @@ function App() {
     inputBorder,
     inputBg,
     cardBgElevated,
+  };
+
+  const handleSeedDemoData = async () => {
+    if (userData?.rol !== "superadmin") return;
+    const confirmed = window.confirm(
+      "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
+    );
+    if (!confirmed) return;
+
+    setSeedingDemo(true);
+    setErrorMsg("");
+    setSeedNotice(null);
+    try {
+      const summary = await seedDemoData(db);
+      setSeedNotice(
+        `Datos generados: ${summary.clubes} clubes · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
+      );
+    } catch (err) {
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para generar datos de prueba."
+        : "No se pudieron generar los datos de prueba.");
+    } finally {
+      setSeedingDemo(false);
+    }
   };
 
   const handleCrearClub = async (e) => {
@@ -3009,6 +3036,48 @@ function App() {
                       ) : (
                         <div style={{ color: textMuted, fontSize: 14, lineHeight: 1.5 }}>
                           Asigna un club como propio para crear y gestionar tus equipos.
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className="demo-seed-card"
+                      style={{
+                        width: "97%",
+                        marginBottom: 20,
+                        padding: "16px 18px",
+                        background: cardBgElevated,
+                        borderRadius: 12,
+                        border: `1px solid ${inputBorder}`,
+                      }}
+                    >
+                      <div style={{ color: text, fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
+                        Datos de prueba
+                      </div>
+                      <div style={{ color: textSecondary, fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
+                        Rellena cada club con 6 equipos, 10 jugadoras por equipo y entrenamientos aleatorios.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSeedDemoData}
+                        disabled={seedingDemo || gestionLoading}
+                        style={{
+                          background: accent,
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "10px 16px",
+                          fontWeight: 700,
+                          fontSize: 14,
+                          cursor: seedingDemo ? "wait" : "pointer",
+                          opacity: seedingDemo ? 0.75 : 1,
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        {seedingDemo ? "Generando datos…" : "Generar datos de prueba"}
+                      </button>
+                      {seedNotice && (
+                        <div className="demo-seed-notice" style={{ marginTop: 12, color: accentLight, fontSize: 13, fontWeight: 600, lineHeight: 1.45 }}>
+                          {seedNotice}
                         </div>
                       )}
                     </div>
