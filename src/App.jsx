@@ -2919,7 +2919,7 @@ function App() {
       );
     } else if (tab === "plantilla") {
       tabContent = (
-        <div className="plantilla-tab" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%", padding: "13px 0 33px 0" }}>
+        <div className="plantilla-tab" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%" }}>
           <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginBottom: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <IconUsers size={22} color={accent} />
             Plantilla de Jugadoras
