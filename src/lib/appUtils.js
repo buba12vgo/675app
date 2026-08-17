@@ -1,6 +1,20 @@
+const ROL_LABELS = {
+  superadmin: "Superadmin",
+  coordinador: "Coordinador",
+  entrenador: "Entrenador",
+};
+
 export function formatRolLabel(rol) {
   if (!rol) return "N/A";
-  return rol.charAt(0).toUpperCase() + rol.slice(1);
+  return ROL_LABELS[rol] || rol.charAt(0).toUpperCase() + rol.slice(1);
+}
+
+export function isCoordinador(rol) {
+  return rol === "coordinador";
+}
+
+export function isClubStaff(rol) {
+  return rol === "entrenador" || rol === "coordinador";
 }
 
 export function getClubInitials(nombre) {

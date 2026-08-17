@@ -17,6 +17,7 @@ describe("formatRolLabel", () => {
   it("capitaliza el rol", () => {
     expect(formatRolLabel("entrenador")).toBe("Entrenador");
     expect(formatRolLabel("superadmin")).toBe("Superadmin");
+    expect(formatRolLabel("coordinador")).toBe("Coordinador");
   });
 
   it("devuelve N/A si falta rol", () => {

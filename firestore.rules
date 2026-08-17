@@ -14,6 +14,10 @@ service cloud.firestore {
       return isSignedIn() && userData().rol == 'superadmin';
     }
 
+    function isCoordinador() {
+      return isSignedIn() && userData().rol == 'coordinador';
+    }
+
     function userClubId() {
       return userData().clubId;
     }
@@ -32,8 +36,10 @@ service cloud.firestore {
 
     function coachSelfUpdateAllowed() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return changed.hasOnly(['nombre', 'solicitudClubId', 'solicitudClubNombre'])
-        && !changed.hasAny(['clubId', 'clubNombre']);
+      return isCoordinador()
+        ? changed.hasOnly(['nombre'])
+        : changed.hasOnly(['nombre', 'solicitudClubId', 'solicitudClubNombre'])
+          && !changed.hasAny(['clubId', 'clubNombre', 'rol']);
     }
 
     function validUserProfileUpdate() {
@@ -47,7 +53,11 @@ service cloud.firestore {
     }
 
     match /Usuarios/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperadmin());
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId
+        || isSuperadmin()
+        || (isCoordinador() && resource.data.clubId == userClubId())
+      );
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSuperadmin() || (
         isSignedIn() && request.auth.uid == userId && coachSelfUpdateAllowed() && validUserProfileUpdate()

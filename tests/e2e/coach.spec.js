@@ -14,7 +14,7 @@ test.describe("Entrenador", () => {
   test("COACH-05 y TEAM-01 navegan todas las pestañas del equipo", async ({ page }) => {
     await enterFirstTeam(page);
 
-    for (const tab of ["Inicio", "Calendario", "Estadísticas", "Plantilla", "Opciones"]) {
+    for (const tab of ["Inicio", "Calendario", "Estadísticas", "Plantilla"]) {
       await openTeamTab(page, tab);
       await expect(page.locator("button.app-nav-btn--mobile").filter({ hasText: tab })).toBeVisible();
     }
@@ -51,11 +51,17 @@ test.describe("Entrenador", () => {
     await expect(page.getByPlaceholder("Nombre")).toBeVisible();
   });
 
-  test("TEAM-09 opciones muestra perfil", async ({ page }) => {
+  test("TEAM-09 opciones en header muestra perfil", async ({ page }) => {
     await enterFirstTeam(page);
-    await openTeamTab(page, "Opciones");
+    await page.getByRole("button", { name: "Opciones" }).click();
     await expect(page.getByRole("heading", { name: "Opciones" })).toBeVisible();
     await expect(page.getByText("Tu club")).toBeVisible();
+  });
+
+  test("TEAM-09b opciones no está en menú inferior", async ({ page }) => {
+    await enterFirstTeam(page);
+    await expect(page.locator("button.app-nav-btn--mobile").filter({ hasText: "Opciones" })).toHaveCount(0);
+    await expect(page.locator("button.app-nav-btn--mobile").filter({ hasText: "Opc." })).toHaveCount(0);
   });
 
   test("UI-01 toggle tema claro/oscuro", async ({ page }) => {

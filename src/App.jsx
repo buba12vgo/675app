@@ -42,6 +42,8 @@ import {
   getRangoFechasEstadisticas,
   filtrarSesionesPorPeriodo,
   calcularEstadisticasJugadoras,
+  isCoordinador,
+  isClubStaff,
 } from "./lib/appUtils.js";
 
 const THEME = THEMES.dark;
@@ -279,6 +281,17 @@ function ClubInitialsMark({ clubNombre, accentLight, accentSoft, accentBorder, c
   );
 }
 
+function IconCoordination({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 function UserOptionsPanel({
   userNombre,
   onNombreChange,
@@ -457,6 +470,334 @@ function UserOptionsPanel({
   );
 }
 
+function SuperadminUsuariosPanel({
+  usuarios,
+  usuariosLoading,
+  clubes,
+  filtroClub,
+  onFiltroClubChange,
+  onGuardarUsuario,
+  onQuitarClub,
+  savingUserId,
+  accent,
+  accentLight,
+  accentSoft,
+  text,
+  textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
+  cardBgElevated,
+}) {
+  const editables = usuarios.filter((u) => u.rol !== "superadmin");
+  const filtrados = filtroClub === "todos"
+    ? editables
+    : filtroClub === "sin_club"
+      ? editables.filter((u) => !u.clubId)
+      : editables.filter((u) => u.clubId === filtroClub);
+
+  return (
+    <div className="content-medium" style={{ width: "97%", margin: "0 auto" }}>
+      <h2 style={{ color: accent, fontWeight: 800, fontSize: 28, textAlign: "center", marginBottom: 8 }}>
+        Usuarios por club
+      </h2>
+      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 20, fontSize: 14, lineHeight: 1.5 }}>
+        Asigna club y rol a cada usuario. Solo puede haber un coordinador por club.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 18 }}>
+        <button
+          type="button"
+          onClick={() => onFiltroClubChange("todos")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 9,
+            border: `1px solid ${filtroClub === "todos" ? accent : inputBorder}`,
+            background: filtroClub === "todos" ? accentSoft : "transparent",
+            color: filtroClub === "todos" ? accentLight : textMuted,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Todos
+        </button>
+        <button
+          type="button"
+          onClick={() => onFiltroClubChange("sin_club")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 9,
+            border: `1px solid ${filtroClub === "sin_club" ? accent : inputBorder}`,
+            background: filtroClub === "sin_club" ? accentSoft : "transparent",
+            color: filtroClub === "sin_club" ? accentLight : textMuted,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Sin club
+        </button>
+        {clubes.map((club) => (
+          <button
+            key={club.id}
+            type="button"
+            onClick={() => onFiltroClubChange(club.id)}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 9,
+              border: `1px solid ${filtroClub === club.id ? accent : inputBorder}`,
+              background: filtroClub === club.id ? accentSoft : "transparent",
+              color: filtroClub === club.id ? accentLight : textMuted,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {club.nombre}
+          </button>
+        ))}
+      </div>
+      {usuariosLoading ? (
+        <div className="empty-state-text" style={{ fontSize: 16, padding: "12px 0" }}>Cargando usuarios…</div>
+      ) : filtrados.length === 0 ? (
+        <div className="empty-state-text" style={{ fontSize: 16, padding: "12px 0" }}>No hay usuarios en este filtro.</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {filtrados.map((usuario) => (
+            <UsuarioClubRow
+              key={usuario.id}
+              usuario={usuario}
+              clubes={clubes}
+              onGuardar={onGuardarUsuario}
+              onQuitarClub={onQuitarClub}
+              saving={savingUserId === usuario.id}
+              accent={accent}
+              accentLight={accentLight}
+              accentSoft={accentSoft}
+              text={text}
+              textSecondary={textSecondary}
+              textMuted={textMuted}
+              inputBorder={inputBorder}
+              inputBg={inputBg}
+              cardBgElevated={cardBgElevated}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UsuarioClubRow({
+  usuario,
+  clubes,
+  onGuardar,
+  onQuitarClub,
+  saving,
+  accent,
+  accentLight,
+  accentSoft,
+  text,
+  textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
+  cardBgElevated,
+}) {
+  const [clubId, setClubId] = useState(usuario.clubId || "");
+  const [rol, setRol] = useState(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
+
+  useEffect(() => {
+    setClubId(usuario.clubId || "");
+    setRol(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
+  }, [usuario.clubId, usuario.rol, usuario.id]);
+
+  const selectStyle = {
+    padding: "8px 10px",
+    fontSize: 13,
+    borderRadius: 8,
+    border: `1px solid ${inputBorder}`,
+    background: inputBg,
+    color: text,
+    fontFamily: "inherit",
+    minWidth: 0,
+  };
+
+  return (
+    <div
+      style={{
+        background: cardBgElevated,
+        border: `1px solid ${inputBorder}`,
+        borderRadius: 12,
+        padding: "14px 16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ color: text, fontWeight: 700, fontSize: 15 }}>
+          {usuario.nombre?.trim() || usuario.email || "Usuario"}
+        </div>
+        <div style={{ color: textSecondary, fontSize: 13, marginTop: 2 }}>{usuario.email}</div>
+        <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: accentLight, background: accentSoft, padding: "3px 8px", borderRadius: 6 }}>
+            {formatRolLabel(usuario.rol)}
+          </span>
+          {usuario.clubNombre && (
+            <span style={{ fontSize: 12, color: textMuted }}>{usuario.clubNombre}</span>
+          )}
+        </div>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+        <select value={clubId} onChange={(e) => setClubId(e.target.value)} style={{ ...selectStyle, flex: "1 1 140px" }}>
+          <option value="">Sin club</option>
+          {clubes.map((club) => (
+            <option key={club.id} value={club.id}>{club.nombre}</option>
+          ))}
+        </select>
+        <select value={rol} onChange={(e) => setRol(e.target.value)} style={{ ...selectStyle, flex: "0 0 130px" }} disabled={!clubId}>
+          <option value="entrenador">Entrenador</option>
+          <option value="coordinador">Coordinador</option>
+        </select>
+        <button
+          type="button"
+          onClick={() => onGuardar(usuario.id, clubId, rol)}
+          disabled={saving || (!clubId && rol === "coordinador")}
+          style={{
+            background: accent,
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: saving ? "wait" : "pointer",
+            fontFamily: "inherit",
+            opacity: saving ? 0.7 : 1,
+          }}
+        >
+          {saving ? "Guardando…" : "Guardar"}
+        </button>
+        {usuario.clubId && (
+          <button
+            type="button"
+            onClick={() => onQuitarClub(usuario.id)}
+            disabled={saving}
+            style={{
+              background: "transparent",
+              color: textMuted,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: saving ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Quitar club
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CoordinacionPanel({
+  clubNombre,
+  usuarios,
+  usuariosLoading,
+  equipos,
+  equiposLoading,
+  onEntrarEquipo,
+  accent,
+  accentLight,
+  accentSoft,
+  text,
+  textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
+  cardBgElevated,
+}) {
+  const entrenadores = usuarios.filter((u) => u.rol === "entrenador");
+  const coordinador = usuarios.find((u) => u.rol === "coordinador");
+
+  return (
+    <div className="content-medium" style={{ width: "97%", margin: "0 auto", padding: "8px 0 24px" }}>
+      <h2 style={{ color: accent, fontWeight: 800, fontSize: 26, textAlign: "center", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+        <IconCoordination size={24} color={accent} />
+        Coordinación
+      </h2>
+      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 24, fontSize: 14 }}>
+        Resumen del club <span style={{ color: accentLight, fontWeight: 700 }}>{clubNombre}</span>
+      </p>
+
+      <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
+          <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Coordinador</div>
+          {coordinador ? (
+            <div style={{ color: accentLight, fontWeight: 700, fontSize: 16 }}>
+              {coordinador.nombre?.trim() || coordinador.email}
+            </div>
+          ) : (
+            <div style={{ color: textMuted, fontSize: 14 }}>Sin coordinador asignado</div>
+          )}
+        </div>
+
+        <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
+          <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 12 }}>
+            Entrenadores ({usuariosLoading ? "…" : entrenadores.length})
+          </div>
+          {usuariosLoading ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>Cargando usuarios…</div>
+          ) : entrenadores.length === 0 ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>No hay entrenadores asignados al club.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {entrenadores.map((u) => (
+                <div key={u.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "10px 12px", borderRadius: 10, background: inputBg, border: `1px solid ${inputBorder}` }}>
+                  <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>{u.nombre?.trim() || u.email}</span>
+                  <span style={{ color: textMuted, fontSize: 12 }}>{u.email}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
+          <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 12 }}>
+            Equipos ({equiposLoading ? "…" : equipos.length})
+          </div>
+          {equiposLoading ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>Cargando equipos…</div>
+          ) : equipos.length === 0 ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>No hay equipos en el club.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {equipos.map((equipo) => (
+                <div key={equipo.id} className="entity-list-card" style={{ borderLeftColor: accent }}>
+                  <div className="entity-list-card__body">
+                    <div className="entity-list-card__title-row">
+                      <span className="entity-list-card__dot">●</span>
+                      <span className="entity-list-card__title">{equipo.nombre}</span>
+                    </div>
+                  </div>
+                  <button type="button" className="entity-list-card__action" onClick={() => onEntrarEquipo(equipo)}>Entrar</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DemoSeedCard({
   onSeed,
   seeding,
@@ -559,7 +900,6 @@ const MOBILE_TAB_LABELS = {
   sesiones: "Calend.",
   players: "Estad.",
   plantilla: "Plant.",
-  opciones: "Opc.",
 };
 
 function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant = "mobile" }) {
@@ -1307,8 +1647,15 @@ function App() {
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
-  const [superadminVista, setSuperadminVista] = useState("clubes"); // "clubes" | "equipos"
+  const [superadminVista, setSuperadminVista] = useState("clubes"); // "clubes" | "equipos" | "usuarios"
   const [equiposFiltroSuperadmin, setEquiposFiltroSuperadmin] = useState("todos"); // "todos" | "propio"
+  const [usuarios, setUsuarios] = useState([]);
+  const [usuariosLoading, setUsuariosLoading] = useState(false);
+  const [usuariosFiltroClub, setUsuariosFiltroClub] = useState("todos");
+  const [savingUsuarioId, setSavingUsuarioId] = useState(null);
+  const [clubUsuarios, setClubUsuarios] = useState([]);
+  const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
+  const [coordinadorVista, setCoordinadorVista] = useState("equipos"); // "equipos" | "coordinacion"
   const [userNombreInput, setUserNombreInput] = useState("");
   const [savingUserNombre, setSavingUserNombre] = useState(false);
   const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
@@ -1448,7 +1795,6 @@ function App() {
     { key: "sesiones", label: "Calendario", Icon: IconCalendar },
     { key: "players", label: "Estadísticas", Icon: IconChart },
     { key: "plantilla", label: "Plantilla", Icon: IconUsers },
-    { key: "opciones", label: "Opciones", Icon: IconSettings },
   ];
 
   useEffect(() => {
@@ -1619,6 +1965,61 @@ function App() {
 
     return () => unsub();
   }, [userData?.rol]);
+
+  useEffect(() => {
+    if (userData?.rol !== "superadmin" || superadminVista !== "usuarios") {
+      setUsuarios([]);
+      setUsuariosLoading(false);
+      return;
+    }
+
+    setUsuariosLoading(true);
+    const unsub = onSnapshot(
+      collection(db, "Usuarios"),
+      (snapshot) => {
+        setUsuarios(
+          snapshot.docs
+            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
+        );
+        setUsuariosLoading(false);
+      },
+      () => {
+        setUsuarios([]);
+        setUsuariosLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [userData?.rol, superadminVista]);
+
+  useEffect(() => {
+    if (!isCoordinador(userData?.rol) || !userData?.clubId) {
+      setClubUsuarios([]);
+      setClubUsuariosLoading(false);
+      return;
+    }
+
+    setClubUsuariosLoading(true);
+    const q = query(collection(db, "Usuarios"), where("clubId", "==", userData.clubId));
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        setClubUsuarios(
+          snapshot.docs
+            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+            .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
+        );
+        setClubUsuariosLoading(false);
+      },
+      () => {
+        setClubUsuarios([]);
+        setClubUsuariosLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [userData?.rol, userData?.clubId]);
 
   useEffect(() => {
     if (!equipoActivo || userData?.rol === "superadmin") return;
@@ -1916,6 +2317,70 @@ function App() {
     }
   };
 
+  const handleGuardarUsuarioClub = async (userId, clubId, rol) => {
+    if (!userId || userData?.rol !== "superadmin") return;
+    if (rol === "coordinador" && !clubId) {
+      setErrorMsg("El coordinador debe tener un club asignado.");
+      return;
+    }
+
+    setSavingUsuarioId(userId);
+    setErrorMsg("");
+    try {
+      if (clubId && rol === "coordinador") {
+        const actual = usuarios.find(
+          (u) => u.id !== userId && u.clubId === clubId && u.rol === "coordinador"
+        );
+        if (actual) {
+          await updateDoc(doc(db, "Usuarios", actual.id), { rol: "entrenador" });
+        }
+      }
+
+      const payload = clubId
+        ? {
+            clubId,
+            clubNombre: getClubNombre(clubId),
+            rol,
+            solicitudClubId: null,
+            solicitudClubNombre: null,
+          }
+        : {
+            clubId: null,
+            clubNombre: null,
+            rol: "entrenador",
+            solicitudClubId: null,
+            solicitudClubNombre: null,
+          };
+
+      await updateDoc(doc(db, "Usuarios", userId), payload);
+    } catch (err) {
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para actualizar este usuario."
+        : "No se pudo guardar el usuario.");
+    } finally {
+      setSavingUsuarioId(null);
+    }
+  };
+
+  const handleQuitarClubUsuario = async (userId) => {
+    if (!userId || userData?.rol !== "superadmin") return;
+    setSavingUsuarioId(userId);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Usuarios", userId), {
+        clubId: null,
+        clubNombre: null,
+        rol: "entrenador",
+        solicitudClubId: null,
+        solicitudClubNombre: null,
+      });
+    } catch (err) {
+      setErrorMsg("No se pudo quitar el club del usuario.");
+    } finally {
+      setSavingUsuarioId(null);
+    }
+  };
+
   const handleEntrarEquipo = (equipo) => {
     if (userData?.rol !== "superadmin" && userData?.clubId && equipo.clubId !== userData.clubId) {
       setErrorMsg("No puedes acceder a equipos de otros clubes.");
@@ -1956,11 +2421,7 @@ function App() {
 
   const handleOpenOpciones = () => {
     setErrorMsg("");
-    if (equipoActivo) {
-      setTab("opciones");
-    } else {
-      setShowOpcionesPanel(true);
-    }
+    setShowOpcionesPanel(true);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2007,6 +2468,44 @@ function App() {
     clubes,
     onSolicitarClub: handleSolicitarClub,
     esEntrenador: userData?.rol === "entrenador",
+  };
+
+  const superadminUsuariosProps = {
+    usuarios,
+    usuariosLoading,
+    clubes,
+    filtroClub: usuariosFiltroClub,
+    onFiltroClubChange: setUsuariosFiltroClub,
+    onGuardarUsuario: handleGuardarUsuarioClub,
+    onQuitarClub: handleQuitarClubUsuario,
+    savingUserId: savingUsuarioId,
+    accent,
+    accentLight,
+    accentSoft,
+    text,
+    textSecondary,
+    textMuted,
+    inputBorder,
+    inputBg,
+    cardBgElevated,
+  };
+
+  const coordinacionProps = {
+    clubNombre: userData?.clubNombre,
+    usuarios: clubUsuarios,
+    usuariosLoading: clubUsuariosLoading,
+    equipos,
+    equiposLoading,
+    onEntrarEquipo: handleEntrarEquipo,
+    accent,
+    accentLight,
+    accentSoft,
+    text,
+    textSecondary,
+    textMuted,
+    inputBorder,
+    inputBg,
+    cardBgElevated,
   };
 
   const handleSeedDemoData = async () => {
@@ -2988,14 +3487,13 @@ function App() {
           </div>
         </div>
       );
-    } else if (tab === "opciones") {
-      tabContent = <UserOptionsPanel {...userOptionsProps} />;
     }
   }
 
   // --- Render Principal ---
   const showTeamNav = equipoActivo && (userData?.clubId || userData?.rol === "superadmin");
   const esSuperadmin = userData?.rol === "superadmin";
+  const esCoordinador = isCoordinador(userData?.rol);
 
   const renderEquiposLista = ({ titulo, mostrarClub, permitirCrear }) => {
     const equiposVisibles = esSuperadmin
@@ -3107,17 +3605,15 @@ function App() {
               </span>
               {userData?.nombre?.trim() ? ` - ${userData.nombre.trim()}` : ""}
             </span>
-            {!equipoActivo && (
-              <button
-                type="button"
-                className="app-header-options-btn"
-                onClick={handleOpenOpciones}
-                style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
-              >
-                <IconSettings size={16} color={textMuted} />
-                <span>Opciones</span>
-              </button>
-            )}
+            <button
+              type="button"
+              className="app-header-options-btn"
+              onClick={handleOpenOpciones}
+              style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+            >
+              <IconSettings size={16} color={textMuted} />
+              <span>Opciones</span>
+            </button>
             {canSeedDemoData && (
               <button
                 type="button"
@@ -3163,10 +3659,11 @@ function App() {
               renderTeamLayout()
             ) : (
               <>
-                <div style={{ display: "flex", gap: 8, marginBottom: 24, padding: 4, background: cardBgElevated, borderRadius: 12, border: `1px solid ${inputBorder}`, width: "100%", maxWidth: 420 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 24, padding: 4, background: cardBgElevated, borderRadius: 12, border: `1px solid ${inputBorder}`, width: "100%", maxWidth: 520 }}>
                   {[
                     { key: "clubes", label: "Clubes" },
                     { key: "equipos", label: "Equipos" },
+                    { key: "usuarios", label: "Usuarios" },
                   ].map(({ key, label }) => (
                     <button
                       key={key}
@@ -3308,6 +3805,8 @@ function App() {
                       )}
                     </div>
                   </>
+                ) : superadminVista === "usuarios" ? (
+                  <SuperadminUsuariosPanel {...superadminUsuariosProps} />
                 ) : (
                   <>
                     <DemoSeedCard {...demoSeedProps} />
@@ -3354,6 +3853,44 @@ function App() {
               {userData?.clubId ? (
                 equipoActivo ? (
                   renderTeamLayout()
+                ) : esCoordinador ? (
+                  <>
+                    <div style={{ display: "flex", gap: 8, marginBottom: 24, padding: 4, background: cardBgElevated, borderRadius: 12, border: `1px solid ${inputBorder}`, width: "100%", maxWidth: 420 }}>
+                      {[
+                        { key: "equipos", label: "Equipos" },
+                        { key: "coordinacion", label: "Coordinación" },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setCoordinadorVista(key)}
+                          style={{
+                            flex: 1,
+                            padding: "10px 14px",
+                            borderRadius: 9,
+                            border: coordinadorVista === key ? `1px solid rgba(42, 101, 112, 0.35)` : "1px solid transparent",
+                            background: coordinadorVista === key ? accentSoft : "transparent",
+                            color: coordinadorVista === key ? accentLight : textMuted,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    {coordinadorVista === "coordinacion" ? (
+                      <CoordinacionPanel {...coordinacionProps} />
+                    ) : (
+                      renderEquiposLista({
+                        titulo: <>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>,
+                        mostrarClub: false,
+                        permitirCrear: true,
+                      })
+                    )}
+                  </>
                 ) : (
                   <>
                     {renderEquiposLista({
