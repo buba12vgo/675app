@@ -554,6 +554,14 @@ function TeamContextHeader({
   );
 }
 
+const MOBILE_TAB_LABELS = {
+  home: "Inicio",
+  sesiones: "Calend.",
+  players: "Estad.",
+  plantilla: "Plant.",
+  opciones: "Opc.",
+};
+
 function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant = "mobile" }) {
   const isDesktop = variant === "desktop";
 
@@ -571,6 +579,7 @@ function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant 
     >
       {tabsMenu.map(({ key, label, Icon }) => {
         const active = tab === key;
+        const displayLabel = isDesktop ? label : (MOBILE_TAB_LABELS[key] || label);
         return (
           <button
             key={key}
@@ -583,9 +592,10 @@ function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant 
               fontWeight: active ? 700 : 500,
             }}
             tabIndex={0}
+            title={label}
           >
-            <Icon size={isDesktop ? 20 : 21} color={active ? accent : textMuted} />
-            <span>{label}</span>
+            <Icon size={isDesktop ? 20 : 20} color={active ? accent : textMuted} />
+            <span className="app-nav-btn__label">{displayLabel}</span>
           </button>
         );
       })}
