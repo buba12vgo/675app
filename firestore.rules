@@ -85,8 +85,9 @@ service cloud.firestore {
     }
 
     match /Jugadoras/{jugadoraId} {
-      allow read: if isSignedIn() && (
-        isSuperadmin() || resource.data.clubId == userClubId()
+      allow get: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
+      allow list: if isSignedIn() && (
+        isSuperadmin() || (equipoIdFromQuery() != null && canAccessEquipo(equipoIdFromQuery()))
       );
       allow create: if isSignedIn() && (
         isSuperadmin() || (

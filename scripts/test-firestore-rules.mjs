@@ -92,9 +92,8 @@ try {
     await assertSucceeds(getDocs(q));
   });
 
-  await test("Entrenador lista jugadoras de su club", async () => {
-    const q = query(collection(coachA, "Jugadoras"), where("clubId", "==", "club-a"));
-    await assertSucceeds(getDocs(q));
+  await test("Entrenador puede leer jugadora de otro equipo de su club por id", async () => {
+    await assertSucceeds(getDoc(doc(coachA, "Jugadoras/j-a2")));
   });
 
   await test("Entrenador no lista todas las jugadoras", async () => {

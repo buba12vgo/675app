@@ -1694,14 +1694,7 @@ function App() {
     if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
       setJugadorasLoading(true);
       const jugadorasCol = collection(db, "Jugadoras");
-      const clubId = equipoActivo.clubId || userData?.clubId;
-      const q = userData?.rol === "superadmin" && !clubId
-        ? query(jugadorasCol, where("equipoId", "==", equipoActivo.id))
-        : query(
-            jugadorasCol,
-            where("clubId", "==", clubId),
-            where("equipoId", "==", equipoActivo.id)
-          );
+      const q = query(jugadorasCol, where("equipoId", "==", equipoActivo.id));
       
       unsub = onSnapshot(
         q,
@@ -1716,6 +1709,8 @@ function App() {
           setJugadorasLoading(false);
           if (err?.code === "permission-denied") {
             setErrorMsg("No tienes permiso para ver la plantilla de este equipo.");
+          } else if (err?.message) {
+            setErrorMsg(`Error cargando plantilla: ${err.message}`);
           }
         }
       );
