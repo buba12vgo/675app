@@ -1605,28 +1605,28 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, border-color 0.12s, transform 0.12s;
   padding: 0;
+  flex-shrink: 0;
 }
 
-.plantilla-jugadora-row__icon-btn--edit {
-  color: var(--text-muted, #94a3b8);
+.plantilla-jugadora-row__icon-btn:active {
+  transform: scale(0.96);
 }
 
 .plantilla-jugadora-row__icon-btn--edit:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
+  filter: brightness(1.08);
 }
 
 .plantilla-jugadora-row__icon-btn--delete {
-  background: rgba(248, 113, 113, 0.08);
-  border-color: rgba(248, 113, 113, 0.25);
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.35);
 }
 
 .plantilla-jugadora-row__icon-btn--delete:hover {
@@ -1670,6 +1670,21 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.06);
   color: inherit;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 480px) {
+  .plantilla-jugadora-row {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .plantilla-jugadora-row__info {
+    gap: 12px;
+  }
+
+  .plantilla-jugadora-row__name {
+    font-size: 16px;
+  }
 }
 
 .stats-table {

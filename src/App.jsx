@@ -1072,8 +1072,9 @@ function PlantillaJugadoraRow({
           onClick={() => onStartEdit(jugadora)}
           aria-label={`Editar ${jugadora.nombre}`}
           title="Editar jugadora"
+          style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
         >
-          <IconGear size={17} />
+          <IconGear size={18} />
         </button>
         <button
           type="button"
@@ -1083,7 +1084,7 @@ function PlantillaJugadoraRow({
           title="Eliminar jugadora"
           style={{ color: error }}
         >
-          <IconX size={17} />
+          <IconX size={18} />
         </button>
       </div>
     </div>
