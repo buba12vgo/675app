@@ -2756,6 +2756,52 @@ function App() {
     cardBgElevated,
   };
 
+  const puedeGestionarEquipo = (equipo) => canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
+
+  const handleIniciarEditEquipo = (equipo) => {
+    if (!puedeGestionarEquipo(equipo)) return;
+    setEquipoEditandoId(equipo.id);
+    setEditEquipoNombre(equipo.nombre || "");
+    setEditEquipoGenero(equipo.genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO);
+    setEditEquipoTipoCanasta(equipo.tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE);
+    setErrorMsg("");
+  };
+
+  const handleCancelarEditEquipo = () => {
+    setEquipoEditandoId(null);
+    setEditEquipoNombre("");
+    setEditEquipoGenero(GENERO_FEMENINO);
+    setEditEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
+  };
+
+  const handleGuardarEquipo = async (equipoId) => {
+    const equipo = equipos.find((e) => e.id === equipoId);
+    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo) || !editEquipoNombre.trim()) return;
+
+    setSavingEquipoId(equipoId);
+    setErrorMsg("");
+    const payload = {
+      nombre: editEquipoNombre.trim(),
+      genero: editEquipoGenero,
+      tipoCanasta: editEquipoTipoCanasta,
+    };
+
+    try {
+      await updateDoc(doc(db, "Equipos", equipoId), payload);
+      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, ...payload } : e)));
+      if (equipoActivo?.id === equipoId) {
+        setEquipoActivo((prev) => (prev ? { ...prev, ...payload } : prev));
+      }
+      handleCancelarEditEquipo();
+    } catch (err) {
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para editar este equipo."
+        : "No se pudo guardar el equipo.");
+    } finally {
+      setSavingEquipoId(null);
+    }
+  };
+
   const coordinacionProps = {
     clubNombre: userData?.clubNombre,
     usuarios: clubUsuarios,
@@ -2871,52 +2917,6 @@ function App() {
       setErrorMsg("Error creando equipo");
     }
     setCrearEquipoLoading(false);
-  };
-
-  const puedeGestionarEquipo = (equipo) => canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
-
-  const handleIniciarEditEquipo = (equipo) => {
-    if (!puedeGestionarEquipo(equipo)) return;
-    setEquipoEditandoId(equipo.id);
-    setEditEquipoNombre(equipo.nombre || "");
-    setEditEquipoGenero(equipo.genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO);
-    setEditEquipoTipoCanasta(equipo.tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE);
-    setErrorMsg("");
-  };
-
-  const handleCancelarEditEquipo = () => {
-    setEquipoEditandoId(null);
-    setEditEquipoNombre("");
-    setEditEquipoGenero(GENERO_FEMENINO);
-    setEditEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
-  };
-
-  const handleGuardarEquipo = async (equipoId) => {
-    const equipo = equipos.find((e) => e.id === equipoId);
-    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo) || !editEquipoNombre.trim()) return;
-
-    setSavingEquipoId(equipoId);
-    setErrorMsg("");
-    const payload = {
-      nombre: editEquipoNombre.trim(),
-      genero: editEquipoGenero,
-      tipoCanasta: editEquipoTipoCanasta,
-    };
-
-    try {
-      await updateDoc(doc(db, "Equipos", equipoId), payload);
-      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, ...payload } : e)));
-      if (equipoActivo?.id === equipoId) {
-        setEquipoActivo((prev) => (prev ? { ...prev, ...payload } : prev));
-      }
-      handleCancelarEditEquipo();
-    } catch (err) {
-      setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para editar este equipo."
-        : "No se pudo guardar el equipo.");
-    } finally {
-      setSavingEquipoId(null);
-    }
   };
 
   const handleAddJugadora = async (e) => {
