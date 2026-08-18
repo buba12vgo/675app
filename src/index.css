@@ -30,7 +30,7 @@
   --color-context-header-bg: rgba(255, 255, 255, 0.92);
   --color-sidebar-bg: rgba(255, 255, 255, 0.88);
   --color-nav-mobile-bg: rgba(255, 255, 255, 0.94);
-  --mobile-nav-height: 88px;
+  --mobile-nav-height: 96px;
   --color-calendar-day: #FFFFFF;
   --color-calendar-day-other: #E2E8F0;
   --color-calendar-day-text: #0F172A;
@@ -70,7 +70,7 @@ html.dark {
   --color-context-header-bg: rgba(26, 36, 56, 0.72);
   --color-sidebar-bg: rgba(21, 29, 46, 0.55);
   --color-nav-mobile-bg: rgba(26, 36, 56, 0.85);
-  --mobile-nav-height: 88px;
+  --mobile-nav-height: 96px;
   --color-calendar-day: #292A33;
   --color-calendar-day-other: #202125;
   --color-calendar-day-text: #FFFFFF;
@@ -379,11 +379,15 @@ textarea:focus-visible {
 }
 
 .app-shell[data-device-preview="mobile"] .device-preview-frame .app-card {
-  padding: 22px 14px 80px;
+  padding: 22px 14px 24px;
   border-radius: 16px;
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
+}
+
+.app-shell[data-device-preview="mobile"] .device-preview-frame .app-card.app-card--with-nav {
+  padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 24px);
 }
 
 .app-shell[data-device-preview="tablet"] .device-preview-frame .app-main {
@@ -555,6 +559,10 @@ textarea:focus-visible {
 
 .app-shell[data-device-preview="desktop"] .app-team-content {
   padding-bottom: 16px;
+}
+
+.app-shell[data-device-preview="desktop"] .app-mobile-nav-spacer {
+  display: none;
 }
 
 .app-shell[data-device-preview="tablet"] .responsive-grid-list {
@@ -1062,12 +1070,21 @@ textarea:focus-visible {
 
 .app-team-content {
   width: 100%;
-  display: block;
-  padding: 8px 0 calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 0;
   position: relative;
   min-width: 0;
   box-sizing: border-box;
   max-width: 100%;
+}
+
+.app-mobile-nav-spacer {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 12px);
+  pointer-events: none;
 }
 
 .app-tab-panel {
@@ -1075,6 +1092,8 @@ textarea:focus-visible {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  flex: 1 1 auto;
+  padding-bottom: 12px;
 }
 
 .app-team-sidebar {
@@ -1647,7 +1666,7 @@ textarea:focus-visible {
 .plantilla-tab {
   width: 100%;
   min-height: min-content;
-  padding: 13px 0 4px;
+  padding: 13px 0 20px;
 }
 
 .plantilla-form-row {
@@ -2051,8 +2070,12 @@ textarea:focus-visible {
   }
 
   .app-card {
-    padding: 22px 14px calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
+    padding: 22px 14px 24px;
     border-radius: 16px;
+  }
+
+  .app-card.app-card--with-nav {
+    padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 28px);
   }
 
   .content-block,
@@ -2242,6 +2265,10 @@ textarea:focus-visible {
   }
 
   .app-nav-mobile {
+    display: none;
+  }
+
+  .app-mobile-nav-spacer {
     display: none;
   }
 

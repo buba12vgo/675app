@@ -3786,6 +3786,7 @@ function App() {
               </div>
             )}
           </div>
+          <div className="app-mobile-nav-spacer" aria-hidden="true" />
           <TabNav {...tabNavProps} variant="mobile" />
         </div>
       </div>
