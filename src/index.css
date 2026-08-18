@@ -137,6 +137,7 @@ textarea:focus-visible {
   width: 100%;
   max-width: 600px;
   padding: 16px 0 8px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
   position: fixed;
   top: 0;
   z-index: 2;
@@ -144,7 +145,7 @@ textarea:focus-visible {
 }
 
 .app-shell[data-user-role="superadmin"] {
-  --app-header-offset: 132px;
+  --app-header-offset: 112px;
 }
 
 .app-header-bar {
@@ -2100,90 +2101,73 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
-/* ── Small phones ── */
+/* ── Mobile header ── */
 @media (max-width: 767px) {
-  :root {
-    --app-header-offset: 124px;
-  }
-
+  :root,
   .app-shell[data-user-role="superadmin"] {
-    --app-header-offset: 150px;
+    --app-header-offset: calc(86px + env(safe-area-inset-top, 0px));
   }
 
   .app-header {
-    padding-top: 10px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    padding-bottom: 4px;
   }
 
   .app-header-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px 12px;
-  }
-
-  .app-header-row--primary {
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .app-header-row--tools {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-
-  .app-header-row--tools::-webkit-scrollbar {
-    display: none;
-  }
-
-  .app-header-logout--corner {
-    display: inline-flex;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-
-  .app-header-logout--inline {
-    display: none;
-  }
-
-  .app-header-options-btn__label {
-    display: none;
-  }
-
-  .app-header-options-btn {
+    justify-content: space-between;
+    gap: 6px;
     padding: 8px 10px;
   }
 
+  .app-header-row--primary,
+  .app-header-row--tools {
+    display: contents;
+  }
+
+  .app-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .app-brand__mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .app-brand__text {
+    font-size: 19px !important;
+  }
+
+  .app-header-logout--corner,
+  .app-header-role,
+  .app-header-seed-btn,
+  .device-preview-control {
+    display: none !important;
+  }
+
+  .app-header-options-btn__label,
   .app-header-seed-btn__long {
     display: none;
   }
 
-  .app-header-seed-btn__short {
-    display: inline;
+  .app-header-options-btn {
+    padding: 7px 9px;
+    margin-left: auto;
   }
 
-  .app-header-seed-btn {
-    padding: 8px 10px;
+  .app-header-logout--inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 11px;
     font-size: 12px;
   }
 }
 
 @media (max-width: 479px) {
-  .app-header-role {
-    display: none;
-  }
-
-  .device-preview-control__btn {
-    width: 28px;
-    height: 26px;
-  }
-
   .device-preview-viewport {
     padding-left: 6px;
     padding-right: 6px;
