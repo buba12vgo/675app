@@ -2464,11 +2464,17 @@ function App() {
       setAsistencias(() => {
         const nuevo = {};
         jugadorasSesion.forEach(j => {
-          nuevo[j.id] = false;
+          nuevo[j.id] = true;
         });
         return nuevo;
       });
-      setValoraciones({});
+      setValoraciones(() => {
+        const nuevo = {};
+        jugadorasSesion.forEach(j => {
+          nuevo[j.id] = 3;
+        });
+        return nuevo;
+      });
     }
   }, [jugadorasSesion, sesionDoc, tab, fechaSesionSeleccionada]);
 
@@ -3025,8 +3031,10 @@ function App() {
     setErrorMsg("");
     try {
       let asist = {};
+      const vals = {};
       jugadorasSesion.forEach(j => {
-        asist[j.id] = false;
+        asist[j.id] = true;
+        vals[j.id] = 3;
       });
       const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fechaSesionSeleccionada}`);
       await setDoc(sesionDocRef, {
@@ -3038,7 +3046,7 @@ function App() {
         rival: "",
         local: "casa",
         asistencias: asist,
-        valoraciones: {},
+        valoraciones: vals,
         jugadorasExternas: [],
         creadoEn: new Date(),
       });
@@ -3047,7 +3055,7 @@ function App() {
         setSesionDoc(snap.data());
         setSesionId(snap.id);
         setAsistencias(asist);
-        setValoraciones({});
+        setValoraciones(vals);
         setTipoSesion(tipo);
         setRivalPartido("");
         setLocalPartido("casa");
