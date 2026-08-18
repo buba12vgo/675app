@@ -14,7 +14,6 @@ import {
   where,
   deleteDoc
 } from "firebase/firestore";
-import { seedDemoData } from "./seedDemoData.js";
 import {
   THEMES,
   STORAGE_THEME_KEY,
@@ -38,18 +37,15 @@ import {
   calcularEstadisticasJugadoras,
   isCoordinador,
   isClubStaff,
-  canManageEquipo,
   getEquipoLabels,
   formatTipoCanasta,
   formatGeneroEquipo,
-  GENERO_FEMENINO,
-  GENERO_MASCULINO,
-  TIPO_CANASTA_GRANDE,
-  TIPO_CANASTA_MINI,
 } from "./lib/appUtils.js";
 
 import { useCompactHeader } from "./hooks/useCompactHeader.js";
 import { useAuth } from "./hooks/useAuth.js";
+import { useClubes } from "./hooks/useClubes.js";
+import { useEquipos } from "./hooks/useEquipos.js";
 import {
   IconHome,
   IconCalendar,
@@ -97,14 +93,66 @@ function App() {
     handleSaveUserNombre,
   } = useAuth(setErrorMsg);
 
-  // SaaS state
-  const [clubes, setClubes] = useState([]);
-  const [activeClub, setActiveClub] = useState(null);
-  const [nuevoClubNombre, setNuevoClubNombre] = useState("");
-  const [gestionLoading, setGestionLoading] = useState(false);
-  const [selectClubLoading, setSelectClubLoading] = useState(false);
   const [superadminVista, setSuperadminVista] = useState("clubes"); // "clubes" | "equipos" | "usuarios"
   const [equiposFiltroSuperadmin, setEquiposFiltroSuperadmin] = useState("todos"); // "todos" | "propio"
+
+  const {
+    equipos,
+    equiposLoading,
+    equipoActivo,
+    setEquipoActivo,
+    nuevoEquipoNombre,
+    setNuevoEquipoNombre,
+    nuevoEquipoGenero,
+    setNuevoEquipoGenero,
+    nuevoEquipoTipoCanasta,
+    setNuevoEquipoTipoCanasta,
+    crearEquipoLoading,
+    equipoEditandoId,
+    editEquipoNombre,
+    setEditEquipoNombre,
+    editEquipoGenero,
+    setEditEquipoGenero,
+    editEquipoTipoCanasta,
+    setEditEquipoTipoCanasta,
+    savingEquipoId,
+    equipoEditProps,
+    handleCrearEquipo,
+    handleIniciarEditEquipo,
+    handleCancelarEditEquipo,
+    handleGuardarEquipo,
+    handleEntrarEquipo,
+  } = useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg });
+
+  const {
+    clubes,
+    nuevoClubNombre,
+    setNuevoClubNombre,
+    gestionLoading,
+    selectClubLoading,
+    solicitudesClub,
+    solicitudesLoading,
+    seedingDemo,
+    seedNotice,
+    getClubNombre,
+    handleCrearClub,
+    handleSolicitarClub,
+    handleSelectClub,
+    handleAprobarSolicitudClub,
+    handleRechazarSolicitudClub,
+    handleQuitarMiClub,
+    handleSeedDemoData,
+  } = useClubes({
+    user,
+    userData,
+    setUserData,
+    setErrorMsg,
+    showOpcionesPanel,
+    equipoActivo,
+    equiposFiltroSuperadmin,
+    setEquiposFiltroSuperadmin,
+  });
+
   const [usuarios, setUsuarios] = useState([]);
   const [usuariosLoading, setUsuariosLoading] = useState(false);
   const [usuariosFiltroClub, setUsuariosFiltroClub] = useState("todos");
@@ -113,26 +161,6 @@ function App() {
   const [clubUsuarios, setClubUsuarios] = useState([]);
   const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
   const [coordinadorVista, setCoordinadorVista] = useState("equipos"); // "equipos" | "coordinacion"
-  const [seedingDemo, setSeedingDemo] = useState(false);
-  const [seedNotice, setSeedNotice] = useState(null);
-  const [solicitudesClub, setSolicitudesClub] = useState([]);
-  const [solicitudesLoading, setSolicitudesLoading] = useState(false);
-
-  // Equipos state
-  const [equipos, setEquipos] = useState([]);
-  const [equiposLoading, setEquiposLoading] = useState(false);
-  const [nuevoEquipoNombre, setNuevoEquipoNombre] = useState("");
-  const [nuevoEquipoGenero, setNuevoEquipoGenero] = useState(GENERO_FEMENINO);
-  const [nuevoEquipoTipoCanasta, setNuevoEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
-  const [crearEquipoLoading, setCrearEquipoLoading] = useState(false);
-  const [equipoEditandoId, setEquipoEditandoId] = useState(null);
-  const [editEquipoNombre, setEditEquipoNombre] = useState("");
-  const [editEquipoGenero, setEditEquipoGenero] = useState(GENERO_FEMENINO);
-  const [editEquipoTipoCanasta, setEditEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
-  const [savingEquipoId, setSavingEquipoId] = useState(null);
-
-  // Equipo activo y tabs
-  const [equipoActivo, setEquipoActivo] = useState(null);
   const [tab, setTab] = useState("home");
   const [devicePreview, setDevicePreview] = useState("mobile");
   const [colorMode, setColorMode] = useState(() => getStoredTheme());
@@ -260,53 +288,11 @@ function App() {
     { key: "plantilla", label: "Plantilla", Icon: IconUsers },
   ];
 
-  // Escucha clubes para superadmin
-  useEffect(() => {
-    let unsub;
-    if (userData?.rol === "superadmin") {
-      setGestionLoading(true);
-      const colRef = collection(db, "Clubes");
-      unsub = onSnapshot(
-        colRef,
-        (snapshot) => {
-          setClubes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-          setGestionLoading(false);
-        },
-        () => setGestionLoading(false)
-      );
-    } else {
-      setClubes([]);
-    }
-    return () => {
-      if (typeof unsub === "function") unsub();
-    };
-  }, [userData?.rol]);
-
-  const resolvedClubId = equipoActivo?.clubId || userData?.clubId || null;
-
-  useEffect(() => {
-    if (!resolvedClubId) {
-      setActiveClub(null);
-      return;
-    }
-
-    const unsub = onSnapshot(
-      doc(db, "Clubes", resolvedClubId),
-      (snap) => {
-        setActiveClub(snap.exists() ? { id: snap.id, ...snap.data() } : null);
-      },
-      () => setActiveClub(null)
-    );
-
-    return () => unsub();
-  }, [resolvedClubId]);
-
   // Reseteos al cambiar de contexto
   useEffect(() => {
-    setEquipoActivo(null);
     setTab("home");
     setShowOpcionesPanel(false);
-  }, [userData?.clubId, userData?.rol]);
+  }, [userData?.clubId, userData?.rol, setShowOpcionesPanel]);
 
   useEffect(() => {
     setJugadoras([]);
@@ -320,68 +306,6 @@ function App() {
     setEditJugadoraApodo("");
     setEditJugadoraLoading(false);
   }, [equipoActivo]);
-
-  // Fetch de clubes para usuarios sin club
-  useEffect(() => {
-    const fetchClubes = async () => {
-      if (userData?.rol && userData?.rol !== "superadmin") {
-        setSelectClubLoading(true);
-        try {
-          const clubCol = collection(db, "Clubes");
-          const snap = await getDocs(clubCol);
-          setClubes(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (err) {
-          setClubes([]);
-        }
-        setSelectClubLoading(false);
-      }
-    };
-    if (!userData?.clubId && userData?.rol && userData?.rol !== "superadmin") {
-      fetchClubes();
-    }
-  }, [userData?.rol, userData?.clubId]);
-
-  useEffect(() => {
-    const fetchClubesParaCambio = async () => {
-      if (!showOpcionesPanel || userData?.rol === "superadmin" || !userData?.clubId) return;
-      try {
-        const clubCol = collection(db, "Clubes");
-        const snap = await getDocs(clubCol);
-        setClubes(snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
-      } catch (err) {
-        setClubes([]);
-      }
-    };
-    fetchClubesParaCambio();
-  }, [showOpcionesPanel, userData?.rol, userData?.clubId]);
-
-  useEffect(() => {
-    if (userData?.rol !== "superadmin") {
-      setSolicitudesClub([]);
-      setSolicitudesLoading(false);
-      return;
-    }
-
-    setSolicitudesLoading(true);
-    const unsub = onSnapshot(
-      collection(db, "Usuarios"),
-      (snapshot) => {
-        setSolicitudesClub(
-          snapshot.docs
-            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-            .filter((usuario) => usuario.solicitudClubId)
-            .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
-        );
-        setSolicitudesLoading(false);
-      },
-      () => {
-        setSolicitudesClub([]);
-        setSolicitudesLoading(false);
-      }
-    );
-
-    return () => unsub();
-  }, [userData?.rol]);
 
   useEffect(() => {
     if (userData?.rol !== "superadmin" || superadminVista !== "usuarios") {
@@ -441,67 +365,6 @@ function App() {
 
     return () => unsub();
   }, [userData?.rol, userData?.clubId]);
-
-  useEffect(() => {
-    if (!equipoActivo || userData?.rol === "superadmin") return;
-    if (userData?.clubId && equipoActivo.clubId !== userData.clubId) {
-      setEquipoActivo(null);
-      setErrorMsg("No puedes acceder a equipos de otros clubes.");
-    }
-  }, [equipoActivo, userData?.clubId, userData?.rol]);
-
-  // Leer equipos según rol y contexto
-  useEffect(() => {
-    const esSuperadmin = userData?.rol === "superadmin";
-    const tieneClub = Boolean(userData?.clubId);
-
-    if (esSuperadmin) {
-      const verListaEquipos = superadminVista === "equipos" && !equipoActivo;
-      if (!verListaEquipos) {
-        setEquipos([]);
-        return;
-      }
-      setEquiposLoading(true);
-      const equiposCol = collection(db, "Equipos");
-      const q = equiposFiltroSuperadmin === "propio" && tieneClub
-        ? query(equiposCol, where("clubId", "==", userData.clubId))
-        : equiposCol;
-      const unsub = onSnapshot(
-        q,
-        (snapshot) => {
-          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-          lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-          setEquipos(lista);
-          setEquiposLoading(false);
-        },
-        () => {
-          setEquipos([]);
-          setEquiposLoading(false);
-        }
-      );
-      return () => unsub();
-    }
-
-    if (tieneClub) {
-      setEquiposLoading(true);
-      const equiposCol = collection(db, "Equipos");
-      const q = query(equiposCol, where("clubId", "==", userData.clubId));
-      const unsub = onSnapshot(
-        q,
-        (snapshot) => {
-          setEquipos(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-          setEquiposLoading(false);
-        },
-        () => {
-          setEquipos([]);
-          setEquiposLoading(false);
-        }
-      );
-      return () => unsub();
-    }
-
-    setEquipos([]);
-  }, [userData?.rol, userData?.clubId, superadminVista, equiposFiltroSuperadmin, equipoActivo]);
 
   // Escucha en vivo las jugadoras del equipoActivo (SIN ORDERBY PARA EVITAR ERROR DE ÍNDICES)
   useEffect(() => {
@@ -673,77 +536,6 @@ function App() {
   }, [fechaSesionSeleccionada]);
 
   // Funciones de acción
-  const handleSolicitarClub = async (club) => {
-    if (!user || !club?.id || userData?.rol === "superadmin") return;
-    if (userData?.clubId === club.id) {
-      setErrorMsg("Ya perteneces a este club.");
-      return;
-    }
-    setErrorMsg("");
-    try {
-      const userRef = doc(db, "Usuarios", user.uid);
-      await updateDoc(userRef, {
-        solicitudClubId: club.id,
-        solicitudClubNombre: club.nombre,
-      });
-    } catch (err) {
-      setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para solicitar este club."
-        : "No se pudo enviar la solicitud de club.");
-    }
-  };
-
-  const handleSelectClub = async (club) => {
-    if (!user || !club?.id || userData?.rol !== "superadmin") return;
-    setErrorMsg("");
-    try {
-      const userRef = doc(db, "Usuarios", user.uid);
-      await updateDoc(userRef, {
-        clubId: club.id,
-        clubNombre: club.nombre,
-        solicitudClubId: null,
-        solicitudClubNombre: null,
-      });
-      setUserData(prev => ({
-        ...prev,
-        clubId: club.id,
-        clubNombre: club.nombre,
-        solicitudClubId: null,
-        solicitudClubNombre: null,
-      }));
-    } catch (err) {
-      setErrorMsg("No se pudo asignar el club.");
-    }
-  };
-
-  const handleAprobarSolicitudClub = async (usuario) => {
-    if (!usuario?.id || !usuario?.solicitudClubId || userData?.rol !== "superadmin") return;
-    setErrorMsg("");
-    try {
-      await updateDoc(doc(db, "Usuarios", usuario.id), {
-        clubId: usuario.solicitudClubId,
-        clubNombre: usuario.solicitudClubNombre || getClubNombre(usuario.solicitudClubId),
-        solicitudClubId: null,
-        solicitudClubNombre: null,
-      });
-    } catch (err) {
-      setErrorMsg("No se pudo aprobar la solicitud de club.");
-    }
-  };
-
-  const handleRechazarSolicitudClub = async (usuario) => {
-    if (!usuario?.id || userData?.rol !== "superadmin") return;
-    setErrorMsg("");
-    try {
-      await updateDoc(doc(db, "Usuarios", usuario.id), {
-        solicitudClubId: null,
-        solicitudClubNombre: null,
-      });
-    } catch (err) {
-      setErrorMsg("No se pudo rechazar la solicitud de club.");
-    }
-  };
-
   const handleGuardarUsuarioClub = async (usuario, clubIdFromForm, rolSeleccionado) => {
     if (!usuario?.id) {
       setErrorMsg("Usuario no válido.");
@@ -842,34 +634,6 @@ function App() {
     }
   };
 
-  const handleEntrarEquipo = (equipo) => {
-    if (userData?.rol !== "superadmin" && userData?.clubId && equipo.clubId !== userData.clubId) {
-      setErrorMsg("No puedes acceder a equipos de otros clubes.");
-      return;
-    }
-    setEquipoActivo(equipo);
-  };
-
-  const handleQuitarMiClub = async () => {
-    if (!user || userData?.rol !== "superadmin") return;
-    setErrorMsg("");
-    try {
-      const userRef = doc(db, "Usuarios", user.uid);
-      await updateDoc(userRef, { clubId: null, clubNombre: null });
-      setUserData(prev => ({ ...prev, clubId: null, clubNombre: null }));
-      if (equiposFiltroSuperadmin === "propio") setEquiposFiltroSuperadmin("todos");
-    } catch (err) {
-      setErrorMsg("No se pudo quitar el club.");
-    }
-  };
-
-  const getClubNombre = (clubId) => {
-    const fromList = clubes.find(c => c.id === clubId)?.nombre;
-    if (fromList) return fromList;
-    if (activeClub?.id === clubId && activeClub?.nombre) return activeClub.nombre;
-    return "Club";
-  };
-
   const handleGoHome = () => {
     setShowOpcionesPanel(false);
     if (equipoActivo) {
@@ -926,52 +690,6 @@ function App() {
     cardBgElevated,
   };
 
-  const puedeGestionarEquipo = (equipo) => canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
-
-  const handleIniciarEditEquipo = (equipo) => {
-    if (!puedeGestionarEquipo(equipo)) return;
-    setEquipoEditandoId(equipo.id);
-    setEditEquipoNombre(equipo.nombre || "");
-    setEditEquipoGenero(equipo.genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO);
-    setEditEquipoTipoCanasta(equipo.tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE);
-    setErrorMsg("");
-  };
-
-  const handleCancelarEditEquipo = () => {
-    setEquipoEditandoId(null);
-    setEditEquipoNombre("");
-    setEditEquipoGenero(GENERO_FEMENINO);
-    setEditEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
-  };
-
-  const handleGuardarEquipo = async (equipoId) => {
-    const equipo = equipos.find((e) => e.id === equipoId);
-    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo) || !editEquipoNombre.trim()) return;
-
-    setSavingEquipoId(equipoId);
-    setErrorMsg("");
-    const payload = {
-      nombre: editEquipoNombre.trim(),
-      genero: editEquipoGenero,
-      tipoCanasta: editEquipoTipoCanasta,
-    };
-
-    try {
-      await updateDoc(doc(db, "Equipos", equipoId), payload);
-      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, ...payload } : e)));
-      if (equipoActivo?.id === equipoId) {
-        setEquipoActivo((prev) => (prev ? { ...prev, ...payload } : prev));
-      }
-      handleCancelarEditEquipo();
-    } catch (err) {
-      setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para editar este equipo."
-        : "No se pudo guardar el equipo.");
-    } finally {
-      setSavingEquipoId(null);
-    }
-  };
-
   const coordinacionProps = {
     clubNombre: userData?.clubNombre,
     usuarios: clubUsuarios,
@@ -1002,49 +720,6 @@ function App() {
     cardBgElevated,
   };
 
-  const equipoEditProps = {
-    canEditEquipo: puedeGestionarEquipo,
-    equipoEditandoId,
-    editEquipoNombre,
-    setEditEquipoNombre,
-    editEquipoGenero,
-    setEditEquipoGenero,
-    editEquipoTipoCanasta,
-    setEditEquipoTipoCanasta,
-    savingEquipoId,
-    onStartEditEquipo: handleIniciarEditEquipo,
-    onCancelEditEquipo: handleCancelarEditEquipo,
-    onSaveEquipo: handleGuardarEquipo,
-  };
-
-  const handleSeedDemoData = async () => {
-    if (userData?.rol !== "superadmin") {
-      setErrorMsg("No tienes permiso para generar datos de prueba.");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
-    );
-    if (!confirmed) return;
-
-    setSeedingDemo(true);
-    setErrorMsg("");
-    setSeedNotice(null);
-    try {
-      const summary = await seedDemoData(db, { clubIdFilter: null });
-      setSeedNotice(
-        `Datos generados: ${summary.clubes} club${summary.clubes === 1 ? "" : "es"} · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
-      );
-    } catch (err) {
-      setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para generar datos de prueba."
-        : err?.message || "No se pudieron generar los datos de prueba.");
-    } finally {
-      setSeedingDemo(false);
-    }
-  };
-
   const canSeedDemoData = userData?.rol === "superadmin";
   const demoSeedProps = {
     onSeed: handleSeedDemoData,
@@ -1055,38 +730,6 @@ function App() {
     textSecondary,
     inputBorder,
     cardBgElevated,
-  };
-
-  const handleCrearClub = async (e) => {
-    e.preventDefault();
-    if (!nuevoClubNombre.trim()) return;
-    try {
-      await addDoc(collection(db, "Clubes"), { nombre: nuevoClubNombre.trim(), creadoEn: new Date() });
-      setNuevoClubNombre("");
-    } catch (err) {
-      setErrorMsg("Error creando club");
-    }
-  };
-
-  const handleCrearEquipo = async (e) => {
-    e.preventDefault();
-    if (!nuevoEquipoNombre.trim() || !userData?.clubId) return;
-    setCrearEquipoLoading(true);
-    try {
-      await addDoc(collection(db, "Equipos"), {
-        nombre: nuevoEquipoNombre.trim(),
-        clubId: userData.clubId,
-        genero: nuevoEquipoGenero,
-        tipoCanasta: nuevoEquipoTipoCanasta,
-        creadoEn: new Date(),
-      });
-      setNuevoEquipoNombre("");
-      setNuevoEquipoGenero(GENERO_FEMENINO);
-      setNuevoEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
-    } catch (err) {
-      setErrorMsg("Error creando equipo");
-    }
-    setCrearEquipoLoading(false);
   };
 
   const handleAddJugadora = async (e) => {
