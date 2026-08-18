@@ -4061,14 +4061,20 @@ function App() {
     <div
       className="app-shell"
       data-device-preview={devicePreview}
+      data-user-role={userData?.rol || ""}
       style={{ fontFamily: "'Inter',system-ui,sans-serif" }}
     >
       <BlurredBackground isDark={isDarkMode} />
       {/* Header */}
       <header className="app-header">
-        <div className="app-header-bar" style={{ ...glassCardStyle, borderRadius: 16, boxShadow: cardShadow, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", border: `1px solid ${inputBorder}` }}>
-          <AppBrand accent={accent} text={text} fontSize={22} onGoHome={handleGoHome} />
-          <div className="app-header-actions">
+        <div className="app-header-bar" style={{ ...glassCardStyle, borderRadius: 16, boxShadow: cardShadow, border: `1px solid ${inputBorder}` }}>
+          <div className="app-header-row app-header-row--primary">
+            <AppBrand accent={accent} text={text} fontSize={22} onGoHome={handleGoHome} />
+            <button type="button" className="app-header-logout app-header-logout--corner" onClick={handleLogout} tabIndex={0}>
+              Salir
+            </button>
+          </div>
+          <div className="app-header-row app-header-row--tools">
             <span className="app-header-role" style={{ color: textMuted }}>
               Rol{" "}
               <span style={{ color: accentLight, fontWeight: 600 }}>
@@ -4081,9 +4087,10 @@ function App() {
               className="app-header-options-btn"
               onClick={handleOpenOpciones}
               style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+              aria-label="Opciones"
             >
               <IconSettings size={16} color={textMuted} />
-              <span>Opciones</span>
+              <span className="app-header-options-btn__label">Opciones</span>
             </button>
             {canSeedDemoData && (
               <button
@@ -4099,12 +4106,15 @@ function App() {
                   cursor: seedingDemo ? "wait" : "pointer",
                 }}
               >
-                {seedingDemo ? "Generando…" : "Datos prueba"}
+                <span className="app-header-seed-btn__long">{seedingDemo ? "Generando…" : "Datos prueba"}</span>
+                <span className="app-header-seed-btn__short">{seedingDemo ? "…" : "Demo"}</span>
               </button>
             )}
             <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
             <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
-            <button onClick={handleLogout} style={{ background: accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 600, fontSize: 13.5, cursor: "pointer", boxShadow: "0 4px 14px rgba(42, 101, 112, 0.30)", transition: "filter .17s", outline: 0 }} tabIndex={0}>Salir</button>
+            <button type="button" className="app-header-logout app-header-logout--inline" onClick={handleLogout} tabIndex={0}>
+              Salir
+            </button>
           </div>
         </div>
       </header>

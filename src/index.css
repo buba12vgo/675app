@@ -31,6 +31,7 @@
   --color-sidebar-bg: rgba(255, 255, 255, 0.88);
   --color-nav-mobile-bg: rgba(255, 255, 255, 0.94);
   --mobile-nav-height: 96px;
+  --app-header-offset: 108px;
   --color-calendar-day: #FFFFFF;
   --color-calendar-day-other: #E2E8F0;
   --color-calendar-day-text: #0F172A;
@@ -142,22 +143,67 @@ textarea:focus-visible {
   user-select: none;
 }
 
+.app-shell[data-user-role="superadmin"] {
+  --app-header-offset: 132px;
+}
+
 .app-header-bar {
   width: 96%;
   margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 20px;
+  box-sizing: border-box;
 }
 
-.app-header-meta {
-  width: 96%;
-  margin: 8px auto 0;
-}
-
-.app-header-actions {
+.app-header-row {
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+.app-header-row--primary {
+  flex: 0 0 auto;
+}
+
+.app-header-row--tools {
+  flex: 1 1 auto;
   justify-content: flex-end;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-header-logout {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(42, 101, 112, 0.3);
+  transition: filter 0.17s;
+  outline: 0;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.app-header-logout--corner {
+  display: none;
+}
+
+.app-header-logout--inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-header-seed-btn__short {
+  display: none;
 }
 
 .app-header-role {
@@ -375,7 +421,7 @@ textarea:focus-visible {
 }
 
 .app-shell[data-device-preview="mobile"] .device-preview-frame .app-main {
-  padding: 96px 8px 20px;
+  padding: var(--app-header-offset) 8px 20px;
 }
 
 .app-shell[data-device-preview="mobile"] .device-preview-frame .app-card {
@@ -624,7 +670,7 @@ textarea:focus-visible {
 .app-main {
   width: 100%;
   min-height: 100vh;
-  padding: 108px 12px 24px;
+  padding: var(--app-header-offset) 12px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2055,15 +2101,80 @@ textarea:focus-visible {
 }
 
 /* ── Small phones ── */
-@media (max-width: 479px) {
+@media (max-width: 767px) {
+  :root {
+    --app-header-offset: 124px;
+  }
+
+  .app-shell[data-user-role="superadmin"] {
+    --app-header-offset: 150px;
+  }
+
   .app-header {
-    padding-top: 12px;
+    padding-top: 10px;
   }
 
-  .app-header-actions {
-    gap: 6px;
+  .app-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
   }
 
+  .app-header-row--primary {
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .app-header-row--tools {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .app-header-row--tools::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-header-logout--corner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .app-header-logout--inline {
+    display: none;
+  }
+
+  .app-header-options-btn__label {
+    display: none;
+  }
+
+  .app-header-options-btn {
+    padding: 8px 10px;
+  }
+
+  .app-header-seed-btn__long {
+    display: none;
+  }
+
+  .app-header-seed-btn__short {
+    display: inline;
+  }
+
+  .app-header-seed-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 479px) {
   .app-header-role {
     display: none;
   }
@@ -2076,10 +2187,6 @@ textarea:focus-visible {
   .device-preview-viewport {
     padding-left: 6px;
     padding-right: 6px;
-  }
-
-  .app-main {
-    padding: 96px 8px 20px;
   }
 
   .app-card {
@@ -2117,7 +2224,7 @@ textarea:focus-visible {
   }
 
   .app-main {
-    padding: 118px 24px 32px;
+    padding: var(--app-header-offset) 24px 32px;
   }
 
   .app-card {
@@ -2207,8 +2314,7 @@ textarea:focus-visible {
     padding-right: 24px;
   }
 
-  .app-header-bar,
-  .app-header-meta {
+  .app-header-bar {
     width: 100%;
   }
 
