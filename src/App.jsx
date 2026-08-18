@@ -32,8 +32,6 @@ import {
 import {
   formatRolLabel,
   getClubInitials,
-  getCalendarMatrix,
-  dayNames,
   formatDateYYYYMMDD,
   normalizarTipoSesion,
   formatearFechaCorta,
@@ -63,8 +61,6 @@ import {
   IconChart,
   IconUsers,
   IconChevronLeft,
-  IconGear,
-  IconX,
 } from "./components/icons.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
 import { AppBrand } from "./components/AppBrand.jsx";
@@ -72,277 +68,21 @@ import { BlurredBackground } from "./components/BlurredBackground.jsx";
 import { ThemeToggleButton } from "./components/ThemeToggleButton.jsx";
 import { UserOptionsPanel } from "./components/UserOptionsPanel.jsx";
 import { SuperadminUsuariosPanel } from "./components/SuperadminUsuariosPanel.jsx";
-import { EquipoListRow } from "./components/EquipoListRow.jsx";
 import { CoordinacionPanel } from "./components/CoordinacionPanel.jsx";
 import { DemoSeedCard } from "./components/DemoSeedCard.jsx";
 import { TeamContextHeader } from "./components/TeamContextHeader.jsx";
 import { TabNav } from "./components/TabNav.jsx";
-import { AsistenciaValoracionPanel } from "./components/AsistenciaValoracionPanel.jsx";
-import { HomeEventCard } from "./components/HomeEventCard.jsx";
-import { EstadisticasTablaTipo } from "./components/EstadisticasTablaTipo.jsx";
+import { LoginScreen } from "./components/LoginScreen.jsx";
+import { HomeTab } from "./components/HomeTab.jsx";
+import { CalendarioTab } from "./components/CalendarioTab.jsx";
+import { EstadisticasTab } from "./components/EstadisticasTab.jsx";
+import { PlantillaTab } from "./components/PlantillaTab.jsx";
+import { EquiposListaSection } from "./components/EquiposListaSection.jsx";
+import { resetCamposSesion } from "./lib/sessionUtils.js";
 
 
 const THEME = THEMES.dark;
 
-// ----------- PlantillaForm extraído a componente estable --------------
-function PlantillaForm({
-  handleAddJugadora,
-  jugadoraNombre,
-  setJugadoraNombre,
-  jugadoraDorsal,
-  setJugadoraDorsal,
-  jugadoraApodo,
-  setJugadoraApodo,
-  addJugadoraLoading,
-  accent,
-  accentShadow,
-  inputBorder,
-  inputBg,
-  surface,
-  text,
-  labels,
-}) {
-  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
-  return (
-    <form
-      onSubmit={handleAddJugadora}
-      style={{
-        background: surface,
-        padding: "18px 24px",
-        borderRadius: 16,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-        border: `1px solid ${inputBorder}`,
-        display: "flex",
-        flexDirection: "column",
-        gap: 14,
-        width: "100%",
-        maxWidth: 560
-      }}
-      autoComplete="off"
-    >
-      <div className="plantilla-form-row plantilla-form-row--inputs">
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={jugadoraNombre}
-          onChange={e => setJugadoraNombre(e.target.value)}
-          required
-          style={{
-            flex: 1,
-            padding: "10px 13px",
-            fontSize: 16.5,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 10,
-            background: inputBg,
-            color: text,
-            outline: "none",
-            fontWeight: 500,
-            minWidth: 0
-          }}
-        />
-        <input
-          type="number"
-          placeholder="Dorsal"
-          value={jugadoraDorsal}
-          onChange={e => setJugadoraDorsal(e.target.value.replace(/^0+/, ""))}
-          min={1}
-          required
-          style={{
-            width: 64,
-            padding: "10px 10px",
-            fontSize: 16.5,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 10,
-            background: inputBg,
-            color: text,
-            outline: "none",
-            fontWeight: 500
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Apodo"
-          value={jugadoraApodo}
-          onChange={e => setJugadoraApodo(e.target.value)}
-          style={{
-            flex: 1,
-            padding: "10px 13px",
-            fontSize: 16.5,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 10,
-            background: inputBg,
-            color: text,
-            outline: "none",
-            fontWeight: 500,
-            minWidth: 0
-          }}
-        />
-      </div>
-      <button
-        type="submit"
-        style={{
-          background: accent,
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "11px 0",
-          fontWeight: 600,
-          fontSize: 16,
-          cursor: "pointer",
-          marginTop: 5,
-          boxShadow: `0 4px 14px ${accentShadow}`,
-          transition: "all .16s",
-          letterSpacing: "0.013em"
-        }}
-        disabled={addJugadoraLoading || !jugadoraNombre.trim() || !jugadoraDorsal.trim()}
-        tabIndex={0}
-      >
-        {playerLabels.anadirJugador}
-      </button>
-    </form>
-  );
-}
-
-function PlantillaJugadoraRow({
-  jugadora,
-  isEditing,
-  editNombre,
-  setEditNombre,
-  editDorsal,
-  setEditDorsal,
-  editApodo,
-  setEditApodo,
-  editLoading,
-  onStartEdit,
-  onCancelEdit,
-  onSaveEdit,
-  onDelete,
-  accent,
-  accentShadow,
-  inputBorder,
-  inputBg,
-  surface,
-  text,
-  textSecondary,
-  error,
-  labels,
-}) {
-  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
-  const inputStyle = {
-    padding: "8px 10px",
-    fontSize: 15,
-    border: `1px solid ${inputBorder}`,
-    borderRadius: 8,
-    background: inputBg,
-    color: text,
-    outline: "none",
-    fontWeight: 500,
-    minWidth: 0,
-  };
-
-  if (isEditing) {
-    return (
-      <div className="plantilla-jugadora-row plantilla-jugadora-row--editing" style={{ background: surface, borderLeftColor: accent }}>
-        <div className="plantilla-jugadora-row__edit-fields">
-          <input
-            type="text"
-            placeholder="Nombre"
-            value={editNombre}
-            onChange={e => setEditNombre(e.target.value)}
-            required
-            style={{ ...inputStyle, flex: 1 }}
-          />
-          <input
-            type="number"
-            placeholder="Dorsal"
-            value={editDorsal}
-            onChange={e => setEditDorsal(e.target.value.replace(/^0+/, ""))}
-            min={1}
-            required
-            style={{ ...inputStyle, width: 64 }}
-          />
-          <input
-            type="text"
-            placeholder="Apodo"
-            value={editApodo}
-            onChange={e => setEditApodo(e.target.value)}
-            style={{ ...inputStyle, flex: 1 }}
-          />
-        </div>
-        <div className="plantilla-jugadora-row__edit-actions">
-          <button
-            type="button"
-            className="plantilla-jugadora-row__btn plantilla-jugadora-row__btn--save"
-            style={{ background: accent, boxShadow: `0 2px 10px ${accentShadow}` }}
-            onClick={() => onSaveEdit(jugadora.id)}
-            disabled={editLoading || !editNombre.trim() || !editDorsal.trim()}
-          >
-            {editLoading ? "Guardando…" : "Guardar"}
-          </button>
-          <button
-            type="button"
-            className="plantilla-jugadora-row__btn plantilla-jugadora-row__btn--cancel"
-            onClick={onCancelEdit}
-            disabled={editLoading}
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="plantilla-jugadora-row" style={{ background: surface, borderLeftColor: accent }}>
-      <div className="plantilla-jugadora-row__info">
-        <div className="plantilla-jugadora-row__dorsal" style={{ color: accent }}>{jugadora.dorsal}</div>
-        <div className="plantilla-jugadora-row__name-block">
-          <span className="plantilla-jugadora-row__name" style={{ color: text }}>{jugadora.nombre}</span>
-          {jugadora.apodo?.trim() && (
-            <span className="plantilla-jugadora-row__apodo" style={{ color: textSecondary }}>"{jugadora.apodo}"</span>
-          )}
-        </div>
-      </div>
-      <div className="plantilla-jugadora-row__actions">
-        <button
-          type="button"
-          className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--edit"
-          onClick={() => onStartEdit(jugadora)}
-          aria-label={`Editar ${jugadora.nombre}`}
-          title={playerLabels.editarJugador}
-          style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
-        >
-          <IconGear size={18} />
-        </button>
-        <button
-          type="button"
-          className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--delete"
-          onClick={() => onDelete(jugadora)}
-          aria-label={`Eliminar ${jugadora.nombre}`}
-          title={playerLabels.eliminarJugador}
-          style={{ color: error }}
-        >
-          <IconX size={18} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function resetCamposSesion(setters) {
-  const {
-    setTematica, setEjercicios, setAsistencias, setValoraciones,
-    setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
-  } = setters;
-  setTematica("");
-  setEjercicios("");
-  setAsistencias({});
-  setValoraciones({});
-  setTipoSesion("entreno");
-  setRivalPartido("");
-  setLocalPartido("casa");
-  setSesionVista("datos");
-}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -1616,34 +1356,28 @@ function App() {
   // --- UI login ---
   if (!user) {
     return (
-      <div className="login-page" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
-        <BlurredBackground isDark={isDarkMode} />
-        <div className="login-page__toolbar">
-          <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
-        </div>
-        <div className="login-card" style={{ ...glassCardStyle, display: "flex", flexDirection: "column", gap: 18, border: `1px solid ${inputBorder}`, boxShadow: cardShadow }}>
-          <AppBrand accent={accent} text={text} fontSize={26} />
-          <div style={{ color: textSecondary, fontSize: 16, marginTop: 4, fontWeight: 500 }}>Inicia sesión para continuar</div>
-          <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }} autoComplete="off">
-            <input type="email" placeholder="Correo electrónico" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" style={{ padding: "13px 16px", fontSize: 15, background: inputBg, color: text, border: `1px solid ${inputBorder}`, borderRadius: 12, outline: "none", transition: "border .18s" }} onFocus={e => (e.target.style.border = `1.5px solid ${accent}`)} onBlur={e => (e.target.style.border = `1px solid ${inputBorder}`)} />
-            <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" style={{ padding: "13px 16px", fontSize: 15, background: inputBg, color: text, border: `1px solid ${inputBorder}`, borderRadius: 12, outline: "none", transition: "border .18s" }} onFocus={e => (e.target.style.border = `1.5px solid ${accent}`)} onBlur={e => (e.target.style.border = `1px solid ${inputBorder}`)} />
-            <button type="submit" style={{ marginTop: 4, padding: "13px 0", background: accent, color: "#fff", fontWeight: 600, fontSize: 16, border: "none", borderRadius: 12, cursor: "pointer", transition: "all .12s", boxShadow: "0 4px 16px rgba(42, 101, 112, 0.35)", letterSpacing: ".2px" }}>Ingresar</button>
-          </form>
-          <div style={{ textAlign: "center", color: textMuted, margin: "4px 0", fontSize: 12, fontWeight: 500 }}>— o continúa con —</div>
-          <button onClick={handleGoogleLogin} style={{ background: surface, color: text, border: `1px solid ${inputBorder}`, padding: "12px 0", borderRadius: 12, fontWeight: 600, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            <svg width="22" height="22" viewBox="0 0 48 48">
-              <g>
-                <path fill="#4285F4" d="M45.34 24.49c0-1.59-.14-3.16-.41-4.66H24v8.84h12.06c-.52 2.72-2.18 5.04-4.72 6.59v5.47h7.62c4.47-4.11 7.05-10.16 7.05-16.24z"/>
-                <path fill="#34A853" d="M24 47c6.17 0 11.39-2.05 15.18-5.56l-7.62-5.47c-2.12 1.43-4.84 2.26-7.56 2.26-5.8 0-10.72-3.92-12.5-9.2h-7.7v5.75C7.5 42.09 15.17 47 24 47z"/>
-                <path fill="#FBBC05" d="M11.5 28.03A13.63 13.63 0 0 1 10 24c0-1.39.24-2.75.5-4.03v-5.75h-7.7A23.77 23.77 0 0 0 0 24c0 3.74.9 7.29 2.5 10.3l7.7-5.75z"/>
-                <path fill="#EA4335" d="M24 9.5c3.36 0 6.37 1.15 8.75 3.42l6.56-6.41C35.37 2.05 30.15 0 24 0 15.17 0 7.5 4.91 2.5 13.7l7.7 5.75c1.78-5.28 6.7-9.2 12.5-9.2z"/>
-              </g>
-            </svg>
-            Iniciar sesión con Google
-          </button>
-          {errorMsg && <div style={{ color: error, marginTop: 8, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, padding: "10px 12px", borderRadius: 10, fontWeight: 500, fontSize: 14, textAlign: "center" }}>{errorMsg}</div>}
-        </div>
-      </div>
+      <LoginScreen
+        isDarkMode={isDarkMode}
+        colorMode={colorMode}
+        onToggleColorMode={toggleColorMode}
+        glassCardStyle={glassCardStyle}
+        inputBorder={inputBorder}
+        cardShadow={cardShadow}
+        accent={accent}
+        text={text}
+        textSecondary={textSecondary}
+        textMuted={textMuted}
+        inputBg={inputBg}
+        surface={surface}
+        error={error}
+        email={email}
+        onEmailChange={setEmail}
+        password={password}
+        onPasswordChange={setPassword}
+        onEmailLogin={handleEmailLogin}
+        onGoogleLogin={handleGoogleLogin}
+        errorMsg={errorMsg}
+      />
     );
   }
 
@@ -1665,481 +1399,120 @@ function App() {
       const programarPartido = () => programarDesdeInicio("partido");
 
       tabContent = (
-        <div className="home-dashboard" style={{ margin: "0 auto", padding: "16px 0 8px" }}>
-          <div className="home-dashboard__intro">
-            <div style={{ color: text, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>
-              {equipoActivo.nombre}
-            </div>
-            <div style={{ marginTop: 4, fontSize: 13, fontWeight: 600, color: textMuted }}>
-              {formatTipoCanasta(equipoActivo.tipoCanasta)} · {formatGeneroEquipo(equipoActivo.genero)}
-            </div>
-            <div style={{ marginTop: 4, fontSize: 14, fontWeight: 500, color: textSecondary }}>
-              Resumen del equipo
-            </div>
-          </div>
-
-          {sesionesLoading ? (
-            <div style={{ color: textMuted, fontSize: 15, fontStyle: "italic", textAlign: "center" }}>
-              Cargando calendario…
-            </div>
-          ) : (
-            <div className="home-dashboard__cards">
-              <HomeEventCard
-                tipo="entreno"
-                sesion={proximoEntreno}
-                hoyStr={hoyStr}
-                mananaStr={mananaStr}
-                accent={accent}
-                accentLight={accentLight}
-                accentSoft={accentSoft}
-                accentBorder={accentBorder}
-                colorPartido={colorPartido}
-                colorPartidoLight={colorPartidoLight}
-                colorPartidoSoft={colorPartidoSoft}
-                colorPartidoBorder={colorPartidoBorder}
-                text={text}
-                textMuted={textMuted}
-                textSecondary={textSecondary}
-                success={success}
-                onOpen={abrirEnCalendario}
-                onSchedule={proximoEntreno ? undefined : programarEntreno}
-                scheduling={guardandoSesion}
-              />
-              <HomeEventCard
-                tipo="partido"
-                sesion={proximoPartido}
-                hoyStr={hoyStr}
-                mananaStr={mananaStr}
-                accent={accent}
-                accentLight={accentLight}
-                accentSoft={accentSoft}
-                accentBorder={accentBorder}
-                colorPartido={colorPartido}
-                colorPartidoLight={colorPartidoLight}
-                colorPartidoSoft={colorPartidoSoft}
-                colorPartidoBorder={colorPartidoBorder}
-                text={text}
-                textMuted={textMuted}
-                textSecondary={textSecondary}
-                success={success}
-                onOpen={abrirEnCalendario}
-                onSchedule={proximoPartido ? undefined : programarPartido}
-                scheduling={guardandoSesion}
-              />
-            </div>
-          )}
-        </div>
+        <HomeTab
+          equipoActivo={equipoActivo}
+          sesionesLoading={sesionesLoading}
+          proximoEntreno={proximoEntreno}
+          proximoPartido={proximoPartido}
+          hoyStr={hoyStr}
+          mananaStr={mananaStr}
+          accent={accent}
+          accentLight={accentLight}
+          accentSoft={accentSoft}
+          accentBorder={accentBorder}
+          colorPartido={colorPartido}
+          colorPartidoLight={colorPartidoLight}
+          colorPartidoSoft={colorPartidoSoft}
+          colorPartidoBorder={colorPartidoBorder}
+          text={text}
+          textMuted={textMuted}
+          textSecondary={textSecondary}
+          success={success}
+          onOpenCalendar={abrirEnCalendario}
+          onScheduleEntreno={programarEntreno}
+          onSchedulePartido={programarPartido}
+          guardandoSesion={guardandoSesion}
+        />
       );
     } else if (tab === "sesiones") {
-      // --- CALENDARIO VISUAL SESIONES ---
-      const monthNames = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-      ];
-
-      // Para lookup rápido de fechas con sesión
-      const sesionesPorFecha = {};
-      sesionesEquipo.forEach(s => {
-        sesionesPorFecha[s.fecha] = s;
-      });
-
-      // Pasar view de mes actual y año actual
-      const weeksMatrix = getCalendarMatrix(anioActual, mesActual);
+      const handlePrevMonth = () => {
+        if (mesActual === 0) {
+          setMesActual(11);
+          setAnioActual(anioActual - 1);
+        } else {
+          setMesActual(mesActual - 1);
+        }
+      };
+      const handleNextMonth = () => {
+        if (mesActual === 11) {
+          setMesActual(0);
+          setAnioActual(anioActual + 1);
+        } else {
+          setMesActual(mesActual + 1);
+        }
+      };
+      const handleVolverCalendario = () => {
+        setFechaSesionSeleccionada(null);
+        setSesionDoc(null);
+        setSesionId(null);
+        resetCamposSesion(sesionSetters);
+        setSesionCargando(false);
+        setGuardandoSesion(false);
+        setErrorMsg("");
+      };
 
       tabContent = (
-        <div className="content-block" style={{ display: "flex", flexDirection: "column", gap: 27, width: "100%", alignItems: "center", padding: "13px 0 33px 0" }}>
-          <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginBottom: 2, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            <IconCalendar size={22} color={accent} />
-            Gestión de Calendario
-          </h2>
-          {!fechaSesionSeleccionada && (
-            <div style={{ display: "flex", gap: 16, fontSize: 12.5, color: textMuted, marginBottom: -8 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 99, background: accent, display: "inline-block" }} />
-                Entreno
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 99, background: colorPartido, display: "inline-block" }} />
-                Partido
-              </span>
-            </div>
-          )}
-          {/* Panel mensual */}
-          {!fechaSesionSeleccionada && (
-            <div className="content-wide calendar-panel">
-              <div className="calendar-nav">
-                <button
-                  type="button"
-                  className="calendar-nav-btn"
-                  onClick={() => {
-                    if (mesActual === 0) {
-                      setMesActual(11);
-                      setAnioActual(anioActual - 1);
-                    } else {
-                      setMesActual(mesActual - 1);
-                    }
-                  }}
-                  tabIndex={0}
-                  aria-label="Mes anterior"
-                >{"‹"}</button>
-                <span className="calendar-month-title">
-                  {monthNames[mesActual]} {anioActual}
-                </span>
-                <button
-                  type="button"
-                  className="calendar-nav-btn"
-                  onClick={() => {
-                    if (mesActual === 11) {
-                      setMesActual(0);
-                      setAnioActual(anioActual + 1);
-                    } else {
-                      setMesActual(mesActual + 1);
-                    }
-                  }}
-                  tabIndex={0}
-                  aria-label="Mes siguiente"
-                >{"›"}</button>
-              </div>
-              <div className="calendar-weekdays">
-                {dayNames.map(d => (
-                  <div key={d} className="calendar-weekday">{d}</div>
-                ))}
-              </div>
-              <div
-                className="calendar-grid"
-                style={{ gridTemplateRows: `repeat(${weeksMatrix.length}, 1fr)` }}
-              >
-                {weeksMatrix.map((semana, widx) =>
-                  semana.map(({ date, otherMonth }, didx) => {
-                    const ymd = formatDateYYYYMMDD(date);
-                    const sesionDia = sesionesPorFecha[ymd];
-                    const tieneSesion = !!sesionDia;
-                    const esPartido = tieneSesion && normalizarTipoSesion(sesionDia) === "partido";
-                    const hoy = formatDateYYYYMMDD(new Date());
-                    const colorEvento = esPartido ? colorPartido : accent;
-                    return (
-                      <button
-                        key={widx + "-" + didx}
-                        type="button"
-                        disabled={otherMonth}
-                        onClick={() => setFechaSesionSeleccionada(ymd)}
-                        className={`calendar-day${otherMonth ? " calendar-day--other" : ""}${ymd === hoy ? " calendar-day--today" : ""}`}
-                        style={{
-                          borderColor: tieneSesion ? colorEvento : undefined,
-                        }}
-                        tabIndex={otherMonth ? -1 : 0}
-                      >
-                        {date.getDate()}
-                        {tieneSesion && (
-                          <span
-                            className="calendar-day__dot"
-                            style={{ background: colorEvento }}
-                          />
-                        )}
-                        {ymd === hoy && (
-                          <span className="calendar-day__today-mark" title="Hoy" />
-                        )}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Panel de sesión (por día) */}
-          {fechaSesionSeleccionada && (
-            <div className="session-day-panel" style={{
-              width: "100%",
-              background: surface,
-              borderRadius: 16,
-              boxShadow: "0 2px 15px 0 rgba(0,0,0,0.10)",
-              border: `1px solid ${inputBorder}`,
-              margin: "auto",
-              padding: "23px 22px 26px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 15,
-              alignItems: "stretch",
-              position: "relative"
-            }}>
-              {/* Botón volver */}
-              <button
-                style={{
-                  background: "transparent",
-                  color: accent,
-                  border: `1.3px solid ${accent}`,
-                  borderRadius: 10,
-                  fontWeight: "bold",
-                  fontSize: 15.7,
-                  padding: "9px 18px",
-                  marginBottom: 18,
-                  width: "fit-content",
-                  boxShadow: "0 2px 8px rgba(42, 101, 112, 0.10)",
-                  cursor: "pointer",
-                  alignSelf: "flex-start",
-                  marginTop: -4,
-                  marginLeft: -2,
-                }}
-                tabIndex={0}
-                onClick={() => {
-                  setFechaSesionSeleccionada(null);
-                  setSesionDoc(null);
-                  setSesionId(null);
-                  resetCamposSesion(sesionSetters);
-                  setSesionCargando(false);
-                  setGuardandoSesion(false);
-                  setErrorMsg("");
-                }}
-              >
-                ← Volver al Calendario
-              </button>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <div style={{ color: "#fff", fontWeight: 700, fontSize: 18.8 }}>
-                  {fechaSesionSeleccionada.split("-").reverse().join("/")}
-                </div>
-                {sesionDoc && (
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    padding: "4px 10px",
-                    borderRadius: 99,
-                    background: tipoSesion === "partido" ? "rgba(139,92,246,0.2)" : accentSoft,
-                    color: tipoSesion === "partido" ? colorPartido : accentLight,
-                    border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "rgba(42, 101, 112, 0.35)"}`,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em"
-                  }}>
-                    {tipoSesion === "partido" ? "Partido" : "Entreno"}
-                  </span>
-                )}
-              </div>
-
-              {sesionCargando ? (
-                <div style={{ color: "#bbb", fontSize: 16, fontStyle: "italic", padding: "12px 0", fontWeight: 500 }}>Cargando sesión...</div>
-              ) : (
-                <>
-                  {(!sesionDoc && !guardandoSesion) ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "center", marginTop: 17, width: "100%" }}>
-                      <div style={{ color: "#9F9FA7", fontWeight: 500, fontSize: 15, textAlign: "center" }}>
-                        No hay evento registrado para esta fecha.<br />Elige qué quieres crear:
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 320 }}>
-                        <button
-                          type="button"
-                          style={{
-                            background: accent,
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 14,
-                            padding: "14px 20px",
-                            fontWeight: 700,
-                            fontSize: 16,
-                            cursor: "pointer",
-                            boxShadow: "0 4px 14px rgba(42, 101, 112, 0.28)",
-                          }}
-                          onClick={() => handleCrearSesion("entreno")}
-                          disabled={guardandoSesion}
-                        >
-                          + Crear Entreno
-                        </button>
-                        <button
-                          type="button"
-                          style={{
-                            background: colorPartido,
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 14,
-                            padding: "14px 20px",
-                            fontWeight: 700,
-                            fontSize: 16,
-                            cursor: "pointer",
-                            boxShadow: "0 4px 14px rgba(139,92,246,0.35)",
-                          }}
-                          onClick={() => handleCrearSesion("partido")}
-                          disabled={guardandoSesion}
-                        >
-                          + Crear Partido
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <form
-                      className="session-form"
-                      onSubmit={e => { e.preventDefault(); handleGuardarSesion(); }}
-                      autoComplete="off"
-                    >
-                      <div className="session-subnav">
-                        <button
-                          type="button"
-                          className={`session-subnav-btn${sesionVista === "datos" ? " session-subnav-btn--active" : ""}`}
-                          onClick={() => setSesionVista("datos")}
-                        >
-                          {tipoSesion === "partido" ? "Datos del partido" : "Datos de sesión"}
-                        </button>
-                        <button
-                          type="button"
-                          className={`session-subnav-btn${sesionVista === "asistencia" ? " session-subnav-btn--active" : ""}`}
-                          onClick={() => setSesionVista("asistencia")}
-                        >
-                          {tipoSesion === "partido"
-                            ? `Convocatoria (${jugadorasSesion.filter(j => asistencias[j.id]).length}/${jugadorasSesion.length})`
-                            : `Asistencia (${jugadorasSesion.filter(j => asistencias[j.id]).length}/${jugadorasSesion.length})`}
-                        </button>
-                      </div>
-
-                      <div className="session-panel-layout">
-                        <div className={`session-panel-datos${sesionVista !== "datos" ? " session-panel-section--hidden-mobile" : ""}`}>
-                          {tipoSesion === "partido" ? (
-                            <div style={{
-                              background: "rgba(139,92,246,0.08)",
-                              border: `1px solid rgba(139,92,246,0.35)`,
-                              borderRadius: 12,
-                              padding: "16px 14px",
-                            }}>
-                              <div style={{ color: colorPartido, fontSize: 13, fontWeight: 700, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                                Información del partido
-                              </div>
-                              <label style={{ display: "block", color: textSecondary, fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                                Rival
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Nombre del equipo rival"
-                                value={rivalPartido}
-                                onChange={e => setRivalPartido(e.target.value)}
-                                style={{
-                                  width: "100%",
-                                  padding: "11px 13px",
-                                  fontSize: 16,
-                                  border: `1px solid ${inputBorder}`,
-                                  borderRadius: 9,
-                                  background: cardBgElevated,
-                                  color: text,
-                                  outline: "none",
-                                  fontWeight: 500,
-                                  marginBottom: 14,
-                                }}
-                              />
-                              <label style={{ display: "block", color: textSecondary, fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-                                Condición
-                              </label>
-                              <div style={{ display: "flex", gap: 8 }}>
-                                {["casa", "fuera"].map(op => (
-                                  <button
-                                    key={op}
-                                    type="button"
-                                    onClick={() => setLocalPartido(op)}
-                                    style={{
-                                      flex: 1,
-                                      padding: "10px 0",
-                                      borderRadius: 9,
-                                      border: `1.5px solid ${localPartido === op ? colorPartido : inputBorder}`,
-                                      background: localPartido === op ? "rgba(139,92,246,0.22)" : cardBgElevated,
-                                      color: localPartido === op ? "#fff" : textMuted,
-                                      fontWeight: 700,
-                                      fontSize: 14,
-                                      cursor: "pointer",
-                                      textTransform: "capitalize",
-                                    }}
-                                  >
-                                    {op === "casa" ? "En casa" : "Fuera"}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div style={{ color: textSecondary, fontSize: 13, fontWeight: 600, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                                Temática y ejercicios
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Temática"
-                                value={tematica}
-                                onChange={e => setTematica(e.target.value)}
-                                style={{
-                                  width: "100%",
-                                  padding: "11px 13px",
-                                  fontSize: 16.5,
-                                  border: `1px solid ${inputBorder}`,
-                                  borderRadius: 9,
-                                  background: cardBgElevated,
-                                  color: text,
-                                  outline: "none",
-                                  fontWeight: 500,
-                                  marginBottom: 12,
-                                }}
-                              />
-                              <textarea
-                                placeholder="Ejercicios de la sesión"
-                                value={ejercicios}
-                                onChange={e => setEjercicios(e.target.value)}
-                                rows={5}
-                                style={{
-                                  width: "100%",
-                                  padding: "11px 13px",
-                                  fontSize: 16.2,
-                                  border: `1px solid ${inputBorder}`,
-                                  borderRadius: 9,
-                                  background: cardBgElevated,
-                                  color: text,
-                                  outline: "none",
-                                  fontWeight: 500,
-                                  resize: "vertical",
-                                  minHeight: 120,
-                                  maxHeight: 220,
-                                }}
-                              />
-                            </>
-                          )}
-                        </div>
-
-                        <div className={`session-panel-asistencia${sesionVista !== "asistencia" ? " session-panel-section--hidden-mobile" : ""}`}>
-                          <AsistenciaValoracionPanel
-                            jugadoras={jugadorasSesion}
-                            jugadorasLoading={jugadorasLoading}
-                            asistencias={asistencias}
-                            valoraciones={valoraciones}
-                            setAsistencias={setAsistencias}
-                            setValoraciones={setValoraciones}
-                            accent={tipoSesion === "partido" ? colorPartido : accent}
-                            inputBorder={inputBorder}
-                            textMuted={textMuted}
-                            textSecondary={textSecondary}
-                            success={success}
-                            error={error}
-                            cardBgElevated={cardBgElevated}
-                            titulo={tipoSesion === "partido" ? "Convocatoria" : "Asistencia y valoración"}
-                            resumenPresentes={tipoSesion === "partido"
-                              ? (p, t) => t > 0
-                                ? `${p} convocadas · ${t - p} fuera · valoración 1-5 si está convocada`
-                                : equipoLabels.sinJugadoresPlantilla
-                              : undefined}
-                            btnTodasPresentes={tipoSesion === "partido" ? "Todas convocadas" : "Todas presentes"}
-                            btnTodasAusentes={tipoSesion === "partido" ? "Ninguna convocada" : "Todas ausentes"}
-                            onGoToPlantilla={() => setTab("plantilla")}
-                            text={text}
-                            labels={equipoLabels}
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="session-save-btn"
-                        disabled={guardandoSesion}
-                        style={tipoSesion === "partido" ? { background: colorPartido, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" } : undefined}
-                      >
-                        Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
-                      </button>
-                    </form>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <CalendarioTab
+          text={text}
+          textMuted={textMuted}
+          accent={accent}
+          colorPartido={colorPartido}
+          fechaSesionSeleccionada={fechaSesionSeleccionada}
+          anioActual={anioActual}
+          mesActual={mesActual}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          sesionesEquipo={sesionesEquipo}
+          onSelectDate={setFechaSesionSeleccionada}
+          sessionDayPanelProps={{
+            fechaSesionSeleccionada,
+            onVolver: handleVolverCalendario,
+            sesionDoc,
+            tipoSesion,
+            sesionCargando,
+            guardandoSesion,
+            onCrearEntreno: () => handleCrearSesion("entreno"),
+            onCrearPartido: () => handleCrearSesion("partido"),
+            accent,
+            accentSoft,
+            accentLight,
+            colorPartido,
+            surface,
+            inputBorder,
+            sessionFormProps: {
+              tipoSesion,
+              sesionVista,
+              onSesionVistaChange: setSesionVista,
+              rivalPartido,
+              onRivalPartidoChange: setRivalPartido,
+              localPartido,
+              onLocalPartidoChange: setLocalPartido,
+              tematica,
+              onTematicaChange: setTematica,
+              ejercicios,
+              onEjerciciosChange: setEjercicios,
+              jugadorasSesion,
+              jugadorasLoading,
+              asistencias,
+              valoraciones,
+              setAsistencias,
+              setValoraciones,
+              onSubmit: handleGuardarSesion,
+              guardandoSesion,
+              onGoToPlantilla: () => setTab("plantilla"),
+              accent,
+              colorPartido,
+              inputBorder,
+              textMuted,
+              textSecondary,
+              text,
+              success,
+              error,
+              cardBgElevated,
+              equipoLabels,
+            },
+          }}
+        />
       );
     } else if (tab === "players") {
       const sesionesFiltradas = filtrarSesionesPorPeriodo(sesionesEquipo, statsPeriodo, statsDesde, statsHasta);
@@ -2148,219 +1521,93 @@ function App() {
       const totalEntrenos = sesionesFiltradas.filter(s => normalizarTipoSesion(s) === "entreno").length;
       const totalPartidos = sesionesFiltradas.filter(s => normalizarTipoSesion(s) === "partido").length;
       tabContent = (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%", alignItems: "center", padding: "8px 0 20px 0" }}>
-          <div style={{ textAlign: "center", width: "100%" }}>
-            <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px 0", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-              <IconChart size={22} color={accent} />
-              Estadísticas
-            </h2>
-            <div style={{ color: textSecondary, fontSize: 15, fontWeight: 500 }}>
-              Equipo <span style={{ color: accentLight }}>{equipoActivo.nombre}</span>
-            </div>
-          </div>
-
-          <div className="stats-filters" style={{
-            width: "100%",
-            background: cardBgElevated,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 14,
-            padding: "14px 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}>
-            <div style={{ color: textSecondary, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Periodo
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                { key: "semanal", label: "Semanal" },
-                { key: "mensual", label: "Mensual" },
-                { key: "rango", label: "Personalizado" },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setStatsPeriodo(key)}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 9,
-                    border: `1px solid ${statsPeriodo === key ? accent : inputBorder}`,
-                    background: statsPeriodo === key ? accentSoft : "transparent",
-                    color: statsPeriodo === key ? accentLight : textMuted,
-                    fontWeight: 600,
-                    fontSize: 13,
-                    cursor: "pointer",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {statsPeriodo === "rango" && (
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                <input type="date" value={statsDesde} onChange={e => setStatsDesde(e.target.value)} style={{ flex: 1, minWidth: 130, padding: "9px 10px", borderRadius: 9, border: `1px solid ${inputBorder}`, background: inputBg, color: text, fontSize: 14 }} />
-                <span style={{ color: textMuted }}>→</span>
-                <input type="date" value={statsHasta} onChange={e => setStatsHasta(e.target.value)} style={{ flex: 1, minWidth: 130, padding: "9px 10px", borderRadius: 9, border: `1px solid ${inputBorder}`, background: inputBg, color: text, fontSize: 14 }} />
-              </div>
-            )}
-            <div style={{ color: textMuted, fontSize: 13 }}>
-              {rango.inicio && rango.fin
-                ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")} · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"}`
-                : "Selecciona un rango de fechas válido"}
-            </div>
-          </div>
-
-          {(jugadorasLoading || sesionesLoading) ? (
-            <div style={{ color: "#bbb", fontSize: 16, fontStyle: "italic", padding: "12px 0", fontWeight: 500 }}>
-              Cargando estadísticas...
-            </div>
-          ) : jugadoras.length === 0 ? (
-            <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5, textAlign: "center" }}>
-              {equipoLabels.noHayJugadoresPlantilla}{" "}
-              <button
-                type="button"
-                onClick={() => setTab("plantilla")}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: accent,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: 0,
-                  fontFamily: "inherit",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 3,
-                }}
-              >
-                Ir a Plantilla
-              </button>
-            </div>
-          ) : sesionesFiltradas.length === 0 ? (
-            <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5, textAlign: "center", lineHeight: 1.5 }}>
-              No hay entrenos ni partidos en el periodo seleccionado.
-            </div>
-          ) : (
-            <>
-              <div className="stats-type-nav" style={{
-                width: "100%",
-                display: "flex",
-                gap: 6,
-                padding: 4,
-                background: cardBgElevated,
-                borderRadius: 12,
-                border: `1px solid ${inputBorder}`,
-              }}>
-                {[
-                  { key: "entrenos", label: "Entrenos", color: accent },
-                  { key: "partidos", label: "Partidos", color: colorPartido },
-                  { key: "todo", label: "Todo", color: textSecondary },
-                ].map(({ key, label, color: tabColor }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setStatsVista(key)}
-                    className={`stats-type-nav-btn${statsVista === key ? " stats-type-nav-btn--active" : ""}`}
-                    style={{
-                      flex: 1,
-                      border: statsVista === key ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(42, 101, 112, 0.35)" : inputBorder}` : "1px solid transparent",
-                      background: statsVista === key
-                        ? (key === "partidos" ? "rgba(139,92,246,0.18)" : key === "entrenos" ? accentSoft : "rgba(148,163,184,0.12)")
-                        : "transparent",
-                      color: statsVista === key ? (key === "todo" ? text : tabColor) : textMuted,
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="stats-sections" style={{ width: "100%", display: "flex", flexDirection: "column", gap: 20 }}>
-                {(statsVista === "entrenos" || statsVista === "todo") && (
-                  <EstadisticasTablaTipo
-                    tipo="entreno"
-                    totalSesiones={totalEntrenos}
-                    estadisticas={estadisticas}
-                    theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
-                    labels={equipoLabels}
-                  />
-                )}
-                {(statsVista === "partidos" || statsVista === "todo") && (
-                  <EstadisticasTablaTipo
-                    tipo="partido"
-                    totalSesiones={totalPartidos}
-                    estadisticas={estadisticas}
-                    theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
-                    labels={equipoLabels}
-                  />
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <EstadisticasTab
+          equipoActivo={equipoActivo}
+          text={text}
+          textSecondary={textSecondary}
+          textMuted={textMuted}
+          accent={accent}
+          accentLight={accentLight}
+          accentSoft={accentSoft}
+          colorPartido={colorPartido}
+          colorPartidoLight={colorPartidoLight}
+          inputBorder={inputBorder}
+          inputBg={inputBg}
+          cardBgElevated={cardBgElevated}
+          surface={surface}
+          error={error}
+          success={success}
+          tableHeader={tableHeader}
+          tableHeaderAccent={tableHeaderAccent}
+          statsPeriodo={statsPeriodo}
+          onStatsPeriodoChange={setStatsPeriodo}
+          statsDesde={statsDesde}
+          onStatsDesdeChange={setStatsDesde}
+          statsHasta={statsHasta}
+          onStatsHastaChange={setStatsHasta}
+          rango={rango}
+          totalEntrenos={totalEntrenos}
+          totalPartidos={totalPartidos}
+          jugadorasLoading={jugadorasLoading}
+          sesionesLoading={sesionesLoading}
+          jugadoras={jugadoras}
+          sesionesFiltradas={sesionesFiltradas}
+          statsVista={statsVista}
+          onStatsVistaChange={setStatsVista}
+          estadisticas={estadisticas}
+          equipoLabels={equipoLabels}
+          onGoToPlantilla={() => setTab("plantilla")}
+        />
       );
     } else if (tab === "plantilla") {
       tabContent = (
-        <div className="plantilla-tab" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%" }}>
-          <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginBottom: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            <IconUsers size={22} color={accent} />
-            {equipoLabels.plantillaTitulo}
-          </h2>
-          <PlantillaForm
-            handleAddJugadora={handleAddJugadora}
-            jugadoraNombre={jugadoraNombre}
-            setJugadoraNombre={setJugadoraNombre}
-            jugadoraDorsal={jugadoraDorsal}
-            setJugadoraDorsal={setJugadoraDorsal}
-            jugadoraApodo={jugadoraApodo}
-            setJugadoraApodo={setJugadoraApodo}
-            addJugadoraLoading={addJugadoraLoading}
-            accent={accent}
-            accentShadow={accentShadow}
-            inputBorder={inputBorder}
-            inputBg={inputBg}
-            surface={surface}
-            text={text}
-            labels={equipoLabels}
-          />
-          <div className="content-medium" style={{ width: "99%", margin: "0 auto", marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 11 }}>
-            {jugadorasLoading ? (
-              <div style={{ color: "#bbb", fontSize: 16, fontStyle: "italic", padding: "12px 0", fontWeight: 500 }}>{equipoLabels.cargandoJugadores}</div>
-            ) : jugadoras.length === 0 ? (
-              <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5 }}>{equipoLabels.noHayJugadoresPlantilla}</div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%", marginTop: 4 }}>
-                {jugadoras.map(j => (
-                  <PlantillaJugadoraRow
-                    key={j.id}
-                    jugadora={j}
-                    isEditing={jugadoraEditandoId === j.id}
-                    editNombre={editJugadoraNombre}
-                    setEditNombre={setEditJugadoraNombre}
-                    editDorsal={editJugadoraDorsal}
-                    setEditDorsal={setEditJugadoraDorsal}
-                    editApodo={editJugadoraApodo}
-                    setEditApodo={setEditJugadoraApodo}
-                    editLoading={editJugadoraLoading}
-                    onStartEdit={handleIniciarEditJugadora}
-                    onCancelEdit={handleCancelarEditJugadora}
-                    onSaveEdit={handleGuardarJugadora}
-                    onDelete={handleEliminarJugadora}
-                    accent={accent}
-                    accentShadow={accentShadow}
-                    inputBorder={inputBorder}
-                    inputBg={inputBg}
-                    surface={surface}
-                    text={text}
-                    textSecondary={textSecondary}
-                    error={error}
-                    labels={equipoLabels}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <PlantillaTab
+          equipoLabels={equipoLabels}
+          text={text}
+          accent={accent}
+          plantillaFormProps={{
+            handleAddJugadora: handleAddJugadora,
+            jugadoraNombre,
+            setJugadoraNombre,
+            jugadoraDorsal,
+            setJugadoraDorsal,
+            jugadoraApodo,
+            setJugadoraApodo,
+            addJugadoraLoading,
+            accent,
+            accentShadow,
+            inputBorder,
+            inputBg,
+            surface,
+            text,
+            labels: equipoLabels,
+          }}
+          jugadorasLoading={jugadorasLoading}
+          jugadoras={jugadoras}
+          plantillaRowProps={{
+            isEditingId: jugadoraEditandoId,
+            editNombre: editJugadoraNombre,
+            setEditNombre: setEditJugadoraNombre,
+            editDorsal: editJugadoraDorsal,
+            setEditDorsal: setEditJugadoraDorsal,
+            editApodo: editJugadoraApodo,
+            setEditApodo: setEditJugadoraApodo,
+            editLoading: editJugadoraLoading,
+            onStartEdit: handleIniciarEditJugadora,
+            onCancelEdit: handleCancelarEditJugadora,
+            onSaveEdit: handleGuardarJugadora,
+            onDelete: handleEliminarJugadora,
+            accent,
+            accentShadow,
+            inputBorder,
+            inputBg,
+            surface,
+            text,
+            textSecondary,
+            error,
+            labels: equipoLabels,
+          }}
+        />
       );
     }
   }
@@ -2376,147 +1623,35 @@ function App() {
       : equipos.filter((equipo) => equipo.clubId === userData?.clubId);
 
     return (
-    <div className="section-heading">
-      <span className="section-heading__accent">{titulo}</span>
-      {permitirCrear && userData?.clubId && (
-        <form
-          onSubmit={handleCrearEquipo}
-          className="content-medium form-shell"
-          style={{
-            margin: "35px auto 14px auto",
-            width: "96%",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            padding: "16px 18px",
-            background: cardBgElevated,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 14,
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Nombre del equipo"
-            value={nuevoEquipoNombre}
-            onChange={(e) => setNuevoEquipoNombre(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "12px 16px",
-              fontSize: 16,
-              border: `1px solid ${inputBorder}`,
-              borderRadius: 10,
-              background: inputBg,
-              color: text,
-              outline: "none",
-              fontWeight: 500,
-              fontFamily: "inherit",
-            }}
-            disabled={crearEquipoLoading}
-          />
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <label style={{ flex: "1 1 160px", display: "flex", flexDirection: "column", gap: 6, color: textSecondary, fontSize: 13, fontWeight: 600 }}>
-              Canasta
-              <select
-                value={nuevoEquipoTipoCanasta}
-                onChange={(e) => setNuevoEquipoTipoCanasta(e.target.value)}
-                disabled={crearEquipoLoading}
-                style={{
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: 10,
-                  background: inputBg,
-                  color: text,
-                  fontFamily: "inherit",
-                }}
-              >
-                <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
-                <option value={TIPO_CANASTA_MINI}>Minibasket</option>
-              </select>
-            </label>
-            <label style={{ flex: "1 1 160px", display: "flex", flexDirection: "column", gap: 6, color: textSecondary, fontSize: 13, fontWeight: 600 }}>
-              Categoría
-              <select
-                value={nuevoEquipoGenero}
-                onChange={(e) => setNuevoEquipoGenero(e.target.value)}
-                disabled={crearEquipoLoading}
-                style={{
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: 10,
-                  background: inputBg,
-                  color: text,
-                  fontFamily: "inherit",
-                }}
-              >
-                <option value={GENERO_FEMENINO}>Femenino</option>
-                <option value={GENERO_MASCULINO}>Masculino</option>
-              </select>
-            </label>
-          </div>
-          <button
-            type="submit"
-            style={{
-              background: accent,
-              color: onAccent,
-              border: "none",
-              borderRadius: 10,
-              padding: "12px 18px",
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: crearEquipoLoading ? "wait" : "pointer",
-              fontFamily: "inherit",
-              opacity: crearEquipoLoading ? 0.7 : 1,
-            }}
-            disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()}
-          >
-            {crearEquipoLoading ? "Creando…" : "Crear equipo"}
-          </button>
-        </form>
-      )}
-      <div className="content-medium responsive-grid-list" style={{ width: "98%", margin: "17px auto 0" }}>
-        {equiposLoading ? (
-          <div className="empty-state-text" style={{ fontSize: 17, padding: "12px 0", gridColumn: "1 / -1" }}>Cargando equipos...</div>
-        ) : equiposVisibles.length === 0 ? (
-          <div className="empty-state-text" style={{ fontSize: 16.5, gridColumn: "1 / -1" }}>
-            {permitirCrear ? "No hay equipos aún. ¡Crea el primero!" : "No hay equipos registrados."}
-          </div>
-        ) : (
-          equiposVisibles.map(equipo => (
-            <EquipoListRow
-              key={equipo.id}
-              equipo={equipo}
-              clubNombre={getClubNombre(equipo.clubId)}
-              mostrarClub={mostrarClub}
-              canEdit={equipoEditProps.canEditEquipo(equipo)}
-              isEditing={equipoEditProps.equipoEditandoId === equipo.id}
-              editNombre={equipoEditProps.editEquipoNombre}
-              setEditNombre={equipoEditProps.setEditEquipoNombre}
-              editGenero={equipoEditProps.editEquipoGenero}
-              setEditGenero={equipoEditProps.setEditEquipoGenero}
-              editTipoCanasta={equipoEditProps.editEquipoTipoCanasta}
-              setEditTipoCanasta={equipoEditProps.setEditEquipoTipoCanasta}
-              saving={equipoEditProps.savingEquipoId === equipo.id}
-              onStartEdit={equipoEditProps.onStartEditEquipo}
-              onCancelEdit={equipoEditProps.onCancelEditEquipo}
-              onSave={equipoEditProps.onSaveEquipo}
-              onEntrar={handleEntrarEquipo}
-              accent={accent}
-              accentLight={accentLight}
-              text={text}
-              textSecondary={textSecondary}
-              textMuted={textMuted}
-              inputBorder={inputBorder}
-              inputBg={inputBg}
-              cardBgElevated={cardBgElevated}
-              borderAccent={equipo.clubId === userData?.clubId ? accent : textMuted}
-            />
-          ))
-        )}
-      </div>
-    </div>
+      <EquiposListaSection
+        titulo={titulo}
+        mostrarClub={mostrarClub}
+        permitirCrear={permitirCrear}
+        userClubId={userData?.clubId}
+        equiposVisibles={equiposVisibles}
+        equiposLoading={equiposLoading}
+        permitirCrearForm={!!userData?.clubId}
+        nuevoEquipoNombre={nuevoEquipoNombre}
+        onNuevoEquipoNombreChange={setNuevoEquipoNombre}
+        nuevoEquipoTipoCanasta={nuevoEquipoTipoCanasta}
+        onNuevoEquipoTipoCanastaChange={setNuevoEquipoTipoCanasta}
+        nuevoEquipoGenero={nuevoEquipoGenero}
+        onNuevoEquipoGeneroChange={setNuevoEquipoGenero}
+        crearEquipoLoading={crearEquipoLoading}
+        onCrearEquipo={handleCrearEquipo}
+        equipoEditProps={equipoEditProps}
+        onEntrarEquipo={handleEntrarEquipo}
+        getClubNombre={getClubNombre}
+        accent={accent}
+        accentLight={accentLight}
+        onAccent={onAccent}
+        text={text}
+        textSecondary={textSecondary}
+        textMuted={textMuted}
+        inputBorder={inputBorder}
+        inputBg={inputBg}
+        cardBgElevated={cardBgElevated}
+      />
     );
   };
 
