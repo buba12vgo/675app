@@ -18,7 +18,11 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
   return (
     <nav
       className={isDesktop ? "app-nav-desktop" : "app-nav-mobile"}
-      style={isDesktop ? { background: "transparent" } : undefined}
+      style={
+        isDesktop
+          ? { background: "transparent" }
+          : { "--nav-tabs": tabsMenu.length }
+      }
     >
       {tabsMenu.map(({ key, label, Icon }) => {
         const active = tab === key;

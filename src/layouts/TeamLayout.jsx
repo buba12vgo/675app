@@ -50,8 +50,8 @@ export function TeamLayout({
           )}
         </div>
         <div className="app-mobile-nav-spacer" aria-hidden="true" />
-        <TabNav {...tabNavProps} variant="mobile" />
       </div>
+      <TabNav {...tabNavProps} variant="mobile" />
     </div>
   );
 }
