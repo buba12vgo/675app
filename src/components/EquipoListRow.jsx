@@ -1,0 +1,151 @@
+import {
+  formatTipoCanasta,
+  formatGeneroEquipo,
+  GENERO_FEMENINO,
+  GENERO_MASCULINO,
+  TIPO_CANASTA_GRANDE,
+  TIPO_CANASTA_MINI,
+} from "../lib/appUtils.js";
+import { IconGear } from "./icons.jsx";
+
+export function EquipoListRow({
+  equipo,
+  clubNombre,
+  mostrarClub,
+  canEdit,
+  isEditing,
+  editNombre,
+  setEditNombre,
+  editGenero,
+  setEditGenero,
+  editTipoCanasta,
+  setEditTipoCanasta,
+  saving,
+  onStartEdit,
+  onCancelEdit,
+  onSave,
+  onEntrar,
+  accent,
+  accentLight,
+  text,
+  textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
+  cardBgElevated,
+  borderAccent,
+}) {
+  const selectStyle = {
+    padding: "8px 10px",
+    fontSize: 13,
+    borderRadius: 8,
+    border: `1px solid ${inputBorder}`,
+    background: inputBg,
+    color: text,
+    fontFamily: "inherit",
+    width: "100%",
+  };
+
+  if (isEditing) {
+    return (
+      <div className="entity-list-card entity-list-card--editing" style={{ borderLeftColor: borderAccent || accent, flexDirection: "column", alignItems: "stretch", gap: 12 }}>
+        <input
+          type="text"
+          value={editNombre}
+          onChange={(e) => setEditNombre(e.target.value)}
+          placeholder="Nombre del equipo"
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            fontSize: 15,
+            border: `1px solid ${inputBorder}`,
+            borderRadius: 10,
+            background: inputBg,
+            color: text,
+            fontFamily: "inherit",
+            fontWeight: 600,
+          }}
+          disabled={saving}
+        />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <label style={{ flex: "1 1 140px", display: "flex", flexDirection: "column", gap: 5, color: textSecondary, fontSize: 12, fontWeight: 600 }}>
+            Canasta
+            <select value={editTipoCanasta} onChange={(e) => setEditTipoCanasta(e.target.value)} style={selectStyle} disabled={saving}>
+              <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
+              <option value={TIPO_CANASTA_MINI}>Minibasket</option>
+            </select>
+          </label>
+          <label style={{ flex: "1 1 140px", display: "flex", flexDirection: "column", gap: 5, color: textSecondary, fontSize: 12, fontWeight: 600 }}>
+            Categoría
+            <select value={editGenero} onChange={(e) => setEditGenero(e.target.value)} style={selectStyle} disabled={saving}>
+              <option value={GENERO_FEMENINO}>Femenino</option>
+              <option value={GENERO_MASCULINO}>Masculino</option>
+            </select>
+          </label>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="entity-list-card__action"
+            onClick={() => onSave(equipo.id)}
+            disabled={saving || !editNombre.trim()}
+            style={{ flex: "1 1 100px", opacity: saving ? 0.7 : 1 }}
+          >
+            {saving ? "Guardando…" : "Guardar"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            disabled={saving}
+            style={{
+              flex: "1 1 100px",
+              background: "transparent",
+              color: textMuted,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: 10,
+              padding: "10px 14px",
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: saving ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="entity-list-card" style={{ borderLeftColor: borderAccent || accent }}>
+      <div className="entity-list-card__body">
+        <div className="entity-list-card__title-row">
+          <span className="entity-list-card__dot">●</span>
+          <span className="entity-list-card__title">{equipo.nombre}</span>
+        </div>
+        {mostrarClub && clubNombre && (
+          <span className="entity-list-card__meta">{clubNombre}</span>
+        )}
+        <span className="entity-list-card__meta">
+          {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
+        </span>
+      </div>
+      <div className="entity-list-card__actions">
+        {canEdit && (
+          <button
+            type="button"
+            className="entity-list-card__icon-btn"
+            onClick={() => onStartEdit(equipo)}
+            aria-label={`Editar ${equipo.nombre}`}
+            title="Editar equipo"
+            style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+          >
+            <IconGear size={17} />
+          </button>
+        )}
+        <button type="button" className="entity-list-card__action" onClick={() => onEntrar(equipo)}>Entrar</button>
+      </div>
+    </div>
+  );
+}
