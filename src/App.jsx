@@ -2,17 +2,12 @@ import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import {
   doc,
-  getDoc,
-  getDocs,
-  setDoc,
   collection,
-  addDoc,
   onSnapshot,
   updateDoc,
   writeBatch,
   query,
   where,
-  deleteDoc
 } from "firebase/firestore";
 import {
   THEMES,
@@ -24,20 +19,13 @@ import {
 } from "./theme.js";
 import {
   formatRolLabel,
-  getClubInitials,
   formatDateYYYYMMDD,
   normalizarTipoSesion,
-  formatearFechaCorta,
-  etiquetaDiaRelativo,
   getProximosEventosInicio,
-  sugerirFechaLibre,
-  getMetricasEvento,
   getRangoFechasEstadisticas,
   filtrarSesionesPorPeriodo,
   calcularEstadisticasJugadoras,
   isCoordinador,
-  isClubStaff,
-  getEquipoLabels,
   formatTipoCanasta,
   formatGeneroEquipo,
 } from "./lib/appUtils.js";
@@ -46,6 +34,8 @@ import { useCompactHeader } from "./hooks/useCompactHeader.js";
 import { useAuth } from "./hooks/useAuth.js";
 import { useClubes } from "./hooks/useClubes.js";
 import { useEquipos } from "./hooks/useEquipos.js";
+import { usePlantilla } from "./hooks/usePlantilla.js";
+import { useSesiones } from "./hooks/useSesiones.js";
 import {
   IconHome,
   IconCalendar,
@@ -64,7 +54,6 @@ import { EstadisticasTab } from "./components/EstadisticasTab.jsx";
 import { PlantillaTab } from "./components/PlantillaTab.jsx";
 import { SuperadminPanel } from "./components/SuperadminPanel.jsx";
 import { TeamLayout } from "./layouts/TeamLayout.jsx";
-import { resetCamposSesion } from "./lib/sessionUtils.js";
 
 
 const THEME = THEMES.dark;
@@ -162,6 +151,66 @@ function App() {
   const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
   const [coordinadorVista, setCoordinadorVista] = useState("equipos"); // "equipos" | "coordinacion"
   const [tab, setTab] = useState("home");
+
+  const {
+    jugadoras,
+    jugadorasLoading,
+    jugadoraNombre,
+    setJugadoraNombre,
+    jugadoraDorsal,
+    setJugadoraDorsal,
+    jugadoraApodo,
+    setJugadoraApodo,
+    addJugadoraLoading,
+    jugadoraEditandoId,
+    editJugadoraNombre,
+    setEditJugadoraNombre,
+    editJugadoraDorsal,
+    setEditJugadoraDorsal,
+    editJugadoraApodo,
+    setEditJugadoraApodo,
+    editJugadoraLoading,
+    handleAddJugadora,
+    handleEliminarJugadora,
+    handleIniciarEditJugadora,
+    handleCancelarEditJugadora,
+    handleGuardarJugadora,
+  } = usePlantilla({ equipoActivo, userData, setErrorMsg });
+
+  const {
+    sesionCargando,
+    sesionDoc,
+    tematica,
+    setTematica,
+    ejercicios,
+    setEjercicios,
+    asistencias,
+    setAsistencias,
+    valoraciones,
+    setValoraciones,
+    guardandoSesion,
+    tipoSesion,
+    setTipoSesion,
+    rivalPartido,
+    setRivalPartido,
+    localPartido,
+    setLocalPartido,
+    sesionVista,
+    setSesionVista,
+    sesionesEquipo,
+    sesionesLoading,
+    mesActual,
+    setMesActual,
+    anioActual,
+    setAnioActual,
+    fechaSesionSeleccionada,
+    setFechaSesionSeleccionada,
+    handleCrearSesion,
+    handleGuardarSesion,
+    programarDesdeInicio,
+    resetSesionPanel,
+  } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
+
   const [devicePreview, setDevicePreview] = useState("mobile");
   const [colorMode, setColorMode] = useState(() => getStoredTheme());
 
@@ -194,39 +243,6 @@ function App() {
   const glassCardStyle = getGlassCardStyle(colorMode);
   const isDarkMode = colorMode === "dark";
 
-  // Estado de jugadoras
-  const [jugadoras, setJugadoras] = useState([]);
-  const [jugadorasLoading, setJugadorasLoading] = useState(false);
-
-  // Formulario plantilla
-  const [jugadoraNombre, setJugadoraNombre] = useState("");
-  const [jugadoraDorsal, setJugadoraDorsal] = useState("");
-  const [jugadoraApodo, setJugadoraApodo] = useState("");
-  const [addJugadoraLoading, setAddJugadoraLoading] = useState(false);
-  const [jugadoraEditandoId, setJugadoraEditandoId] = useState(null);
-  const [editJugadoraNombre, setEditJugadoraNombre] = useState("");
-  const [editJugadoraDorsal, setEditJugadoraDorsal] = useState("");
-  const [editJugadoraApodo, setEditJugadoraApodo] = useState("");
-  const [editJugadoraLoading, setEditJugadoraLoading] = useState(false);
-
-  // Sesiones state
-  const [fechaSesion, setFechaSesion] = useState(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  });
-  const [sesionCargando, setSesionCargando] = useState(false);
-  const [sesionDoc, setSesionDoc] = useState(null);
-  const [sesionId, setSesionId] = useState(null);
-  const [tematica, setTematica] = useState("");
-  const [ejercicios, setEjercicios] = useState("");
-  const [asistencias, setAsistencias] = useState({});
-  const [valoraciones, setValoraciones] = useState({});
-  const [guardandoSesion, setGuardandoSesion] = useState(false);
-  const [tipoSesion, setTipoSesion] = useState("entreno");
-  const [rivalPartido, setRivalPartido] = useState("");
-  const [localPartido, setLocalPartido] = useState("casa");
-  const [sesionVista, setSesionVista] = useState("datos"); // "datos" | "asistencia" (móvil)
-
   // Estadísticas — filtros de periodo
   const [statsPeriodo, setStatsPeriodo] = useState("mensual");
   const [statsVista, setStatsVista] = useState("todo"); // "entrenos" | "partidos" | "todo"
@@ -235,18 +251,6 @@ function App() {
     return formatDateYYYYMMDD(new Date(d.getFullYear(), d.getMonth(), 1));
   });
   const [statsHasta, setStatsHasta] = useState(() => formatDateYYYYMMDD(new Date()));
-
-  // Calendario sesiones (nuevo estados)
-  const [sesionesEquipo, setSesionesEquipo] = useState([]); // [{fecha, ...}]
-  const [sesionesLoading, setSesionesLoading] = useState(false);
-  const [mesActual, setMesActual] = useState(() => {
-    const d = new Date();
-    return d.getMonth();
-  });
-  const [anioActual, setAnioActual] = useState(() => {
-    return new Date().getFullYear();
-  });
-  const [fechaSesionSeleccionada, setFechaSesionSeleccionada] = useState(null); // Si está en panel de sesión, guarda la fecha string "YYYY-MM-DD"
 
   // Colores
   const bgDark = theme.bg;
@@ -274,11 +278,6 @@ function App() {
   const colorPartidoSoft = theme.colorPartidoSoft;
   const colorPartidoBorder = theme.colorPartidoBorder;
   const onAccent = theme.onAccent;
-  const sesionSetters = {
-    setTematica, setEjercicios, setAsistencias, setValoraciones,
-    setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
-  };
-
   const jugadorasSesion = jugadoras;
 
   const tabsMenu = [
@@ -293,19 +292,6 @@ function App() {
     setTab("home");
     setShowOpcionesPanel(false);
   }, [userData?.clubId, userData?.rol, setShowOpcionesPanel]);
-
-  useEffect(() => {
-    setJugadoras([]);
-    setJugadoraNombre("");
-    setJugadoraDorsal("");
-    setJugadoraApodo("");
-    setAddJugadoraLoading(false);
-    setJugadoraEditandoId(null);
-    setEditJugadoraNombre("");
-    setEditJugadoraDorsal("");
-    setEditJugadoraApodo("");
-    setEditJugadoraLoading(false);
-  }, [equipoActivo]);
 
   useEffect(() => {
     if (userData?.rol !== "superadmin" || superadminVista !== "usuarios") {
@@ -366,176 +352,6 @@ function App() {
     return () => unsub();
   }, [userData?.rol, userData?.clubId]);
 
-  // Escucha en vivo las jugadoras del equipoActivo (SIN ORDERBY PARA EVITAR ERROR DE ÍNDICES)
-  useEffect(() => {
-    let unsub;
-    if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
-      setJugadorasLoading(true);
-      const jugadorasCol = collection(db, "Jugadoras");
-      const q = query(jugadorasCol, where("equipoId", "==", equipoActivo.id));
-      
-      unsub = onSnapshot(
-        q,
-        (snapshot) => {
-          const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          docs.sort((a, b) => a.dorsal - b.dorsal);
-          setJugadoras(docs);
-          setJugadorasLoading(false);
-        },
-        (err) => {
-          setJugadoras([]);
-          setJugadorasLoading(false);
-          if (err?.code === "permission-denied") {
-            setErrorMsg("No tienes permiso para ver la plantilla de este equipo.");
-          } else if (err?.message) {
-            setErrorMsg(`Error cargando plantilla: ${err.message}`);
-          }
-        }
-      );
-    } else {
-      setJugadoras([]);
-    }
-    return () => {
-      if (typeof unsub === "function") unsub();
-    };
-  }, [equipoActivo, userData?.clubId, userData?.rol]);
-
-  // --- CALENDARIO SESIONES equipoActivo (en vivo) ---
-  useEffect(() => {
-    let unsub;
-    if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
-      setSesionesLoading(true);
-      const sesionesCol = collection(db, "Sesiones");
-      const q = query(sesionesCol, where("equipoId", "==", equipoActivo.id));
-      unsub = onSnapshot(
-        q,
-        (snapshot) => {
-          setSesionesEquipo(
-            snapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              fecha: doc.data().fecha, // string "YYYY-MM-DD"
-            }))
-          );
-          setSesionesLoading(false);
-        },
-        (err) => {
-          setSesionesEquipo([]);
-          setSesionesLoading(false);
-          if (err?.code === "permission-denied") {
-            setErrorMsg("No tienes permiso para ver el calendario de este equipo.");
-          }
-        }
-      );
-    } else {
-      setSesionesEquipo([]);
-      setSesionesLoading(false);
-    }
-    return () => { if (typeof unsub === "function") unsub(); };
-  }, [equipoActivo, userData?.clubId, userData?.rol]);
-  // END calendario snapshot
-
-  // Estado y consulta de Sesion para la pestaña 'sesiones' (ahora sólo usada en Panel Sesión, por fecha seleccionada)
-  useEffect(() => {
-    if (equipoActivo && fechaSesionSeleccionada && tab === "sesiones") {
-      setSesionCargando(true);
-      setSesionDoc(null);
-      setSesionId(null);
-      setTematica("");
-      setEjercicios("");
-      resetCamposSesion(sesionSetters);
-      // Buscar sesión por equipoId y fecha seleccionada
-      const fetchSesion = async () => {
-        try {
-          const sesionesCol = collection(db, "Sesiones");
-          const qSesion = query(
-            sesionesCol,
-            where("equipoId", "==", equipoActivo.id),
-            where("fecha", "==", fechaSesionSeleccionada)
-          );
-          const snap = await getDocs(qSesion);
-          if (!snap.empty) {
-            const docSesion = snap.docs[0];
-            setSesionDoc(docSesion.data());
-            setSesionId(docSesion.id);
-            setTematica(docSesion.data().tematica || "");
-            setEjercicios(docSesion.data().ejercicios || "");
-            setAsistencias(docSesion.data().asistencias || {});
-            setValoraciones(docSesion.data().valoraciones || {});
-            setTipoSesion(normalizarTipoSesion(docSesion.data()));
-            setRivalPartido(docSesion.data().rival || "");
-            setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
-          } else {
-            setSesionDoc(null);
-            setSesionId(null);
-            resetCamposSesion(sesionSetters);
-          }
-        } catch (e) {
-          setSesionDoc(null);
-          setSesionId(null);
-          resetCamposSesion(sesionSetters);
-        }
-        setSesionCargando(false);
-      };
-      fetchSesion();
-    } else {
-      setSesionDoc(null);
-      setSesionId(null);
-      resetCamposSesion(sesionSetters);
-      setSesionCargando(false);
-    }
-  }, [equipoActivo, fechaSesionSeleccionada, tab]);
-
-  // Refiltra asistencias y valoraciones cuando cambia la lista de la sesión
-  useEffect(() => {
-    if (!sesionDoc) return;
-    const lista = jugadoras;
-    if (!lista.length) return;
-
-    setAsistencias(prevAsist => {
-      const nuevo = {};
-      lista.forEach(j => {
-        nuevo[j.id] = typeof prevAsist[j.id] !== "undefined" ? prevAsist[j.id] : false;
-      });
-      return nuevo;
-    });
-    setValoraciones(prevVal => {
-      const nuevo = {};
-      lista.forEach(j => {
-        const val = prevVal[j.id];
-        if (typeof val === "number" && val >= 1 && val <= 5) {
-          nuevo[j.id] = val;
-        }
-      });
-      return nuevo;
-    });
-  }, [jugadoras, sesionDoc]);
-
-  // Actualiza asistencias cuando cambia listado y NO hay sesión ya creada
-  useEffect(() => {
-    if (!sesionDoc && jugadorasSesion.length && fechaSesionSeleccionada && tab === "sesiones") {
-      setAsistencias(() => {
-        const nuevo = {};
-        jugadorasSesion.forEach(j => {
-          nuevo[j.id] = true;
-        });
-        return nuevo;
-      });
-      setValoraciones(() => {
-        const nuevo = {};
-        jugadorasSesion.forEach(j => {
-          nuevo[j.id] = 3;
-        });
-        return nuevo;
-      });
-    }
-  }, [jugadorasSesion, sesionDoc, tab, fechaSesionSeleccionada]);
-
-  useEffect(() => {
-    setSesionVista("datos");
-  }, [fechaSesionSeleccionada]);
-
-  // Funciones de acción
   const handleGuardarUsuarioClub = async (usuario, clubIdFromForm, rolSeleccionado) => {
     if (!usuario?.id) {
       setErrorMsg("Usuario no válido.");
@@ -732,177 +548,10 @@ function App() {
     cardBgElevated,
   };
 
-  const handleAddJugadora = async (e) => {
-    e.preventDefault();
-    const clubIdEquipo = equipoActivo?.clubId || userData?.clubId;
-    if (!equipoActivo || !clubIdEquipo) return;
-    if (!jugadoraNombre.trim() || !jugadoraDorsal.trim()) return;
-    setAddJugadoraLoading(true);
-    setErrorMsg("");
-    try {
-      await addDoc(collection(db, "Jugadoras"), {
-        nombre: jugadoraNombre.trim(),
-        dorsal: Number(jugadoraDorsal),
-        apodo: jugadoraApodo.trim(),
-        equipoId: equipoActivo.id,
-        clubId: clubIdEquipo,
-        creadoEn: new Date()
-      });
-      setJugadoraNombre("");
-      setJugadoraDorsal("");
-      setJugadoraApodo("");
-    } catch (err) {
-      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorAnadirJugador);
-    }
-    setAddJugadoraLoading(false);
-  };
-
-  const handleEliminarJugadora = async (jugadora) => {
-    const confirmar = window.confirm(`¿Eliminar a ${jugadora.nombre} de la plantilla?`);
-    if (!confirmar) return;
-    setErrorMsg("");
-    if (jugadoraEditandoId === jugadora.id) {
-      setJugadoraEditandoId(null);
-    }
-    try {
-      await deleteDoc(doc(db, "Jugadoras", jugadora.id));
-    } catch (err) {
-      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorEliminarJugador);
-    }
-  };
-
-  const handleIniciarEditJugadora = (jugadora) => {
-    setJugadoraEditandoId(jugadora.id);
-    setEditJugadoraNombre(jugadora.nombre || "");
-    setEditJugadoraDorsal(String(jugadora.dorsal ?? ""));
-    setEditJugadoraApodo(jugadora.apodo || "");
-    setErrorMsg("");
-  };
-
-  const handleCancelarEditJugadora = () => {
-    setJugadoraEditandoId(null);
-    setEditJugadoraNombre("");
-    setEditJugadoraDorsal("");
-    setEditJugadoraApodo("");
-  };
-
-  const handleGuardarJugadora = async (jugadoraId) => {
-    if (!editJugadoraNombre.trim() || !editJugadoraDorsal.trim()) return;
-    setEditJugadoraLoading(true);
-    setErrorMsg("");
-    try {
-      await updateDoc(doc(db, "Jugadoras", jugadoraId), {
-        nombre: editJugadoraNombre.trim(),
-        dorsal: Number(editJugadoraDorsal),
-        apodo: editJugadoraApodo.trim(),
-      });
-      handleCancelarEditJugadora();
-    } catch (err) {
-      setErrorMsg("No se pudo guardar los cambios.");
-    }
-    setEditJugadoraLoading(false);
-  };
-
   const handleLogout = async () => {
     await logout();
     setEquipoActivo(null);
     setTab("home");
-  };
-
-  // Crear sesión si no existe (usada en panel sesión)
-  const handleCrearSesion = async (tipo = "entreno", fechaOverride = null) => {
-    const fecha = fechaOverride || fechaSesionSeleccionada;
-    if (!equipoActivo || !fecha) return;
-    setGuardandoSesion(true);
-    setErrorMsg("");
-    try {
-      let asist = {};
-      const vals = {};
-      jugadoras.forEach(j => {
-        asist[j.id] = true;
-        vals[j.id] = 3;
-      });
-      const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fecha}`);
-      await setDoc(sesionDocRef, {
-        equipoId: equipoActivo.id,
-        fecha,
-        tipo,
-        tematica: "",
-        ejercicios: "",
-        rival: "",
-        local: "casa",
-        asistencias: asist,
-        valoraciones: vals,
-        jugadorasExternas: [],
-        creadoEn: new Date(),
-      });
-      const snap = await getDoc(sesionDocRef);
-      if (snap.exists()) {
-        setSesionDoc(snap.data());
-        setSesionId(snap.id);
-        setAsistencias(asist);
-        setValoraciones(vals);
-        setTipoSesion(tipo);
-        setRivalPartido("");
-        setLocalPartido("casa");
-        setTematica("");
-        setEjercicios("");
-      }
-    } catch (err) {
-      setErrorMsg("Error creando la sesión.");
-    }
-    setGuardandoSesion(false);
-  };
-
-  const programarDesdeInicio = async (tipo) => {
-    if (!equipoActivo || guardandoSesion) return;
-    const fecha = sugerirFechaLibre(sesionesEquipo);
-    const [y, m] = fecha.split("-").map(Number);
-    setAnioActual(y);
-    setMesActual(m - 1);
-    setFechaSesionSeleccionada(fecha);
-    setTab("sesiones");
-    await handleCrearSesion(tipo, fecha);
-  };
-
-  // Guardar sesión actual
-  const handleGuardarSesion = async () => {
-    if (!equipoActivo || !fechaSesionSeleccionada) return;
-    setGuardandoSesion(true);
-    setErrorMsg("");
-    try {
-      const valoracionesFiltradas = {};
-      jugadorasSesion.forEach(j => {
-        if (asistencias[j.id] && typeof valoraciones[j.id] === "number") {
-          valoracionesFiltradas[j.id] = valoraciones[j.id];
-        }
-      });
-      const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fechaSesionSeleccionada}`);
-      const payload = {
-        equipoId: equipoActivo.id,
-        fecha: fechaSesionSeleccionada,
-        tipo: tipoSesion,
-        asistencias,
-        valoraciones: valoracionesFiltradas,
-        jugadorasExternas: [],
-        actualizadoEn: new Date(),
-      };
-      if (tipoSesion === "partido") {
-        payload.rival = rivalPartido.trim();
-        payload.local = localPartido;
-        payload.tematica = "";
-        payload.ejercicios = "";
-      } else {
-        payload.tematica = tematica;
-        payload.ejercicios = ejercicios;
-        payload.rival = "";
-        payload.local = "casa";
-      }
-      await setDoc(sesionDocRef, payload, { merge: true });
-    } catch (err) {
-      setErrorMsg("Error guardando la sesión.");
-    }
-    setGuardandoSesion(false);
   };
 
   // --- UI login ---
@@ -994,13 +643,7 @@ function App() {
         }
       };
       const handleVolverCalendario = () => {
-        setFechaSesionSeleccionada(null);
-        setSesionDoc(null);
-        setSesionId(null);
-        resetCamposSesion(sesionSetters);
-        setSesionCargando(false);
-        setGuardandoSesion(false);
-        setErrorMsg("");
+        resetSesionPanel();
       };
 
       tabContent = (
