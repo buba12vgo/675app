@@ -60,23 +60,17 @@ import {
   IconCalendar,
   IconChart,
   IconUsers,
-  IconChevronLeft,
 } from "./components/icons.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
-import { AppBrand } from "./components/AppBrand.jsx";
 import { BlurredBackground } from "./components/BlurredBackground.jsx";
-import { ThemeToggleButton } from "./components/ThemeToggleButton.jsx";
-import { UserOptionsPanel } from "./components/UserOptionsPanel.jsx";
-import { SuperadminUsuariosPanel } from "./components/SuperadminUsuariosPanel.jsx";
-import { CoordinacionPanel } from "./components/CoordinacionPanel.jsx";
-import { DemoSeedCard } from "./components/DemoSeedCard.jsx";
-
+import { AppErrorBanner } from "./components/AppErrorBanner.jsx";
+import { UserOptionsOverlay } from "./views/UserOptionsOverlay.jsx";
+import { ClubMemberContent } from "./views/ClubMemberContent.jsx";
 import { LoginScreen } from "./components/LoginScreen.jsx";
 import { HomeTab } from "./components/HomeTab.jsx";
 import { CalendarioTab } from "./components/CalendarioTab.jsx";
 import { EstadisticasTab } from "./components/EstadisticasTab.jsx";
 import { PlantillaTab } from "./components/PlantillaTab.jsx";
-import { EquiposListaContainer } from "./components/EquiposListaContainer.jsx";
 import { SuperadminPanel } from "./components/SuperadminPanel.jsx";
 import { TeamLayout } from "./layouts/TeamLayout.jsx";
 import { resetCamposSesion } from "./lib/sessionUtils.js";
@@ -1696,6 +1690,60 @@ function App() {
     equiposListaProps,
   };
 
+  const teamLayoutProps = equipoActivo
+    ? {
+        clubNombre: getNombreClubActivo(),
+        equipoNombre: equipoActivo.nombre,
+        equipoMeta: `${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`,
+        onCambiarEquipo: () => setEquipoActivo(null),
+        accentLight,
+        accentSoft,
+        accentBorder,
+        text,
+        textSecondary,
+        textMuted,
+        tabsMenu,
+        tab,
+        setTab,
+        accent,
+        inputBorder,
+        tabContent,
+      }
+    : null;
+
+  const solicitarClubProps = {
+    accent,
+    accentLight,
+    accentSoft,
+    accentBorder,
+    text,
+    solicitudClubId: userData?.solicitudClubId,
+    solicitudClubNombre: userData?.solicitudClubNombre,
+    selectClubLoading,
+    clubes,
+    onSolicitarClub: handleSolicitarClub,
+  };
+
+  const coordinadorDashboardProps = {
+    coordinadorVista,
+    onCoordinadorVistaChange: setCoordinadorVista,
+    accentSoft,
+    accentLight,
+    textMuted,
+    inputBorder,
+    cardBgElevated,
+    text,
+    clubNombre: userData?.clubNombre,
+    coordinacionProps,
+    equiposListaProps,
+  };
+
+  const entrenadorEquiposProps = {
+    equiposListaProps,
+    clubNombre: userData?.clubNombre,
+    text,
+  };
+
   const headerBarStyle = {
     ...glassCardStyle,
     borderRadius: compactHeader ? 12 : 16,
@@ -1738,38 +1786,16 @@ function App() {
       <main className="app-main">
         <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav ? "stretch" : "center", width: "100%" }}>
           {showOpcionesPanel ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowOpcionesPanel(false)}
-                className="user-options-back"
-                style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
-              >
-                <IconChevronLeft size={16} color={textMuted} />
-                <span>Volver</span>
-              </button>
-              <UserOptionsPanel {...userOptionsProps} />
-            </>
+            <UserOptionsOverlay
+              onBack={() => setShowOpcionesPanel(false)}
+              textMuted={textMuted}
+              inputBorder={inputBorder}
+              cardBgElevated={cardBgElevated}
+              userOptionsProps={userOptionsProps}
+            />
           ) : esSuperadmin ? (
             equipoActivo ? (
-              <TeamLayout
-                clubNombre={getNombreClubActivo()}
-                equipoNombre={equipoActivo.nombre}
-                equipoMeta={`${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`}
-                onCambiarEquipo={() => setEquipoActivo(null)}
-                accentLight={accentLight}
-                accentSoft={accentSoft}
-                accentBorder={accentBorder}
-                text={text}
-                textSecondary={textSecondary}
-                textMuted={textMuted}
-                tabsMenu={tabsMenu}
-                tab={tab}
-                setTab={setTab}
-                accent={accent}
-                inputBorder={inputBorder}
-                tabContent={tabContent}
-              />
+              <TeamLayout {...teamLayoutProps} />
             ) : (
               <SuperadminPanel
                 superadminVista={superadminVista}
@@ -1787,130 +1813,17 @@ function App() {
               />
             )
           ) : (
-            <>
-              {userData?.clubId ? (
-                equipoActivo ? (
-                  <TeamLayout
-                clubNombre={getNombreClubActivo()}
-                equipoNombre={equipoActivo.nombre}
-                equipoMeta={`${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`}
-                onCambiarEquipo={() => setEquipoActivo(null)}
-                accentLight={accentLight}
-                accentSoft={accentSoft}
-                accentBorder={accentBorder}
-                text={text}
-                textSecondary={textSecondary}
-                textMuted={textMuted}
-                tabsMenu={tabsMenu}
-                tab={tab}
-                setTab={setTab}
-                accent={accent}
-                inputBorder={inputBorder}
-                tabContent={tabContent}
-              />
-                ) : esCoordinador ? (
-                  <>
-                    <div style={{ display: "flex", gap: 8, marginBottom: 24, padding: 4, background: cardBgElevated, borderRadius: 12, border: `1px solid ${inputBorder}`, width: "100%", maxWidth: 420 }}>
-                      {[
-                        { key: "equipos", label: "Equipos" },
-                        { key: "coordinacion", label: "Coordinación" },
-                      ].map(({ key, label }) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => setCoordinadorVista(key)}
-                          style={{
-                            flex: 1,
-                            padding: "10px 14px",
-                            borderRadius: 9,
-                            border: coordinadorVista === key ? `1px solid rgba(42, 101, 112, 0.35)` : "1px solid transparent",
-                            background: coordinadorVista === key ? accentSoft : "transparent",
-                            color: coordinadorVista === key ? accentLight : textMuted,
-                            fontWeight: 600,
-                            fontSize: 14,
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    {coordinadorVista === "coordinacion" ? (
-                      <CoordinacionPanel {...coordinacionProps} />
-                    ) : (
-                      <EquiposListaContainer
-                        {...equiposListaProps}
-                        titulo={<>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>}
-                        mostrarClub={false}
-                        permitirCrear={true}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <EquiposListaContainer
-                      {...equiposListaProps}
-                      titulo={<>Equipos del Club: <span style={{ color: text }}>{userData.clubNombre}</span></>}
-                      mostrarClub={false}
-                      permitirCrear={true}
-                    />
-                  </>
-                )
-              ) : (
-                <div className="section-heading" style={{ marginTop: 65, fontSize: 23, fontWeight: 800 }}>
-                  <div>Paso 1:<br /><span style={{ color: accent }}>Solicita unirte a tu Club</span></div>
-                  {userData?.solicitudClubId && !userData?.clubId && (
-                    <div
-                      style={{
-                        marginTop: 20,
-                        width: "98%",
-                        padding: "14px 16px",
-                        borderRadius: 12,
-                        background: accentSoft,
-                        border: `1px solid ${accentBorder}`,
-                        color: text,
-                        fontSize: 14,
-                        lineHeight: 1.5,
-                        fontWeight: 500,
-                      }}
-                    >
-                      Tu solicitud para <span style={{ color: accentLight, fontWeight: 700 }}>{userData.solicitudClubNombre}</span> está pendiente de aprobación por el superadmin.
-                    </div>
-                  )}
-                  <div style={{ marginTop: 35, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 15 }}>
-                    {selectClubLoading ? (
-                      <div className="empty-state-text" style={{ fontSize: 18 }}>Cargando clubes...</div>
-                    ) : clubes.length === 0 ? (
-                      <div className="empty-state-text" style={{ fontSize: 16.5 }}>No hay clubes disponibles.</div>
-                    ) : (
-                      <div className="content-medium responsive-grid-list" style={{ width: "98%" }}>
-                        {clubes.map(club => (
-                          <div key={club.id} className="entity-list-card">
-                            <div className="entity-list-card__body">
-                              <div className="entity-list-card__title-row">
-                                <span className="entity-list-card__dot">●</span>
-                                <span className="entity-list-card__title">{club.nombre}</span>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              className="entity-list-card__action"
-                              onClick={() => handleSolicitarClub(club)}
-                              disabled={userData?.solicitudClubId === club.id}
-                            >
-                              {userData?.solicitudClubId === club.id ? "Solicitado" : "Solicitar"}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </>
+            <ClubMemberContent
+              hasClub={!!userData?.clubId}
+              equipoActivo={!!equipoActivo}
+              esCoordinador={esCoordinador}
+              teamLayoutProps={teamLayoutProps}
+              coordinadorDashboardProps={coordinadorDashboardProps}
+              entrenadorEquiposProps={entrenadorEquiposProps}
+              solicitarClubProps={solicitarClubProps}
+            />
           )}
-          {errorMsg && <div style={{ color: error, background: "rgba(248,113,113,0.1)", border: `1px solid rgba(248,113,113,0.25)`, marginTop: 28, fontSize: 14, padding: "12px 16px", borderRadius: 12, width: "98%", textAlign: "center", fontWeight: 600 }}>{errorMsg}</div>}
+          <AppErrorBanner error={error} message={errorMsg} />
         </div>
       </main>
         </div>
