@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:integration": "node scripts/test-firebase-integration.mjs",
     "test:full": "node scripts/run-tests.mjs --full",
-    "test:rules": "firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.mjs\"",
+    "test:rules": "JAVA_HOME=\"${JAVA_HOME:-$HOME/.local/java-home}\" firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.mjs\"",
     "seed:demo": "node scripts/seed-demo-data.mjs"
   },
   "dependencies": {

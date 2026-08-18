@@ -136,6 +136,14 @@ try {
     );
   });
 
+  await test("Entrenador no puede editar equipos", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Equipos/eq-a"), {
+        nombre: "Senior editado",
+      })
+    );
+  });
+
   await test("Superadmin asigna rol coordinador", async () => {
     await assertSucceeds(
       updateDoc(doc(superadmin, "Usuarios/coach-a"), {
@@ -148,14 +156,6 @@ try {
     const q = query(collection(coordA, "Usuarios"), where("clubId", "==", "club-a"));
     const snap = await assertSucceeds(getDocs(q));
     if (snap.size < 1) throw new Error("Expected at least one club user");
-  });
-
-  await test("Entrenador no puede editar equipos", async () => {
-    await assertFails(
-      updateDoc(doc(coachA, "Equipos/eq-a"), {
-        nombre: "Senior editado",
-      })
-    );
   });
 
   await test("Coordinador edita equipos de su club", async () => {
