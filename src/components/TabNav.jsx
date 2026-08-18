@@ -21,7 +21,9 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
       style={
         isDesktop
           ? { background: "transparent" }
-          : { "--nav-tabs": tabsMenu.length }
+          : {
+              gridTemplateColumns: `repeat(${tabsMenu.length}, minmax(0, 1fr))`,
+            }
       }
     >
       {tabsMenu.map(({ key, label, Icon }) => {
