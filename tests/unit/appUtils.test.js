@@ -8,6 +8,7 @@ import {
   formatearFechaCorta,
   etiquetaDiaRelativo,
   getProximosEventosInicio,
+  sugerirFechaLibre,
   getMetricasEvento,
   filtrarSesionesPorPeriodo,
   calcularEstadisticasJugadoras,
@@ -118,6 +119,14 @@ describe("getProximosEventosInicio", () => {
     const { proximoEntreno, proximoPartido } = getProximosEventosInicio(sesiones, hoy);
     expect(proximoEntreno?.tematica).toBe("Tiro");
     expect(proximoPartido?.rival).toBe("Rival");
+  });
+});
+
+describe("sugerirFechaLibre", () => {
+  it("devuelve hoy si está libre, si no la siguiente", () => {
+    const hoy = new Date(2026, 7, 17);
+    expect(sugerirFechaLibre([], hoy)).toBe("2026-08-17");
+    expect(sugerirFechaLibre([{ fecha: "2026-08-17" }], hoy)).toBe("2026-08-18");
   });
 });
 

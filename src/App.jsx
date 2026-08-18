@@ -39,6 +39,7 @@ import {
   formatearFechaCorta,
   etiquetaDiaRelativo,
   getProximosEventosInicio,
+  sugerirFechaLibre,
   getMetricasEvento,
   getRangoFechasEstadisticas,
   filtrarSesionesPorPeriodo,
@@ -1801,6 +1802,8 @@ function HomeEventCard({
   textSecondary,
   success,
   onOpen,
+  onSchedule,
+  scheduling = false,
 }) {
   const esPartido = tipo === "partido";
   const color = esPartido ? colorPartido : accent;
@@ -1868,9 +1871,30 @@ function HomeEventCard({
           </div>
         </>
       ) : (
-        <p className="home-event-card__empty" style={{ color: textMuted }}>
-          {esPartido ? "No hay partidos programados." : "No hay entreno programado para hoy ni para mañana."}
-        </p>
+        <div className="home-event-card__empty-wrap">
+          <p className="home-event-card__empty" style={{ color: textMuted }}>
+            {esPartido ? "No hay partidos programados." : "No hay entreno programado para hoy ni para mañana."}
+          </p>
+          {onSchedule && (
+            <button
+              type="button"
+              className="home-event-card__schedule-btn"
+              onClick={onSchedule}
+              disabled={scheduling}
+              style={{
+                color: "#fff",
+                background: color,
+                borderColor: color,
+                opacity: scheduling ? 0.75 : 1,
+                cursor: scheduling ? "wait" : "pointer",
+              }}
+            >
+              {scheduling
+                ? "Programando…"
+                : (esPartido ? "+ Programar partido" : "+ Programar entrenamiento")}
+            </button>
+          )}
+        </div>
       )}
     </article>
   );
@@ -3145,21 +3169,22 @@ function App() {
   };
 
   // Crear sesión si no existe (usada en panel sesión)
-  const handleCrearSesion = async (tipo = "entreno") => {
-    if (!equipoActivo || !fechaSesionSeleccionada) return;
+  const handleCrearSesion = async (tipo = "entreno", fechaOverride = null) => {
+    const fecha = fechaOverride || fechaSesionSeleccionada;
+    if (!equipoActivo || !fecha) return;
     setGuardandoSesion(true);
     setErrorMsg("");
     try {
       let asist = {};
       const vals = {};
-      jugadorasSesion.forEach(j => {
+      jugadoras.forEach(j => {
         asist[j.id] = true;
         vals[j.id] = 3;
       });
-      const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fechaSesionSeleccionada}`);
+      const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fecha}`);
       await setDoc(sesionDocRef, {
         equipoId: equipoActivo.id,
-        fecha: fechaSesionSeleccionada,
+        fecha,
         tipo,
         tematica: "",
         ejercicios: "",
@@ -3186,6 +3211,17 @@ function App() {
       setErrorMsg("Error creando la sesión.");
     }
     setGuardandoSesion(false);
+  };
+
+  const programarDesdeInicio = async (tipo) => {
+    if (!equipoActivo || guardandoSesion) return;
+    const fecha = sugerirFechaLibre(sesionesEquipo);
+    const [y, m] = fecha.split("-").map(Number);
+    setAnioActual(y);
+    setMesActual(m - 1);
+    setFechaSesionSeleccionada(fecha);
+    setTab("sesiones");
+    await handleCrearSesion(tipo, fecha);
   };
 
   // Guardar sesión actual
@@ -3276,6 +3312,8 @@ function App() {
         setFechaSesionSeleccionada(fecha);
         setTab("sesiones");
       };
+      const programarEntreno = () => programarDesdeInicio("entreno");
+      const programarPartido = () => programarDesdeInicio("partido");
 
       tabContent = (
         <div className="home-dashboard" style={{ margin: "0 auto", padding: "16px 0 8px" }}>
@@ -3315,6 +3353,8 @@ function App() {
                 textSecondary={textSecondary}
                 success={success}
                 onOpen={abrirEnCalendario}
+                onSchedule={proximoEntreno ? undefined : programarEntreno}
+                scheduling={guardandoSesion}
               />
               <HomeEventCard
                 tipo="partido"
@@ -3334,6 +3374,8 @@ function App() {
                 textSecondary={textSecondary}
                 success={success}
                 onOpen={abrirEnCalendario}
+                onSchedule={proximoPartido ? undefined : programarPartido}
+                scheduling={guardandoSesion}
               />
             </div>
           )}

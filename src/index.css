@@ -832,6 +832,24 @@ textarea:focus-visible {
   line-height: 1.45;
 }
 
+.home-event-card__empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.home-event-card__schedule-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.2;
+}
+
 .asistencia-row {
   border-radius: 10px;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);

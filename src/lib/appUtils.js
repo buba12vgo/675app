@@ -182,6 +182,21 @@ export function getProximosEventosInicio(sesiones, hoy = new Date()) {
   return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
 }
 
+export function sugerirFechaLibre(sesiones, desde = new Date(), maxDias = 30) {
+  const ocupadas = new Set(
+    sesiones.map((s) => s.fecha).filter(Boolean)
+  );
+  const start = new Date(desde);
+  start.setHours(0, 0, 0, 0);
+  for (let i = 0; i < maxDias; i += 1) {
+    const dia = new Date(start);
+    dia.setDate(start.getDate() + i);
+    const ymd = formatDateYYYYMMDD(dia);
+    if (!ocupadas.has(ymd)) return ymd;
+  }
+  return formatDateYYYYMMDD(start);
+}
+
 export function getMetricasEvento(sesion) {
   const asist = sesion?.asistencias || {};
   const entries = Object.entries(asist);
