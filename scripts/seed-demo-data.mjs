@@ -146,7 +146,13 @@ async function seedWithAdmin(db) {
       const teamRef = db.collection("Equipos").doc();
       operations.push({
         ref: teamRef,
-        data: { nombre: teamName, clubId: club.id, creadoEn: new Date() },
+        data: {
+          nombre: teamName,
+          clubId: club.id,
+          genero: "femenino",
+          tipoCanasta: /mini/i.test(teamName) ? "minibasket" : "grande",
+          creadoEn: new Date(),
+        },
       });
       teams.push({ id: teamRef.id, nombre: teamName, clubId: club.id, _pending: true });
       usedTeamNames.add(teamName);

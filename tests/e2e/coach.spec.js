@@ -46,7 +46,7 @@ test.describe("Entrenador", () => {
   test("TEAM-07 plantilla carga sin error de permisos", async ({ page }) => {
     await enterFirstTeam(page);
     await openTeamTab(page, "Plantilla");
-    await expect(page.getByText("Plantilla de Jugadoras")).toBeVisible();
+    await expect(page.getByText(/Plantilla de Jugador(as|es)/)).toBeVisible();
     await expect(page.getByText(/No tienes permiso/i)).not.toBeVisible();
     await expect(page.getByPlaceholder("Nombre")).toBeVisible();
   });

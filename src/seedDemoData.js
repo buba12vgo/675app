@@ -219,6 +219,8 @@ export async function seedDemoData(db, { clubIdFilter = null } = {}) {
         data: {
           nombre: teamName,
           clubId: club.id,
+          genero: "femenino",
+          tipoCanasta: /mini/i.test(teamName) ? "minibasket" : "grande",
           creadoEn: new Date(),
         },
       });

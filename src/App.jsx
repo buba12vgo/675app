@@ -45,6 +45,13 @@ import {
   calcularEstadisticasJugadoras,
   isCoordinador,
   isClubStaff,
+  getEquipoLabels,
+  formatTipoCanasta,
+  formatGeneroEquipo,
+  GENERO_FEMENINO,
+  GENERO_MASCULINO,
+  TIPO_CANASTA_GRANDE,
+  TIPO_CANASTA_MINI,
 } from "./lib/appUtils.js";
 
 const THEME = THEMES.dark;
@@ -811,6 +818,9 @@ function CoordinacionPanel({
                       <span className="entity-list-card__dot">●</span>
                       <span className="entity-list-card__title">{equipo.nombre}</span>
                     </div>
+                    <span className="entity-list-card__meta">
+                      {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
+                    </span>
                   </div>
                   <button type="button" className="entity-list-card__action" onClick={() => onEntrarEquipo(equipo)}>Entrar</button>
                 </div>
@@ -884,6 +894,7 @@ function DemoSeedCard({
 function TeamContextHeader({
   clubNombre,
   equipoNombre,
+  equipoMeta,
   onCambiarEquipo,
   accentLight,
   accentSoft,
@@ -905,6 +916,11 @@ function TeamContextHeader({
         <div className="team-context-text">
           <div className="team-context-club" style={{ color: textSecondary }}>{clubNombre}</div>
           <div className="team-context-team" style={{ color: text }}>{equipoNombre}</div>
+          {equipoMeta && (
+            <div className="team-context-meta" style={{ color: textMuted, fontSize: 12, marginTop: 2 }}>
+              {equipoMeta}
+            </div>
+          )}
         </div>
       </div>
       <button
@@ -989,7 +1005,9 @@ function AsistenciaValoracionPanel({
   btnTodasAusentes = "Todas ausentes",
   onGoToPlantilla,
   text,
+  labels,
 }) {
+  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
   const totalJugadoras = jugadoras.length;
   const verdePresente = success;
@@ -998,7 +1016,7 @@ function AsistenciaValoracionPanel({
     ? resumenPresentes(presentesCount, totalJugadoras)
     : (totalJugadoras > 0
       ? `${presentesCount} de ${totalJugadoras} presentes · ${totalJugadoras - presentesCount} ausentes`
-      : "Sin jugadoras en plantilla");
+      : playerLabels.sinJugadoresPlantilla);
 
   const marcarTodasPresentes = () => {
     setAsistencias(prev => {
@@ -1131,10 +1149,10 @@ function AsistenciaValoracionPanel({
       </div>
       <div className="session-asistencia-list">
         {jugadorasLoading ? (
-          <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>Cargando jugadoras...</div>
+          <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>{playerLabels.cargandoJugadores}</div>
         ) : jugadoras.length === 0 ? (
           <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15, textAlign: "center", lineHeight: 1.5 }}>
-            No hay jugadoras en la plantilla.
+            {playerLabels.noHayJugadoresPlantilla}
             {onGoToPlantilla && (
               <>
                 {" "}
@@ -1240,8 +1258,10 @@ function PlantillaForm({
   inputBorder,
   inputBg,
   surface,
-  text
+  text,
+  labels,
 }) {
+  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   return (
     <form
       onSubmit={handleAddJugadora}
@@ -1336,7 +1356,7 @@ function PlantillaForm({
         disabled={addJugadoraLoading || !jugadoraNombre.trim() || !jugadoraDorsal.trim()}
         tabIndex={0}
       >
-        Añadir Jugadora
+        {playerLabels.anadirJugador}
       </button>
     </form>
   );
@@ -1364,7 +1384,9 @@ function PlantillaJugadoraRow({
   text,
   textSecondary,
   error,
+  labels,
 }) {
+  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const inputStyle = {
     padding: "8px 10px",
     fontSize: 15,
@@ -1446,7 +1468,7 @@ function PlantillaJugadoraRow({
           className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--edit"
           onClick={() => onStartEdit(jugadora)}
           aria-label={`Editar ${jugadora.nombre}`}
-          title="Editar jugadora"
+          title={playerLabels.editarJugador}
           style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
         >
           <IconGear size={18} />
@@ -1456,7 +1478,7 @@ function PlantillaJugadoraRow({
           className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--delete"
           onClick={() => onDelete(jugadora)}
           aria-label={`Eliminar ${jugadora.nombre}`}
-          title="Eliminar jugadora"
+          title={playerLabels.eliminarJugador}
           style={{ color: error }}
         >
           <IconX size={18} />
@@ -1571,7 +1593,9 @@ function EstadisticasTablaTipo({
   totalSesiones,
   estadisticas,
   theme,
+  labels,
 }) {
+  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const esPartido = tipo === "partido";
   const {
     accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary,
@@ -1611,7 +1635,7 @@ function EstadisticasTablaTipo({
       <div className="stats-table stats-table--tipo" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div className="stats-table-header stats-table-header--tipo">
           <span>#</span>
-          <span>Jugadora</span>
+          <span>{playerLabels.statsColumnaJugador}</span>
           <span title="Sesiones en el periodo">Ses.</span>
           <span title={esPartido ? "Convocadas" : "Asistencias"}>{labelPresentes}</span>
           <span title={esPartido ? "No convocadas" : "Ausencias"}>{labelAusencias}</span>
@@ -1694,6 +1718,8 @@ function App() {
   const [equipos, setEquipos] = useState([]);
   const [equiposLoading, setEquiposLoading] = useState(false);
   const [nuevoEquipoNombre, setNuevoEquipoNombre] = useState("");
+  const [nuevoEquipoGenero, setNuevoEquipoGenero] = useState(GENERO_FEMENINO);
+  const [nuevoEquipoTipoCanasta, setNuevoEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
   const [crearEquipoLoading, setCrearEquipoLoading] = useState(false);
 
   // Equipo activo y tabs
@@ -2629,8 +2655,16 @@ function App() {
     if (!nuevoEquipoNombre.trim() || !userData?.clubId) return;
     setCrearEquipoLoading(true);
     try {
-      await addDoc(collection(db, "Equipos"), { nombre: nuevoEquipoNombre.trim(), clubId: userData.clubId, creadoEn: new Date() });
+      await addDoc(collection(db, "Equipos"), {
+        nombre: nuevoEquipoNombre.trim(),
+        clubId: userData.clubId,
+        genero: nuevoEquipoGenero,
+        tipoCanasta: nuevoEquipoTipoCanasta,
+        creadoEn: new Date(),
+      });
       setNuevoEquipoNombre("");
+      setNuevoEquipoGenero(GENERO_FEMENINO);
+      setNuevoEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
     } catch (err) {
       setErrorMsg("Error creando equipo");
     }
@@ -2657,7 +2691,7 @@ function App() {
       setJugadoraDorsal("");
       setJugadoraApodo("");
     } catch (err) {
-      setErrorMsg("Error al añadir jugadora.");
+      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorAnadirJugador);
     }
     setAddJugadoraLoading(false);
   };
@@ -2672,7 +2706,7 @@ function App() {
     try {
       await deleteDoc(doc(db, "Jugadoras", jugadora.id));
     } catch (err) {
-      setErrorMsg("No se pudo eliminar la jugadora.");
+      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorEliminarJugador);
     }
   };
 
@@ -2855,6 +2889,7 @@ function App() {
   // --- Generación de contenido para las pestañas ---
   let tabContent = null;
   if (equipoActivo) {
+    const equipoLabels = getEquipoLabels(equipoActivo.genero);
     if (tab === "home") {
       const { proximoEntreno, proximoPartido, hoyStr, mananaStr } = getProximosEventosInicio(sesionesEquipo);
       const abrirEnCalendario = (fecha) => {
@@ -2871,6 +2906,9 @@ function App() {
           <div className="home-dashboard__intro">
             <div style={{ color: text, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>
               {equipoActivo.nombre}
+            </div>
+            <div style={{ marginTop: 4, fontSize: 13, fontWeight: 600, color: textMuted }}>
+              {formatTipoCanasta(equipoActivo.tipoCanasta)} · {formatGeneroEquipo(equipoActivo.genero)}
             </div>
             <div style={{ marginTop: 4, fontSize: 14, fontWeight: 500, color: textSecondary }}>
               Resumen del equipo
@@ -3309,12 +3347,13 @@ function App() {
                             resumenPresentes={tipoSesion === "partido"
                               ? (p, t) => t > 0
                                 ? `${p} convocadas · ${t - p} fuera · valoración 1-5 si está convocada`
-                                : "Sin jugadoras en plantilla"
+                                : equipoLabels.sinJugadoresPlantilla
                               : undefined}
                             btnTodasPresentes={tipoSesion === "partido" ? "Todas convocadas" : "Todas presentes"}
                             btnTodasAusentes={tipoSesion === "partido" ? "Ninguna convocada" : "Todas ausentes"}
                             onGoToPlantilla={() => setTab("plantilla")}
                             text={text}
+                            labels={equipoLabels}
                           />
                         </div>
                       </div>
@@ -3411,7 +3450,7 @@ function App() {
             </div>
           ) : jugadoras.length === 0 ? (
             <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5, textAlign: "center" }}>
-              No hay jugadoras en la plantilla.{" "}
+              {equipoLabels.noHayJugadoresPlantilla}{" "}
               <button
                 type="button"
                 onClick={() => setTab("plantilla")}
@@ -3476,6 +3515,7 @@ function App() {
                     totalSesiones={totalEntrenos}
                     estadisticas={estadisticas}
                     theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
+                    labels={equipoLabels}
                   />
                 )}
                 {(statsVista === "partidos" || statsVista === "todo") && (
@@ -3484,6 +3524,7 @@ function App() {
                     totalSesiones={totalPartidos}
                     estadisticas={estadisticas}
                     theme={{ accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary, surface, error, success, inputBorder, cardBgElevated, tableHeader, tableHeaderAccent }}
+                    labels={equipoLabels}
                   />
                 )}
               </div>
@@ -3496,7 +3537,7 @@ function App() {
         <div className="plantilla-tab" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%" }}>
           <h2 style={{ color: text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.02em", marginBottom: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <IconUsers size={22} color={accent} />
-            Plantilla de Jugadoras
+            {equipoLabels.plantillaTitulo}
           </h2>
           <PlantillaForm
             handleAddJugadora={handleAddJugadora}
@@ -3513,12 +3554,13 @@ function App() {
             inputBg={inputBg}
             surface={surface}
             text={text}
+            labels={equipoLabels}
           />
           <div className="content-medium" style={{ width: "99%", margin: "0 auto", marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 11 }}>
             {jugadorasLoading ? (
-              <div style={{ color: "#bbb", fontSize: 16, fontStyle: "italic", padding: "12px 0", fontWeight: 500 }}>Cargando jugadoras...</div>
+              <div style={{ color: "#bbb", fontSize: 16, fontStyle: "italic", padding: "12px 0", fontWeight: 500 }}>{equipoLabels.cargandoJugadores}</div>
             ) : jugadoras.length === 0 ? (
-              <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5 }}>No hay jugadoras en la plantilla.</div>
+              <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5 }}>{equipoLabels.noHayJugadoresPlantilla}</div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%", marginTop: 4 }}>
                 {jugadoras.map(j => (
@@ -3545,6 +3587,7 @@ function App() {
                     text={text}
                     textSecondary={textSecondary}
                     error={error}
+                    labels={equipoLabels}
                   />
                 ))}
               </div>
@@ -3569,9 +3612,101 @@ function App() {
     <div className="section-heading">
       <span className="section-heading__accent">{titulo}</span>
       {permitirCrear && userData?.clubId && (
-        <form onSubmit={handleCrearEquipo} className="content-medium form-shell" style={{ margin: "35px auto 14px auto", width: "96%" }}>
-          <input type="text" placeholder="Nuevo nombre de Equipo" value={nuevoEquipoNombre} onChange={e => setNuevoEquipoNombre(e.target.value)} required style={{ flex: 1, padding: "15px 20px", fontSize: 17.5, border: "none", borderRadius: "14px 0 0 14px", background: inputBg, color: text, outline: "none", transition: "box-shadow .16s", fontWeight: 500 }} disabled={crearEquipoLoading} onFocus={e => (e.target.parentNode.style.boxShadow = `0 0 0 2.5px ${accent}`)} onBlur={e => (e.target.parentNode.style.boxShadow = "none")} />
-          <button type="submit" style={{ background: accent, color: onAccent, border: "none", borderRadius: "0 14px 14px 0", padding: "15px 22px", fontWeight: "bold", fontSize: 17, cursor: "pointer", minHeight: 53, boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)", letterSpacing: 0.3 }} disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()}>Crear</button>
+        <form
+          onSubmit={handleCrearEquipo}
+          className="content-medium form-shell"
+          style={{
+            margin: "35px auto 14px auto",
+            width: "96%",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            padding: "16px 18px",
+            background: cardBgElevated,
+            border: `1px solid ${inputBorder}`,
+            borderRadius: 14,
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Nombre del equipo"
+            value={nuevoEquipoNombre}
+            onChange={(e) => setNuevoEquipoNombre(e.target.value)}
+            required
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              fontSize: 16,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: 10,
+              background: inputBg,
+              color: text,
+              outline: "none",
+              fontWeight: 500,
+              fontFamily: "inherit",
+            }}
+            disabled={crearEquipoLoading}
+          />
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <label style={{ flex: "1 1 160px", display: "flex", flexDirection: "column", gap: 6, color: textSecondary, fontSize: 13, fontWeight: 600 }}>
+              Canasta
+              <select
+                value={nuevoEquipoTipoCanasta}
+                onChange={(e) => setNuevoEquipoTipoCanasta(e.target.value)}
+                disabled={crearEquipoLoading}
+                style={{
+                  padding: "10px 12px",
+                  fontSize: 14,
+                  border: `1px solid ${inputBorder}`,
+                  borderRadius: 10,
+                  background: inputBg,
+                  color: text,
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
+                <option value={TIPO_CANASTA_MINI}>Minibasket</option>
+              </select>
+            </label>
+            <label style={{ flex: "1 1 160px", display: "flex", flexDirection: "column", gap: 6, color: textSecondary, fontSize: 13, fontWeight: 600 }}>
+              Categoría
+              <select
+                value={nuevoEquipoGenero}
+                onChange={(e) => setNuevoEquipoGenero(e.target.value)}
+                disabled={crearEquipoLoading}
+                style={{
+                  padding: "10px 12px",
+                  fontSize: 14,
+                  border: `1px solid ${inputBorder}`,
+                  borderRadius: 10,
+                  background: inputBg,
+                  color: text,
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value={GENERO_FEMENINO}>Femenino</option>
+                <option value={GENERO_MASCULINO}>Masculino</option>
+              </select>
+            </label>
+          </div>
+          <button
+            type="submit"
+            style={{
+              background: accent,
+              color: onAccent,
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 18px",
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: crearEquipoLoading ? "wait" : "pointer",
+              fontFamily: "inherit",
+              opacity: crearEquipoLoading ? 0.7 : 1,
+            }}
+            disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()}
+          >
+            {crearEquipoLoading ? "Creando…" : "Crear equipo"}
+          </button>
         </form>
       )}
       <div className="content-medium responsive-grid-list" style={{ width: "98%", margin: "17px auto 0" }}>
@@ -3596,6 +3731,9 @@ function App() {
                 {mostrarClub && (
                   <span className="entity-list-card__meta">{getClubNombre(equipo.clubId)}</span>
                 )}
+                <span className="entity-list-card__meta">
+                  {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
+                </span>
               </div>
               <button type="button" className="entity-list-card__action" onClick={() => handleEntrarEquipo(equipo)}>Entrar</button>
             </div>
@@ -3618,9 +3756,11 @@ function App() {
   };
 
   const renderTeamLayout = () => {
+    const equipoMeta = `${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`;
     const contextProps = {
       clubNombre: getNombreClubActivo(),
       equipoNombre: equipoActivo.nombre,
+      equipoMeta,
       onCambiarEquipo: () => setEquipoActivo(null),
       accentLight,
       accentSoft,

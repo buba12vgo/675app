@@ -11,7 +11,38 @@ import {
   getMetricasEvento,
   filtrarSesionesPorPeriodo,
   calcularEstadisticasJugadoras,
+  getEquipoLabels,
+  formatTipoCanasta,
+  formatGeneroEquipo,
+  normalizeGenero,
 } from "../../src/lib/appUtils.js";
+
+describe("getEquipoLabels", () => {
+  it("devuelve textos femeninos y masculinos", () => {
+    expect(getEquipoLabels("femenino").plantillaTitulo).toBe("Plantilla de Jugadoras");
+    expect(getEquipoLabels("masculino").plantillaTitulo).toBe("Plantilla de Jugadores");
+    expect(getEquipoLabels("masculino").anadirJugador).toBe("Añadir Jugador");
+  });
+
+  it("normaliza valores desconocidos a femenino", () => {
+    expect(getEquipoLabels(undefined).jugadores).toBe("Jugadoras");
+    expect(normalizeGenero("otro")).toBe("femenino");
+  });
+});
+
+describe("formatTipoCanasta", () => {
+  it("formatea canasta grande y minibasket", () => {
+    expect(formatTipoCanasta("grande")).toBe("Canasta grande");
+    expect(formatTipoCanasta("minibasket")).toBe("Minibasket");
+  });
+});
+
+describe("formatGeneroEquipo", () => {
+  it("formatea genero del equipo", () => {
+    expect(formatGeneroEquipo("masculino")).toBe("Masculino");
+    expect(formatGeneroEquipo("femenino")).toBe("Femenino");
+  });
+});
 
 describe("formatRolLabel", () => {
   it("capitaliza el rol", () => {

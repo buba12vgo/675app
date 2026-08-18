@@ -17,6 +17,64 @@ export function isClubStaff(rol) {
   return rol === "entrenador" || rol === "coordinador";
 }
 
+export const GENERO_FEMENINO = "femenino";
+export const GENERO_MASCULINO = "masculino";
+export const TIPO_CANASTA_GRANDE = "grande";
+export const TIPO_CANASTA_MINI = "minibasket";
+
+const EQUIPO_LABELS = {
+  [GENERO_FEMENINO]: {
+    jugador: "Jugadora",
+    jugadores: "Jugadoras",
+    plantillaTitulo: "Plantilla de Jugadoras",
+    anadirJugador: "Añadir Jugadora",
+    cargandoJugadores: "Cargando jugadoras...",
+    sinJugadoresPlantilla: "Sin jugadoras en plantilla",
+    noHayJugadoresPlantilla: "No hay jugadoras en la plantilla.",
+    editarJugador: "Editar jugadora",
+    eliminarJugador: "Eliminar jugadora",
+    errorAnadirJugador: "Error al añadir jugadora.",
+    errorEliminarJugador: "No se pudo eliminar la jugadora.",
+    statsColumnaJugador: "Jugadora",
+    seedJugadoresPorEquipo: "10 jugadoras por equipo",
+  },
+  [GENERO_MASCULINO]: {
+    jugador: "Jugador",
+    jugadores: "Jugadores",
+    plantillaTitulo: "Plantilla de Jugadores",
+    anadirJugador: "Añadir Jugador",
+    cargandoJugadores: "Cargando jugadores...",
+    sinJugadoresPlantilla: "Sin jugadores en plantilla",
+    noHayJugadoresPlantilla: "No hay jugadores en la plantilla.",
+    editarJugador: "Editar jugador",
+    eliminarJugador: "Eliminar jugador",
+    errorAnadirJugador: "Error al añadir jugador.",
+    errorEliminarJugador: "No se pudo eliminar el jugador.",
+    statsColumnaJugador: "Jugador",
+    seedJugadoresPorEquipo: "10 jugadores por equipo",
+  },
+};
+
+export function normalizeGenero(genero) {
+  return genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO;
+}
+
+export function normalizeTipoCanasta(tipoCanasta) {
+  return tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE;
+}
+
+export function getEquipoLabels(genero) {
+  return EQUIPO_LABELS[normalizeGenero(genero)];
+}
+
+export function formatTipoCanasta(tipoCanasta) {
+  return normalizeTipoCanasta(tipoCanasta) === TIPO_CANASTA_MINI ? "Minibasket" : "Canasta grande";
+}
+
+export function formatGeneroEquipo(genero) {
+  return normalizeGenero(genero) === GENERO_MASCULINO ? "Masculino" : "Femenino";
+}
+
 export function getClubInitials(nombre) {
   return (nombre || "C")
     .split(/\s+/)
