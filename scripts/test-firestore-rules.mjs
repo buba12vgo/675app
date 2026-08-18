@@ -150,6 +150,24 @@ try {
     if (snap.size < 1) throw new Error("Expected at least one club user");
   });
 
+  await test("Entrenador no puede editar equipos", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Equipos/eq-a"), {
+        nombre: "Senior editado",
+      })
+    );
+  });
+
+  await test("Coordinador edita equipos de su club", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coordA, "Equipos/eq-a"), {
+        nombre: "Senior A",
+        genero: "femenino",
+        tipoCanasta: "grande",
+      })
+    );
+  });
+
   await test("Superadmin lee equipos de cualquier club", async () => {
     await assertSucceeds(getDoc(doc(superadmin, "Equipos/eq-b")));
   });

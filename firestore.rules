@@ -42,6 +42,10 @@ service cloud.firestore {
       return isSuperadmin() || belongsToClub(equipoClubId(equipoId));
     }
 
+    function canManageEquipoClub(clubId) {
+      return isSuperadmin() || (isCoordinador() && userClubId() == clubId);
+    }
+
     function coachSelfUpdateAllowed() {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return isCoordinador()
@@ -85,9 +89,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && (
         isSuperadmin() || belongsToClub(request.resource.data.clubId)
       );
-      allow update, delete: if isSignedIn() && (
-        isSuperadmin() || belongsToClub(resource.data.clubId)
-      );
+      allow update, delete: if canManageEquipoClub(resource.data.clubId);
     }
 
     match /Jugadoras/{jugadoraId} {

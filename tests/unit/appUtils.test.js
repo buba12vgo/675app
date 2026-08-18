@@ -15,6 +15,7 @@ import {
   formatTipoCanasta,
   formatGeneroEquipo,
   normalizeGenero,
+  canManageEquipo,
 } from "../../src/lib/appUtils.js";
 
 describe("getEquipoLabels", () => {
@@ -41,6 +42,15 @@ describe("formatGeneroEquipo", () => {
   it("formatea genero del equipo", () => {
     expect(formatGeneroEquipo("masculino")).toBe("Masculino");
     expect(formatGeneroEquipo("femenino")).toBe("Femenino");
+  });
+});
+
+describe("canManageEquipo", () => {
+  it("permite superadmin y coordinador de su club", () => {
+    expect(canManageEquipo("superadmin", null, "club-a")).toBe(true);
+    expect(canManageEquipo("coordinador", "club-a", "club-a")).toBe(true);
+    expect(canManageEquipo("coordinador", "club-a", "club-b")).toBe(false);
+    expect(canManageEquipo("entrenador", "club-a", "club-a")).toBe(false);
   });
 });
 

@@ -45,6 +45,7 @@ import {
   calcularEstadisticasJugadoras,
   isCoordinador,
   isClubStaff,
+  canManageEquipo,
   getEquipoLabels,
   formatTipoCanasta,
   formatGeneroEquipo,
@@ -739,6 +740,148 @@ function UsuarioClubRow({
   );
 }
 
+function EquipoListRow({
+  equipo,
+  clubNombre,
+  mostrarClub,
+  canEdit,
+  isEditing,
+  editNombre,
+  setEditNombre,
+  editGenero,
+  setEditGenero,
+  editTipoCanasta,
+  setEditTipoCanasta,
+  saving,
+  onStartEdit,
+  onCancelEdit,
+  onSave,
+  onEntrar,
+  accent,
+  accentLight,
+  text,
+  textSecondary,
+  textMuted,
+  inputBorder,
+  inputBg,
+  cardBgElevated,
+  borderAccent,
+}) {
+  const selectStyle = {
+    padding: "8px 10px",
+    fontSize: 13,
+    borderRadius: 8,
+    border: `1px solid ${inputBorder}`,
+    background: inputBg,
+    color: text,
+    fontFamily: "inherit",
+    width: "100%",
+  };
+
+  if (isEditing) {
+    return (
+      <div className="entity-list-card entity-list-card--editing" style={{ borderLeftColor: borderAccent || accent, flexDirection: "column", alignItems: "stretch", gap: 12 }}>
+        <input
+          type="text"
+          value={editNombre}
+          onChange={(e) => setEditNombre(e.target.value)}
+          placeholder="Nombre del equipo"
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            fontSize: 15,
+            border: `1px solid ${inputBorder}`,
+            borderRadius: 10,
+            background: inputBg,
+            color: text,
+            fontFamily: "inherit",
+            fontWeight: 600,
+          }}
+          disabled={saving}
+        />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <label style={{ flex: "1 1 140px", display: "flex", flexDirection: "column", gap: 5, color: textSecondary, fontSize: 12, fontWeight: 600 }}>
+            Canasta
+            <select value={editTipoCanasta} onChange={(e) => setEditTipoCanasta(e.target.value)} style={selectStyle} disabled={saving}>
+              <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
+              <option value={TIPO_CANASTA_MINI}>Minibasket</option>
+            </select>
+          </label>
+          <label style={{ flex: "1 1 140px", display: "flex", flexDirection: "column", gap: 5, color: textSecondary, fontSize: 12, fontWeight: 600 }}>
+            Categoría
+            <select value={editGenero} onChange={(e) => setEditGenero(e.target.value)} style={selectStyle} disabled={saving}>
+              <option value={GENERO_FEMENINO}>Femenino</option>
+              <option value={GENERO_MASCULINO}>Masculino</option>
+            </select>
+          </label>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="entity-list-card__action"
+            onClick={() => onSave(equipo.id)}
+            disabled={saving || !editNombre.trim()}
+            style={{ flex: "1 1 100px", opacity: saving ? 0.7 : 1 }}
+          >
+            {saving ? "Guardando…" : "Guardar"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            disabled={saving}
+            style={{
+              flex: "1 1 100px",
+              background: "transparent",
+              color: textMuted,
+              border: `1px solid ${inputBorder}`,
+              borderRadius: 10,
+              padding: "10px 14px",
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: saving ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="entity-list-card" style={{ borderLeftColor: borderAccent || accent }}>
+      <div className="entity-list-card__body">
+        <div className="entity-list-card__title-row">
+          <span className="entity-list-card__dot">●</span>
+          <span className="entity-list-card__title">{equipo.nombre}</span>
+        </div>
+        {mostrarClub && clubNombre && (
+          <span className="entity-list-card__meta">{clubNombre}</span>
+        )}
+        <span className="entity-list-card__meta">
+          {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
+        </span>
+      </div>
+      <div className="entity-list-card__actions">
+        {canEdit && (
+          <button
+            type="button"
+            className="entity-list-card__icon-btn"
+            onClick={() => onStartEdit(equipo)}
+            aria-label={`Editar ${equipo.nombre}`}
+            title="Editar equipo"
+            style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+          >
+            <IconGear size={17} />
+          </button>
+        )}
+        <button type="button" className="entity-list-card__action" onClick={() => onEntrar(equipo)}>Entrar</button>
+      </div>
+    </div>
+  );
+}
+
 function CoordinacionPanel({
   clubNombre,
   usuarios,
@@ -746,6 +889,18 @@ function CoordinacionPanel({
   equipos,
   equiposLoading,
   onEntrarEquipo,
+  canEditEquipos,
+  equipoEditandoId,
+  editEquipoNombre,
+  setEditEquipoNombre,
+  editEquipoGenero,
+  setEditEquipoGenero,
+  editEquipoTipoCanasta,
+  setEditEquipoTipoCanasta,
+  savingEquipoId,
+  onStartEditEquipo,
+  onCancelEditEquipo,
+  onSaveEquipo,
   accent,
   accentLight,
   accentSoft,
@@ -812,18 +967,33 @@ function CoordinacionPanel({
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {equipos.map((equipo) => (
-                <div key={equipo.id} className="entity-list-card" style={{ borderLeftColor: accent }}>
-                  <div className="entity-list-card__body">
-                    <div className="entity-list-card__title-row">
-                      <span className="entity-list-card__dot">●</span>
-                      <span className="entity-list-card__title">{equipo.nombre}</span>
-                    </div>
-                    <span className="entity-list-card__meta">
-                      {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
-                    </span>
-                  </div>
-                  <button type="button" className="entity-list-card__action" onClick={() => onEntrarEquipo(equipo)}>Entrar</button>
-                </div>
+                <EquipoListRow
+                  key={equipo.id}
+                  equipo={equipo}
+                  mostrarClub={false}
+                  canEdit={canEditEquipos}
+                  isEditing={equipoEditandoId === equipo.id}
+                  editNombre={editEquipoNombre}
+                  setEditNombre={setEditEquipoNombre}
+                  editGenero={editEquipoGenero}
+                  setEditGenero={setEditEquipoGenero}
+                  editTipoCanasta={editEquipoTipoCanasta}
+                  setEditTipoCanasta={setEditEquipoTipoCanasta}
+                  saving={savingEquipoId === equipo.id}
+                  onStartEdit={onStartEditEquipo}
+                  onCancelEdit={onCancelEditEquipo}
+                  onSave={onSaveEquipo}
+                  onEntrar={onEntrarEquipo}
+                  accent={accent}
+                  accentLight={accentLight}
+                  text={text}
+                  textSecondary={textSecondary}
+                  textMuted={textMuted}
+                  inputBorder={inputBorder}
+                  inputBg={inputBg}
+                  cardBgElevated={cardBgElevated}
+                  borderAccent={accent}
+                />
               ))}
             </div>
           )}
@@ -1721,6 +1891,11 @@ function App() {
   const [nuevoEquipoGenero, setNuevoEquipoGenero] = useState(GENERO_FEMENINO);
   const [nuevoEquipoTipoCanasta, setNuevoEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
   const [crearEquipoLoading, setCrearEquipoLoading] = useState(false);
+  const [equipoEditandoId, setEquipoEditandoId] = useState(null);
+  const [editEquipoNombre, setEditEquipoNombre] = useState("");
+  const [editEquipoGenero, setEditEquipoGenero] = useState(GENERO_FEMENINO);
+  const [editEquipoTipoCanasta, setEditEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
+  const [savingEquipoId, setSavingEquipoId] = useState(null);
 
   // Equipo activo y tabs
   const [equipoActivo, setEquipoActivo] = useState(null);
@@ -2588,6 +2763,18 @@ function App() {
     equipos,
     equiposLoading,
     onEntrarEquipo: handleEntrarEquipo,
+    canEditEquipos: isCoordinador(userData?.rol),
+    equipoEditandoId,
+    editEquipoNombre,
+    setEditEquipoNombre,
+    editEquipoGenero,
+    setEditEquipoGenero,
+    editEquipoTipoCanasta,
+    setEditEquipoTipoCanasta,
+    savingEquipoId,
+    onStartEditEquipo: handleIniciarEditEquipo,
+    onCancelEditEquipo: handleCancelarEditEquipo,
+    onSaveEquipo: handleGuardarEquipo,
     accent,
     accentLight,
     accentSoft,
@@ -2597,6 +2784,21 @@ function App() {
     inputBorder,
     inputBg,
     cardBgElevated,
+  };
+
+  const equipoEditProps = {
+    canEditEquipo: puedeGestionarEquipo,
+    equipoEditandoId,
+    editEquipoNombre,
+    setEditEquipoNombre,
+    editEquipoGenero,
+    setEditEquipoGenero,
+    editEquipoTipoCanasta,
+    setEditEquipoTipoCanasta,
+    savingEquipoId,
+    onStartEditEquipo: handleIniciarEditEquipo,
+    onCancelEditEquipo: handleCancelarEditEquipo,
+    onSaveEquipo: handleGuardarEquipo,
   };
 
   const handleSeedDemoData = async () => {
@@ -2669,6 +2871,52 @@ function App() {
       setErrorMsg("Error creando equipo");
     }
     setCrearEquipoLoading(false);
+  };
+
+  const puedeGestionarEquipo = (equipo) => canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
+
+  const handleIniciarEditEquipo = (equipo) => {
+    if (!puedeGestionarEquipo(equipo)) return;
+    setEquipoEditandoId(equipo.id);
+    setEditEquipoNombre(equipo.nombre || "");
+    setEditEquipoGenero(equipo.genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO);
+    setEditEquipoTipoCanasta(equipo.tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE);
+    setErrorMsg("");
+  };
+
+  const handleCancelarEditEquipo = () => {
+    setEquipoEditandoId(null);
+    setEditEquipoNombre("");
+    setEditEquipoGenero(GENERO_FEMENINO);
+    setEditEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
+  };
+
+  const handleGuardarEquipo = async (equipoId) => {
+    const equipo = equipos.find((e) => e.id === equipoId);
+    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo) || !editEquipoNombre.trim()) return;
+
+    setSavingEquipoId(equipoId);
+    setErrorMsg("");
+    const payload = {
+      nombre: editEquipoNombre.trim(),
+      genero: editEquipoGenero,
+      tipoCanasta: editEquipoTipoCanasta,
+    };
+
+    try {
+      await updateDoc(doc(db, "Equipos", equipoId), payload);
+      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, ...payload } : e)));
+      if (equipoActivo?.id === equipoId) {
+        setEquipoActivo((prev) => (prev ? { ...prev, ...payload } : prev));
+      }
+      handleCancelarEditEquipo();
+    } catch (err) {
+      setErrorMsg(err?.code === "permission-denied"
+        ? "No tienes permiso para editar este equipo."
+        : "No se pudo guardar el equipo.");
+    } finally {
+      setSavingEquipoId(null);
+    }
   };
 
   const handleAddJugadora = async (e) => {
@@ -3718,25 +3966,34 @@ function App() {
           </div>
         ) : (
           equiposVisibles.map(equipo => (
-            <div
+            <EquipoListRow
               key={equipo.id}
-              className="entity-list-card"
-              style={{ borderLeftColor: equipo.clubId === userData?.clubId ? accent : textMuted }}
-            >
-              <div className="entity-list-card__body">
-                <div className="entity-list-card__title-row">
-                  <span className="entity-list-card__dot">●</span>
-                  <span className="entity-list-card__title">{equipo.nombre}</span>
-                </div>
-                {mostrarClub && (
-                  <span className="entity-list-card__meta">{getClubNombre(equipo.clubId)}</span>
-                )}
-                <span className="entity-list-card__meta">
-                  {formatTipoCanasta(equipo.tipoCanasta)} · {formatGeneroEquipo(equipo.genero)}
-                </span>
-              </div>
-              <button type="button" className="entity-list-card__action" onClick={() => handleEntrarEquipo(equipo)}>Entrar</button>
-            </div>
+              equipo={equipo}
+              clubNombre={getClubNombre(equipo.clubId)}
+              mostrarClub={mostrarClub}
+              canEdit={equipoEditProps.canEditEquipo(equipo)}
+              isEditing={equipoEditProps.equipoEditandoId === equipo.id}
+              editNombre={equipoEditProps.editEquipoNombre}
+              setEditNombre={equipoEditProps.setEditEquipoNombre}
+              editGenero={equipoEditProps.editEquipoGenero}
+              setEditGenero={equipoEditProps.setEditEquipoGenero}
+              editTipoCanasta={equipoEditProps.editEquipoTipoCanasta}
+              setEditTipoCanasta={equipoEditProps.setEditEquipoTipoCanasta}
+              saving={equipoEditProps.savingEquipoId === equipo.id}
+              onStartEdit={equipoEditProps.onStartEditEquipo}
+              onCancelEdit={equipoEditProps.onCancelEditEquipo}
+              onSave={equipoEditProps.onSaveEquipo}
+              onEntrar={handleEntrarEquipo}
+              accent={accent}
+              accentLight={accentLight}
+              text={text}
+              textSecondary={textSecondary}
+              textMuted={textMuted}
+              inputBorder={inputBorder}
+              inputBg={inputBg}
+              cardBgElevated={cardBgElevated}
+              borderAccent={equipo.clubId === userData?.clubId ? accent : textMuted}
+            />
           ))
         )}
       </div>

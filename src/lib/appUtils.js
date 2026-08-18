@@ -17,6 +17,11 @@ export function isClubStaff(rol) {
   return rol === "entrenador" || rol === "coordinador";
 }
 
+export function canManageEquipo(rol, userClubId, equipoClubId) {
+  if (rol === "superadmin") return true;
+  return isCoordinador(rol) && Boolean(userClubId) && userClubId === equipoClubId;
+}
+
 export const GENERO_FEMENINO = "femenino";
 export const GENERO_MASCULINO = "masculino";
 export const TIPO_CANASTA_GRANDE = "grande";
