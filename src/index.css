@@ -31,7 +31,6 @@
   --color-sidebar-bg: rgba(255, 255, 255, 0.88);
   --color-nav-mobile-bg: rgba(255, 255, 255, 0.94);
   --mobile-nav-height: 96px;
-  --app-header-offset: 108px;
   --color-calendar-day: #FFFFFF;
   --color-calendar-day-other: #E2E8F0;
   --color-calendar-day-text: #0F172A;
@@ -135,21 +134,43 @@ textarea:focus-visible {
 
 .app-header {
   width: 100%;
-  max-width: 600px;
-  padding: 16px 0 8px;
-  padding-top: calc(16px + env(safe-area-inset-top, 0px));
-  position: fixed;
+  max-width: 100%;
+  padding: 10px 8px 6px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 5;
   user-select: none;
+  flex-shrink: 0;
 }
 
-.app-shell[data-user-role="superadmin"] {
-  --app-header-offset: 112px;
+.app-header--compact .app-header-bar--compact {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.app-header-compact-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.app-header-options-btn--icon-only {
+  padding: 8px 10px;
+}
+
+.app-header--compact .app-header-logout--inline {
+  padding: 7px 12px;
+  font-size: 12px;
 }
 
 .app-header-bar {
-  width: 96%;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: row;
@@ -380,7 +401,10 @@ textarea:focus-visible {
   width: var(--device-preview-width, 100%);
   max-width: 100%;
   min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
   border-radius: 18px;
@@ -422,7 +446,7 @@ textarea:focus-visible {
 }
 
 .app-shell[data-device-preview="mobile"] .device-preview-frame .app-main {
-  padding: var(--app-header-offset) 8px 20px;
+  padding: 10px 8px 20px;
 }
 
 .app-shell[data-device-preview="mobile"] .device-preview-frame .app-card {
@@ -670,12 +694,12 @@ textarea:focus-visible {
 
 .app-main {
   width: 100%;
-  min-height: 100vh;
-  padding: var(--app-header-offset) 12px 24px;
+  min-height: 0;
+  padding: 10px 12px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
+  flex: 1 1 auto;
   position: relative;
   z-index: 1;
   box-sizing: border-box;
@@ -2101,69 +2125,10 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
-/* ── Mobile header ── */
+/* ── Mobile header (fallback when JS compact mode is off) ── */
 @media (max-width: 767px) {
-  :root,
-  .app-shell[data-user-role="superadmin"] {
-    --app-header-offset: calc(86px + env(safe-area-inset-top, 0px));
-  }
-
-  .app-header {
-    padding-top: calc(8px + env(safe-area-inset-top, 0px));
-    padding-bottom: 4px;
-  }
-
   .app-header-bar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    padding: 8px 10px;
-  }
-
-  .app-header-row--primary,
-  .app-header-row--tools {
-    display: contents;
-  }
-
-  .app-brand {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .app-brand__mark {
-    width: 30px;
-    height: 30px;
-  }
-
-  .app-brand__text {
-    font-size: 19px !important;
-  }
-
-  .app-header-logout--corner,
-  .app-header-role,
-  .app-header-seed-btn,
-  .device-preview-control {
-    display: none !important;
-  }
-
-  .app-header-options-btn__label,
-  .app-header-seed-btn__long {
-    display: none;
-  }
-
-  .app-header-options-btn {
-    padding: 7px 9px;
-    margin-left: auto;
-  }
-
-  .app-header-logout--inline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 7px 11px;
-    font-size: 12px;
+    padding: 10px 12px;
   }
 }
 
@@ -2208,7 +2173,7 @@ textarea:focus-visible {
   }
 
   .app-main {
-    padding: var(--app-header-offset) 24px 32px;
+    padding: 12px 24px 32px;
   }
 
   .app-card {

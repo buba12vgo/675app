@@ -211,6 +211,124 @@ function IconX({ size = 18, color = "currentColor" }) {
   );
 }
 
+function useCompactHeader() {
+  const [compact, setCompact] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 767px)").matches : false
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const handleChange = (event) => setCompact(event.matches);
+    media.addEventListener("change", handleChange);
+    setCompact(media.matches);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  return compact;
+}
+
+function AppHeader({
+  compact,
+  barStyle,
+  inputBorder,
+  accent,
+  text,
+  textMuted,
+  accentLight,
+  cardBgElevated,
+  userData,
+  canSeedDemoData,
+  seedingDemo,
+  onSeedDemo,
+  devicePreview,
+  onDevicePreviewChange,
+  colorMode,
+  onToggleColorMode,
+  onOpenOpciones,
+  onLogout,
+  onGoHome,
+}) {
+  if (compact) {
+    return (
+      <header className="app-header app-header--compact">
+        <div className="app-header-bar app-header-bar--compact" style={barStyle}>
+          <AppBrand accent={accent} text={text} fontSize={20} onGoHome={onGoHome} />
+          <div className="app-header-compact-actions">
+            <button
+              type="button"
+              className="app-header-options-btn app-header-options-btn--icon-only"
+              onClick={onOpenOpciones}
+              aria-label="Opciones"
+              style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+            >
+              <IconSettings size={18} color={textMuted} />
+            </button>
+            <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
+            <button type="button" className="app-header-logout app-header-logout--inline" onClick={onLogout}>
+              Salir
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header className="app-header">
+      <div className="app-header-bar" style={barStyle}>
+        <div className="app-header-row app-header-row--primary">
+          <AppBrand accent={accent} text={text} fontSize={22} onGoHome={onGoHome} />
+          <button type="button" className="app-header-logout app-header-logout--corner" onClick={onLogout} tabIndex={0}>
+            Salir
+          </button>
+        </div>
+        <div className="app-header-row app-header-row--tools">
+          <span className="app-header-role" style={{ color: textMuted }}>
+            Rol{" "}
+            <span style={{ color: accentLight, fontWeight: 600 }}>
+              {formatRolLabel(userData?.rol)}
+            </span>
+            {userData?.nombre?.trim() ? ` - ${userData.nombre.trim()}` : ""}
+          </span>
+          <button
+            type="button"
+            className="app-header-options-btn"
+            onClick={onOpenOpciones}
+            style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
+            aria-label="Opciones"
+          >
+            <IconSettings size={16} color={textMuted} />
+            <span className="app-header-options-btn__label">Opciones</span>
+          </button>
+          {canSeedDemoData && (
+            <button
+              type="button"
+              className="app-header-seed-btn"
+              onClick={onSeedDemo}
+              disabled={seedingDemo}
+              style={{
+                color: accent,
+                borderColor: inputBorder,
+                background: cardBgElevated,
+                opacity: seedingDemo ? 0.75 : 1,
+                cursor: seedingDemo ? "wait" : "pointer",
+              }}
+            >
+              <span className="app-header-seed-btn__long">{seedingDemo ? "Generando…" : "Datos prueba"}</span>
+              <span className="app-header-seed-btn__short">{seedingDemo ? "…" : "Demo"}</span>
+            </button>
+          )}
+          <DevicePreviewControl mode={devicePreview} onChange={onDevicePreviewChange} />
+          <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
+          <button type="button" className="app-header-logout app-header-logout--inline" onClick={onLogout} tabIndex={0}>
+            Salir
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 function AppBrand({ accent = THEME.accent, text = THEME.text, fontSize = 24, onGoHome }) {
   return (
     <button
@@ -1925,6 +2043,8 @@ function App() {
   const toggleColorMode = () => {
     setColorMode(prev => (prev === "dark" ? "light" : "dark"));
   };
+
+  const compactHeader = useCompactHeader();
 
   const theme = THEMES[colorMode];
   const glassCardStyle = getGlassCardStyle(colorMode);
@@ -4057,69 +4177,46 @@ function App() {
       </div>
     );
   };
+
+  const headerBarStyle = {
+    ...glassCardStyle,
+    borderRadius: compactHeader ? 12 : 16,
+    boxShadow: cardShadow,
+    border: `1px solid ${inputBorder}`,
+  };
+
   return (
     <div
       className="app-shell"
       data-device-preview={devicePreview}
       data-user-role={userData?.rol || ""}
+      data-compact-header={compactHeader ? "true" : "false"}
       style={{ fontFamily: "'Inter',system-ui,sans-serif" }}
     >
       <BlurredBackground isDark={isDarkMode} />
-      {/* Header */}
-      <header className="app-header">
-        <div className="app-header-bar" style={{ ...glassCardStyle, borderRadius: 16, boxShadow: cardShadow, border: `1px solid ${inputBorder}` }}>
-          <div className="app-header-row app-header-row--primary">
-            <AppBrand accent={accent} text={text} fontSize={22} onGoHome={handleGoHome} />
-            <button type="button" className="app-header-logout app-header-logout--corner" onClick={handleLogout} tabIndex={0}>
-              Salir
-            </button>
-          </div>
-          <div className="app-header-row app-header-row--tools">
-            <span className="app-header-role" style={{ color: textMuted }}>
-              Rol{" "}
-              <span style={{ color: accentLight, fontWeight: 600 }}>
-                {formatRolLabel(userData?.rol)}
-              </span>
-              {userData?.nombre?.trim() ? ` - ${userData.nombre.trim()}` : ""}
-            </span>
-            <button
-              type="button"
-              className="app-header-options-btn"
-              onClick={handleOpenOpciones}
-              style={{ color: textMuted, borderColor: inputBorder, background: cardBgElevated }}
-              aria-label="Opciones"
-            >
-              <IconSettings size={16} color={textMuted} />
-              <span className="app-header-options-btn__label">Opciones</span>
-            </button>
-            {canSeedDemoData && (
-              <button
-                type="button"
-                className="app-header-seed-btn"
-                onClick={handleSeedDemoData}
-                disabled={seedingDemo}
-                style={{
-                  color: accent,
-                  borderColor: inputBorder,
-                  background: cardBgElevated,
-                  opacity: seedingDemo ? 0.75 : 1,
-                  cursor: seedingDemo ? "wait" : "pointer",
-                }}
-              >
-                <span className="app-header-seed-btn__long">{seedingDemo ? "Generando…" : "Datos prueba"}</span>
-                <span className="app-header-seed-btn__short">{seedingDemo ? "…" : "Demo"}</span>
-              </button>
-            )}
-            <DevicePreviewControl mode={devicePreview} onChange={setDevicePreview} />
-            <ThemeToggleButton colorMode={colorMode} onToggle={toggleColorMode} />
-            <button type="button" className="app-header-logout app-header-logout--inline" onClick={handleLogout} tabIndex={0}>
-              Salir
-            </button>
-          </div>
-        </div>
-      </header>
       <div className="device-preview-viewport">
         <div className="device-preview-frame">
+      <AppHeader
+        compact={compactHeader}
+        barStyle={headerBarStyle}
+        inputBorder={inputBorder}
+        accent={accent}
+        text={text}
+        textMuted={textMuted}
+        accentLight={accentLight}
+        cardBgElevated={cardBgElevated}
+        userData={userData}
+        canSeedDemoData={canSeedDemoData}
+        seedingDemo={seedingDemo}
+        onSeedDemo={handleSeedDemoData}
+        devicePreview={devicePreview}
+        onDevicePreviewChange={setDevicePreview}
+        colorMode={colorMode}
+        onToggleColorMode={toggleColorMode}
+        onOpenOpciones={handleOpenOpciones}
+        onLogout={handleLogout}
+        onGoHome={handleGoHome}
+      />
       <main className="app-main">
         <div className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`} style={{ ...glassCardStyle, boxShadow: cardShadow, border: `1px solid ${inputBorder}`, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: showTeamNav ? "stretch" : "center", width: "100%" }}>
           {showOpcionesPanel ? (
