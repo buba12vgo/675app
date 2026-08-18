@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, googleProvider, db } from "./firebase";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { db } from "./firebase";
 import {
   doc,
   getDoc,
@@ -55,6 +49,7 @@ import {
 } from "./lib/appUtils.js";
 
 import { useCompactHeader } from "./hooks/useCompactHeader.js";
+import { useAuth } from "./hooks/useAuth.js";
 import {
   IconHome,
   IconCalendar,
@@ -80,12 +75,28 @@ const THEME = THEMES.dark;
 
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  
+
+  const {
+    user,
+    userData,
+    setUserData,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    userNombreInput,
+    setUserNombreInput,
+    savingUserNombre,
+    showOpcionesPanel,
+    setShowOpcionesPanel,
+    handleEmailLogin,
+    handleGoogleLogin,
+    logout,
+    handleOpenOpciones,
+    handleSaveUserNombre,
+  } = useAuth(setErrorMsg);
+
   // SaaS state
   const [clubes, setClubes] = useState([]);
   const [activeClub, setActiveClub] = useState(null);
@@ -102,9 +113,6 @@ function App() {
   const [clubUsuarios, setClubUsuarios] = useState([]);
   const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
   const [coordinadorVista, setCoordinadorVista] = useState("equipos"); // "equipos" | "coordinacion"
-  const [userNombreInput, setUserNombreInput] = useState("");
-  const [savingUserNombre, setSavingUserNombre] = useState(false);
-  const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [seedNotice, setSeedNotice] = useState(null);
   const [solicitudesClub, setSolicitudesClub] = useState([]);
@@ -252,52 +260,6 @@ function App() {
     { key: "plantilla", label: "Plantilla", Icon: IconUsers },
   ];
 
-  useEffect(() => {
-    setUserNombreInput(userData?.nombre || "");
-  }, [userData?.nombre]);
-
-  // Escucha auth y datos de usuario
-  useEffect(() => {
-    let unsubAuth;
-    let unsubProfile;
-
-    unsubAuth = onAuthStateChanged(auth, async (u) => {
-      if (unsubProfile) {
-        unsubProfile();
-        unsubProfile = null;
-      }
-
-      setUser(u);
-      setErrorMsg("");
-      if (u) {
-        try {
-          const docRef = doc(db, "Usuarios", u.uid);
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
-            const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
-            await setDoc(docRef, nuevoUsuario);
-          }
-
-          unsubProfile = onSnapshot(
-            docRef,
-            (snap) => {
-              setUserData(snap.exists() ? snap.data() : null);
-            },
-            () => setUserData(null)
-          );
-        } catch (err) {
-          setUserData(null);
-        }
-      } else {
-        setUserData(null);
-      }
-    });
-
-    return () => {
-      if (typeof unsubProfile === "function") unsubProfile();
-      if (typeof unsubAuth === "function") unsubAuth();
-    };
-  }, []);
   // Escucha clubes para superadmin
   useEffect(() => {
     let unsub;
@@ -918,32 +880,6 @@ function App() {
     }
   };
 
-  const handleOpenOpciones = () => {
-    setErrorMsg("");
-    setShowOpcionesPanel(true);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const handleSaveUserNombre = async (e) => {
-    e.preventDefault();
-    if (!user || !userNombreInput.trim()) return;
-    setSavingUserNombre(true);
-    setErrorMsg("");
-    try {
-      const nombre = userNombreInput.trim();
-      await updateDoc(doc(db, "Usuarios", user.uid), { nombre });
-      setUserData(prev => ({ ...prev, nombre }));
-    } catch (err) {
-      setErrorMsg(err?.code === "permission-denied"
-        ? "No tienes permiso para guardar tu nombre."
-        : "No se pudo guardar tu nombre.");
-    } finally {
-      setSavingUserNombre(false);
-    }
-  };
-
   const userOptionsProps = {
     userNombre: userNombreInput,
     onNombreChange: setUserNombreInput,
@@ -1224,30 +1160,8 @@ function App() {
     setEditJugadoraLoading(false);
   };
 
-  const handleEmailLogin = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setEmail("");
-      setPassword("");
-    } catch (error) {
-      setErrorMsg(error.message);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setErrorMsg("");
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      setErrorMsg(error.message);
-    }
-  };
-
   const handleLogout = async () => {
-    await signOut(auth);
-    setUserData(null);
+    await logout();
     setEquipoActivo(null);
     setTab("home");
   };
