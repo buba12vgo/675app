@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAsCoach, enterFirstTeam, openTeamTab } from "./helpers/auth.js";
+import { loginAsCoach, enterFirstTeam, openTeamTab, teamTab } from "./helpers/auth.js";
 
 test.describe("Entrenador", () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe("Entrenador", () => {
 
     for (const tab of ["Inicio", "Calendario", "Estadísticas", "Plantilla"]) {
       await openTeamTab(page, tab);
-      await expect(page.locator("button.app-nav-btn--mobile").filter({ hasText: tab })).toBeVisible();
+      await expect(teamTab(page, tab)).toBeVisible();
     }
   });
 

@@ -24,8 +24,15 @@ export async function loginAsSuperadmin(page) {
   return true;
 }
 
+const MOBILE_TAB_ALIASES = {
+  Calendario: "Calend.",
+  Estadísticas: "Estad.",
+  Plantilla: "Plant.",
+};
+
 export function teamTab(page, label) {
-  return page.locator("button.app-nav-btn--mobile").filter({ hasText: label });
+  const mobileLabel = MOBILE_TAB_ALIASES[label] || label;
+  return page.locator("button.app-nav-btn--mobile").filter({ hasText: mobileLabel });
 }
 
 export async function enterFirstTeam(page) {
