@@ -26,6 +26,7 @@ import {
   filtrarSesionesPorPeriodo,
   calcularEstadisticasJugadoras,
   isCoordinador,
+  getEquipoLabels,
   formatTipoCanasta,
   formatGeneroEquipo,
 } from "./lib/appUtils.js";
@@ -151,6 +152,15 @@ function App() {
   const [clubUsuariosLoading, setClubUsuariosLoading] = useState(false);
   const [coordinadorVista, setCoordinadorVista] = useState("equipos"); // "equipos" | "coordinacion"
   const [tab, setTab] = useState("home");
+  const [devicePreview, setDevicePreview] = useState("mobile");
+  const [colorMode, setColorMode] = useState(() => getStoredTheme());
+  const [statsPeriodo, setStatsPeriodo] = useState("mensual");
+  const [statsVista, setStatsVista] = useState("todo"); // "entrenos" | "partidos" | "todo"
+  const [statsDesde, setStatsDesde] = useState(() => {
+    const d = new Date();
+    return formatDateYYYYMMDD(new Date(d.getFullYear(), d.getMonth(), 1));
+  });
+  const [statsHasta, setStatsHasta] = useState(() => formatDateYYYYMMDD(new Date()));
 
   const {
     jugadoras,
@@ -211,8 +221,7 @@ function App() {
     resetSesionPanel,
   } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
 
-  const [devicePreview, setDevicePreview] = useState("mobile");
-  const [colorMode, setColorMode] = useState(() => getStoredTheme());
+  const compactHeader = useCompactHeader();
 
   useEffect(() => {
     applyThemeToDocument(colorMode);
@@ -237,20 +246,9 @@ function App() {
     setColorMode(prev => (prev === "dark" ? "light" : "dark"));
   };
 
-  const compactHeader = useCompactHeader();
-
   const theme = THEMES[colorMode];
   const glassCardStyle = getGlassCardStyle(colorMode);
   const isDarkMode = colorMode === "dark";
-
-  // Estadísticas — filtros de periodo
-  const [statsPeriodo, setStatsPeriodo] = useState("mensual");
-  const [statsVista, setStatsVista] = useState("todo"); // "entrenos" | "partidos" | "todo"
-  const [statsDesde, setStatsDesde] = useState(() => {
-    const d = new Date();
-    return formatDateYYYYMMDD(new Date(d.getFullYear(), d.getMonth(), 1));
-  });
-  const [statsHasta, setStatsHasta] = useState(() => formatDateYYYYMMDD(new Date()));
 
   // Colores
   const bgDark = theme.bg;
