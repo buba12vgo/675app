@@ -7,8 +7,10 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  deleteField,
 } from "firebase/firestore";
 import { seedDemoData } from "../seedDemoData.js";
+import { validateLogoFile, uploadClubLogo, removeStoragePrefix } from "../lib/logoStorage.js";
 
 export function useClubes({
   user,
@@ -29,6 +31,7 @@ export function useClubes({
   const [solicitudesLoading, setSolicitudesLoading] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [seedNotice, setSeedNotice] = useState(null);
+  const [savingClubLogoId, setSavingClubLogoId] = useState(null);
 
   const resolvedClubId = equipoActivo?.clubId || userData?.clubId || null;
 
@@ -238,6 +241,77 @@ export function useClubes({
     }
   };
 
+  const getClubLogo = useCallback(
+    (clubId) => {
+      const fromList = clubes.find((c) => c.id === clubId)?.logoUrl;
+      if (fromList) return fromList;
+      if (activeClub?.id === clubId && activeClub?.logoUrl) return activeClub.logoUrl;
+      return null;
+    },
+    [clubes, activeClub]
+  );
+
+  const handleUploadClubLogo = async (clubId, file) => {
+    if (!clubId) return;
+    const validationError = validateLogoFile(file);
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
+
+    setSavingClubLogoId(clubId);
+    setErrorMsg("");
+    try {
+      const logoUrl = await uploadClubLogo(clubId, file);
+      await updateDoc(doc(db, "Clubes", clubId), {
+        logoUrl,
+        logoUpdatedAt: new Date(),
+      });
+      setClubes((prev) => prev.map((c) => (c.id === clubId ? { ...c, logoUrl } : c)));
+      if (activeClub?.id === clubId) {
+        setActiveClub((prev) => (prev ? { ...prev, logoUrl } : prev));
+      }
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para subir el escudo del club."
+          : err?.message || "No se pudo subir el escudo del club."
+      );
+    } finally {
+      setSavingClubLogoId(null);
+    }
+  };
+
+  const handleRemoveClubLogo = async (clubId) => {
+    if (!clubId) return;
+    const confirmed = window.confirm("¿Quitar el escudo del club?");
+    if (!confirmed) return;
+
+    setSavingClubLogoId(clubId);
+    setErrorMsg("");
+    try {
+      await removeStoragePrefix(`clubes/${clubId}`);
+      await updateDoc(doc(db, "Clubes", clubId), {
+        logoUrl: deleteField(),
+        logoUpdatedAt: new Date(),
+      });
+      setClubes((prev) =>
+        prev.map((c) => (c.id === clubId ? { ...c, logoUrl: undefined } : c))
+      );
+      if (activeClub?.id === clubId) {
+        setActiveClub((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
+      }
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para quitar el escudo del club."
+          : err?.message || "No se pudo quitar el escudo del club."
+      );
+    } finally {
+      setSavingClubLogoId(null);
+    }
+  };
+
   const handleSeedDemoData = async () => {
     if (userData?.rol !== "superadmin") {
       setErrorMsg("No tienes permiso para generar datos de prueba.");
@@ -280,6 +354,7 @@ export function useClubes({
     seedingDemo,
     seedNotice,
     getClubNombre,
+    getClubLogo,
     handleCrearClub,
     handleSolicitarClub,
     handleSelectClub,
@@ -287,5 +362,8 @@ export function useClubes({
     handleRechazarSolicitudClub,
     handleQuitarMiClub,
     handleSeedDemoData,
+    handleUploadClubLogo,
+    handleRemoveClubLogo,
+    savingClubLogoId,
   };
 }

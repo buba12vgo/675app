@@ -6,6 +6,7 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  deleteField,
   query,
   where,
 } from "firebase/firestore";
@@ -16,6 +17,7 @@ import {
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
+import { validateLogoFile, uploadEquipoLogo, removeStoragePrefix } from "../lib/logoStorage.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const [equipos, setEquipos] = useState([]);
@@ -29,6 +31,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const [editEquipoGenero, setEditEquipoGenero] = useState(GENERO_FEMENINO);
   const [editEquipoTipoCanasta, setEditEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
   const [savingEquipoId, setSavingEquipoId] = useState(null);
+  const [savingEquipoLogoId, setSavingEquipoLogoId] = useState(null);
   const [equipoActivo, setEquipoActivo] = useState(null);
 
   useEffect(() => {
@@ -155,6 +158,71 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setEquipoActivo(equipo);
   };
 
+  const handleUploadEquipoLogo = async (equipoId, file) => {
+    const equipo = equipos.find((e) => e.id === equipoId);
+    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo)) return;
+
+    const validationError = validateLogoFile(file);
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
+
+    setSavingEquipoLogoId(equipoId);
+    setErrorMsg("");
+    try {
+      const logoUrl = await uploadEquipoLogo(equipoId, file);
+      await updateDoc(doc(db, "Equipos", equipoId), {
+        logoUrl,
+        logoUpdatedAt: new Date(),
+      });
+      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, logoUrl } : e)));
+      if (equipoActivo?.id === equipoId) {
+        setEquipoActivo((prev) => (prev ? { ...prev, logoUrl } : prev));
+      }
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para subir el escudo del equipo."
+          : err?.message || "No se pudo subir el escudo del equipo."
+      );
+    } finally {
+      setSavingEquipoLogoId(null);
+    }
+  };
+
+  const handleRemoveEquipoLogo = async (equipoId) => {
+    const equipo = equipos.find((e) => e.id === equipoId);
+    if (!equipoId || !equipo || !puedeGestionarEquipo(equipo)) return;
+
+    const confirmed = window.confirm("¿Quitar el escudo del equipo?");
+    if (!confirmed) return;
+
+    setSavingEquipoLogoId(equipoId);
+    setErrorMsg("");
+    try {
+      await removeStoragePrefix(`equipos/${equipoId}`);
+      await updateDoc(doc(db, "Equipos", equipoId), {
+        logoUrl: deleteField(),
+        logoUpdatedAt: new Date(),
+      });
+      setEquipos((prev) =>
+        prev.map((e) => (e.id === equipoId ? { ...e, logoUrl: undefined } : e))
+      );
+      if (equipoActivo?.id === equipoId) {
+        setEquipoActivo((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
+      }
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para quitar el escudo del equipo."
+          : err?.message || "No se pudo quitar el escudo del equipo."
+      );
+    } finally {
+      setSavingEquipoLogoId(null);
+    }
+  };
+
   const handleCrearEquipo = async (e) => {
     e.preventDefault();
     if (!nuevoEquipoNombre.trim() || !userData?.clubId) return;
@@ -189,6 +257,9 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     onStartEditEquipo: handleIniciarEditEquipo,
     onCancelEditEquipo: handleCancelarEditEquipo,
     onSaveEquipo: handleGuardarEquipo,
+    onUploadEquipoLogo: handleUploadEquipoLogo,
+    onRemoveEquipoLogo: handleRemoveEquipoLogo,
+    savingEquipoLogoId,
   };
 
   return {
@@ -218,5 +289,8 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     handleCancelarEditEquipo,
     handleGuardarEquipo,
     handleEntrarEquipo,
+    handleUploadEquipoLogo,
+    handleRemoveEquipoLogo,
+    savingEquipoLogoId,
   };
 }

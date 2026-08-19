@@ -7,6 +7,8 @@ import {
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
 import { IconGear } from "./icons.jsx";
+import { EntityLogoMark } from "./EntityLogoMark.jsx";
+import { LogoUpload } from "./LogoUpload.jsx";
 
 export function EquipoListRow({
   equipo,
@@ -25,8 +27,13 @@ export function EquipoListRow({
   onCancelEdit,
   onSave,
   onEntrar,
+  onUploadLogo,
+  onRemoveLogo,
+  logoUploading,
   accent,
   accentLight,
+  accentSoft,
+  onAccent,
   text,
   textSecondary,
   textMuted,
@@ -113,6 +120,29 @@ export function EquipoListRow({
             Cancelar
           </button>
         </div>
+        {canEdit && onUploadLogo && (
+          <LogoUpload
+            compact
+            title="Escudo del equipo"
+            logoUrl={equipo.logoUrl}
+            entityName={equipo.nombre}
+            canEdit
+            uploading={logoUploading}
+            onUpload={onUploadLogo}
+            onRemove={onRemoveLogo}
+            accent={accent}
+            onAccent={onAccent}
+            text={text}
+            textSecondary={textSecondary}
+            textMuted={textMuted}
+            inputBorder={inputBorder}
+            inputBg={inputBg}
+            accentLight={accentLight}
+            accentSoft={accentSoft}
+            accentBorder={inputBorder}
+            markSize={44}
+          />
+        )}
       </div>
     );
   }
@@ -121,7 +151,15 @@ export function EquipoListRow({
     <div className="entity-list-card" style={{ borderLeftColor: borderAccent || accent }}>
       <div className="entity-list-card__body">
         <div className="entity-list-card__title-row">
-          <span className="entity-list-card__dot">●</span>
+          <EntityLogoMark
+            logoUrl={equipo.logoUrl}
+            nombre={equipo.nombre}
+            accentLight={accentLight}
+            accentSoft={accentSoft}
+            accentBorder={inputBorder}
+            className="entity-list-card__logo"
+            size={40}
+          />
           <span className="entity-list-card__title">{equipo.nombre}</span>
         </div>
         {mostrarClub && clubNombre && (

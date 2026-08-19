@@ -80,7 +80,11 @@ service cloud.firestore {
     match /Clubes/{clubId} {
       allow read: if isSignedIn();
       allow create: if isSuperadmin();
-      allow update: if isSuperadmin();
+      allow update: if isSuperadmin() || (
+        isCoordinador()
+        && userClubId() == clubId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl', 'logoUpdatedAt'])
+      );
       allow delete: if isSuperadmin();
     }
 

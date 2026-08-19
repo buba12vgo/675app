@@ -1,10 +1,12 @@
-import { ClubInitialsMark } from "./ClubInitialsMark.jsx";
+import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { IconChevronLeft } from "./icons.jsx";
 
 export function TeamContextHeader({
   clubNombre,
   equipoNombre,
   equipoMeta,
+  clubLogoUrl,
+  equipoLogoUrl,
   onCambiarEquipo,
   accentLight,
   accentSoft,
@@ -14,11 +16,15 @@ export function TeamContextHeader({
   textMuted,
   variant = "sidebar",
 }) {
+  const headerLogoUrl = equipoLogoUrl || clubLogoUrl;
+  const headerLogoName = equipoLogoUrl ? equipoNombre : clubNombre;
+
   return (
     <div className={`team-context-header team-context-header--${variant}`}>
       <div className="team-context-brand">
-        <ClubInitialsMark
-          clubNombre={clubNombre}
+        <EntityLogoMark
+          logoUrl={headerLogoUrl}
+          nombre={headerLogoName}
           accentLight={accentLight}
           accentSoft={accentSoft}
           accentBorder={accentBorder}

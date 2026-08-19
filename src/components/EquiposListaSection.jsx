@@ -27,6 +27,7 @@ export function EquiposListaSection({
   getClubNombre,
   accent,
   accentLight,
+  accentSoft,
   onAccent,
   text,
   textSecondary,
@@ -185,8 +186,13 @@ export function EquiposListaSection({
               onCancelEdit={equipoEditProps.onCancelEditEquipo}
               onSave={equipoEditProps.onSaveEquipo}
               onEntrar={onEntrarEquipo}
+              onUploadLogo={(file) => equipoEditProps.onUploadEquipoLogo(equipo.id, file)}
+              onRemoveLogo={() => equipoEditProps.onRemoveEquipoLogo(equipo.id)}
+              logoUploading={equipoEditProps.savingEquipoLogoId === equipo.id}
               accent={accent}
               accentLight={accentLight}
+              accentSoft={accentSoft}
+              onAccent={onAccent}
               text={text}
               textSecondary={textSecondary}
               textMuted={textMuted}

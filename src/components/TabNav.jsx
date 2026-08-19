@@ -15,16 +15,25 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
     }
   };
 
+  const mobileNavStyle = {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+  };
+
+  const mobileButtonLayoutStyle = {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
   return (
     <nav
       className={isDesktop ? "app-nav-desktop" : "app-nav-mobile"}
-      style={
-        isDesktop
-          ? { background: "transparent" }
-          : {
-              gridTemplateColumns: `repeat(${tabsMenu.length}, minmax(0, 1fr))`,
-            }
-      }
+      style={isDesktop ? { background: "transparent" } : mobileNavStyle}
     >
       {tabsMenu.map(({ key, label, Icon }) => {
         const active = tab === key;
@@ -34,8 +43,9 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
             key={key}
             type="button"
             onClick={() => handleTabClick(key)}
-            className={`app-nav-btn ${isDesktop ? "app-nav-btn--desktop" : "app-nav-btn--mobile"}`}
+            className={isDesktop ? "app-nav-btn app-nav-btn--desktop" : "app-nav-btn app-nav-btn--mobile"}
             style={{
+              ...(isDesktop ? {} : mobileButtonLayoutStyle),
               background: active ? accentSoft : "transparent",
               color: active ? accent : textMuted,
               fontWeight: active ? 700 : 500,

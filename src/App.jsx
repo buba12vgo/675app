@@ -112,10 +112,14 @@ function App() {
     handleCancelarEditEquipo,
     handleGuardarEquipo,
     handleEntrarEquipo,
+    handleUploadEquipoLogo,
+    handleRemoveEquipoLogo,
+    savingEquipoLogoId,
   } = useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg });
 
   const {
     clubes,
+    activeClub,
     nuevoClubNombre,
     setNuevoClubNombre,
     gestionLoading,
@@ -125,6 +129,7 @@ function App() {
     seedingDemo,
     seedNotice,
     getClubNombre,
+    getClubLogo,
     handleCrearClub,
     handleSolicitarClub,
     handleSelectClub,
@@ -132,6 +137,9 @@ function App() {
     handleRechazarSolicitudClub,
     handleQuitarMiClub,
     handleSeedDemoData,
+    handleUploadClubLogo,
+    handleRemoveClubLogo,
+    savingClubLogoId,
   } = useClubes({
     user,
     userData,
@@ -506,6 +514,10 @@ function App() {
 
   const coordinacionProps = {
     clubNombre: userData?.clubNombre,
+    clubLogoUrl: activeClub?.logoUrl || getClubLogo(userData?.clubId),
+    onUploadClubLogo: (file) => handleUploadClubLogo(userData?.clubId, file),
+    onRemoveClubLogo: () => handleRemoveClubLogo(userData?.clubId),
+    savingClubLogo: savingClubLogoId === userData?.clubId,
     usuarios: clubUsuarios,
     usuariosLoading: clubUsuariosLoading,
     equipos,
@@ -523,6 +535,9 @@ function App() {
     onStartEditEquipo: handleIniciarEditEquipo,
     onCancelEditEquipo: handleCancelarEditEquipo,
     onSaveEquipo: handleGuardarEquipo,
+    onUploadEquipoLogo: handleUploadEquipoLogo,
+    onRemoveEquipoLogo: handleRemoveEquipoLogo,
+    savingEquipoLogoId,
     accent,
     accentLight,
     accentSoft,
@@ -532,6 +547,7 @@ function App() {
     inputBorder,
     inputBg,
     cardBgElevated,
+    onAccent,
   };
 
   const canSeedDemoData = userData?.rol === "superadmin";
@@ -821,6 +837,13 @@ function App() {
     return userData?.clubNombre || "Club";
   };
 
+  const getClubLogoActivo = () => {
+    if (activeClub?.logoUrl) return activeClub.logoUrl;
+    if (equipoActivo?.clubId) return getClubLogo(equipoActivo.clubId);
+    if (userData?.clubId) return getClubLogo(userData.clubId);
+    return null;
+  };
+
   const equiposListaProps = {
     esSuperadmin,
     equipos,
@@ -840,6 +863,7 @@ function App() {
     getClubNombre,
     accent,
     accentLight,
+    accentSoft,
     onAccent,
     text,
     textSecondary,
@@ -873,6 +897,9 @@ function App() {
     gestionLoading,
     clubes,
     onSelectClub: handleSelectClub,
+    onUploadClubLogo: handleUploadClubLogo,
+    onRemoveClubLogo: handleRemoveClubLogo,
+    savingClubLogoId,
   };
 
   const superadminEquiposPanelProps = {
@@ -891,6 +918,8 @@ function App() {
   const teamLayoutProps = equipoActivo
     ? {
         clubNombre: getNombreClubActivo(),
+        clubLogoUrl: getClubLogoActivo(),
+        equipoLogoUrl: equipoActivo.logoUrl || null,
         equipoNombre: equipoActivo.nombre,
         equipoMeta: `${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`,
         onCambiarEquipo: () => setEquipoActivo(null),

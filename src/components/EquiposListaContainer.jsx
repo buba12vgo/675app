@@ -22,6 +22,7 @@ export function EquiposListaContainer({
   getClubNombre,
   accent,
   accentLight,
+  accentSoft,
   onAccent,
   text,
   textSecondary,

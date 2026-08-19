@@ -1,8 +1,13 @@
 import { IconCoordination } from "./icons.jsx";
 import { EquipoListRow } from "./EquipoListRow.jsx";
+import { LogoUpload } from "./LogoUpload.jsx";
 
 export function CoordinacionPanel({
   clubNombre,
+  clubLogoUrl,
+  onUploadClubLogo,
+  onRemoveClubLogo,
+  savingClubLogo,
   usuarios,
   usuariosLoading,
   equipos,
@@ -20,6 +25,9 @@ export function CoordinacionPanel({
   onStartEditEquipo,
   onCancelEditEquipo,
   onSaveEquipo,
+  onUploadEquipoLogo,
+  onRemoveEquipoLogo,
+  savingEquipoLogoId,
   accent,
   accentLight,
   accentSoft,
@@ -29,6 +37,7 @@ export function CoordinacionPanel({
   inputBorder,
   inputBg,
   cardBgElevated,
+  onAccent,
 }) {
   const entrenadores = usuarios.filter((u) => u.rol === "entrenador");
   const coordinador = usuarios.find((u) => u.rol === "coordinador");
@@ -44,6 +53,29 @@ export function CoordinacionPanel({
       </p>
 
       <div style={{ display: "grid", gap: 16 }}>
+        <div className="club-branding-card" style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
+          <LogoUpload
+            title="Escudo del club"
+            subtitle={`Identidad visual de ${clubNombre}`}
+            logoUrl={clubLogoUrl}
+            entityName={clubNombre}
+            canEdit
+            uploading={savingClubLogo}
+            onUpload={onUploadClubLogo}
+            onRemove={onRemoveClubLogo}
+            accent={accent}
+            onAccent={onAccent}
+            text={text}
+            textSecondary={textSecondary}
+            textMuted={textMuted}
+            inputBorder={inputBorder}
+            inputBg={inputBg}
+            accentLight={accentLight}
+            accentSoft={accentSoft}
+            accentBorder={inputBorder}
+          />
+        </div>
+
         <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
           <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Coordinador</div>
           {coordinador ? (
@@ -103,8 +135,12 @@ export function CoordinacionPanel({
                   onCancelEdit={onCancelEditEquipo}
                   onSave={onSaveEquipo}
                   onEntrar={onEntrarEquipo}
+                  onUploadLogo={(file) => onUploadEquipoLogo(equipo.id, file)}
+                  onRemoveLogo={() => onRemoveEquipoLogo(equipo.id)}
+                  logoUploading={savingEquipoLogoId === equipo.id}
                   accent={accent}
                   accentLight={accentLight}
+                  accentSoft={accentSoft}
                   text={text}
                   textSecondary={textSecondary}
                   textMuted={textMuted}

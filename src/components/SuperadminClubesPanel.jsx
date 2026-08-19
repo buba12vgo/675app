@@ -1,4 +1,6 @@
 import { DemoSeedCard } from "./DemoSeedCard.jsx";
+import { EntityLogoMark } from "./EntityLogoMark.jsx";
+import { LogoUpload } from "./LogoUpload.jsx";
 
 export function SuperadminClubesPanel({
   userData,
@@ -24,6 +26,9 @@ export function SuperadminClubesPanel({
   gestionLoading,
   clubes,
   onSelectClub,
+  onUploadClubLogo,
+  onRemoveClubLogo,
+  savingClubLogoId,
 }) {
   return (
     <>
@@ -265,7 +270,15 @@ export function SuperadminClubesPanel({
               >
                 <div className="entity-list-card__body">
                   <div className="entity-list-card__title-row">
-                    <span className="entity-list-card__dot">●</span>
+                    <EntityLogoMark
+                      logoUrl={club.logoUrl}
+                      nombre={club.nombre}
+                      accentLight={accentLight}
+                      accentSoft={accentSoft}
+                      accentBorder={inputBorder}
+                      className="entity-list-card__logo"
+                      size={40}
+                    />
                     <span className="entity-list-card__title">{club.nombre}</span>
                     {userData?.clubId === club.id && (
                       <span
@@ -284,6 +297,27 @@ export function SuperadminClubesPanel({
                       </span>
                     )}
                   </div>
+                  <LogoUpload
+                    compact
+                    title="Escudo del club"
+                    logoUrl={club.logoUrl}
+                    entityName={club.nombre}
+                    canEdit
+                    uploading={savingClubLogoId === club.id}
+                    onUpload={(file) => onUploadClubLogo(club.id, file)}
+                    onRemove={() => onRemoveClubLogo(club.id)}
+                    accent={accent}
+                    onAccent={onAccent}
+                    text={text}
+                    textSecondary={textSecondary}
+                    textMuted={textMuted}
+                    inputBorder={inputBorder}
+                    inputBg={inputBg}
+                    accentLight={accentLight}
+                    accentSoft={accentSoft}
+                    accentBorder={inputBorder}
+                    markSize={44}
+                  />
                 </div>
                 {userData?.clubId !== club.id && (
                   <button type="button" className="entity-list-card__action" onClick={() => onSelectClub(club)}>
