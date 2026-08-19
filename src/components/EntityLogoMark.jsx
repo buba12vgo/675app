@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ClubInitialsMark } from "./ClubInitialsMark.jsx";
+import { getLogoFrameStyle } from "../lib/clubLogoPresets.js";
 
 export function EntityLogoMark({
   logoUrl,
@@ -18,14 +19,22 @@ export function EntityLogoMark({
   }, [logoUrl]);
 
   if (logoUrl && !imageFailed) {
+    const { variant, background } = getLogoFrameStyle({ logoUrl, nombre });
+    const frameClass =
+      variant === "circle" ? "club-logo-frame club-logo-frame--circle" : "club-logo-frame club-logo-frame--rounded";
+
     return (
-      <img
-        src={logoUrl}
-        alt={nombre ? `${altPrefix} ${nombre}` : "Escudo"}
-        className={`club-logo-mark ${className}`}
-        style={{ width: size, height: size }}
-        onError={() => setImageFailed(true)}
-      />
+      <div
+        className={`${frameClass} ${className}`}
+        style={{ width: size, height: size, background }}
+      >
+        <img
+          src={logoUrl}
+          alt={nombre ? `${altPrefix} ${nombre}` : "Escudo"}
+          className="club-logo-mark"
+          onError={() => setImageFailed(true)}
+        />
+      </div>
     );
   }
 
