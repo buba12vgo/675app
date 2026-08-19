@@ -33,7 +33,7 @@ import {
 
 import { useCompactHeader } from "./hooks/useCompactHeader.js";
 import { useAuth } from "./hooks/useAuth.js";
-import { useClubes } from "./hooks/useClubes.js";
+import { resolveClubLogoUrl } from "./lib/clubLogoPresets.js";
 import { useEquipos } from "./hooks/useEquipos.js";
 import { usePlantilla } from "./hooks/usePlantilla.js";
 import { useSesiones } from "./hooks/useSesiones.js";
@@ -514,7 +514,10 @@ function App() {
 
   const coordinacionProps = {
     clubNombre: userData?.clubNombre,
-    clubLogoUrl: activeClub?.logoUrl || getClubLogo(userData?.clubId),
+    clubLogoUrl: resolveClubLogoUrl({
+      logoUrl: activeClub?.logoUrl,
+      nombre: userData?.clubNombre,
+    }),
     onUploadClubLogo: (file) => handleUploadClubLogo(userData?.clubId, file),
     onRemoveClubLogo: () => handleRemoveClubLogo(userData?.clubId),
     savingClubLogo: savingClubLogoId === userData?.clubId,
@@ -838,10 +841,15 @@ function App() {
   };
 
   const getClubLogoActivo = () => {
-    if (activeClub?.logoUrl) return activeClub.logoUrl;
-    if (equipoActivo?.clubId) return getClubLogo(equipoActivo.clubId);
-    if (userData?.clubId) return getClubLogo(userData.clubId);
-    return null;
+    const clubId = equipoActivo?.clubId || userData?.clubId;
+    if (clubId) {
+      const fromHook = getClubLogo(clubId);
+      if (fromHook) return fromHook;
+    }
+    return resolveClubLogoUrl({
+      logoUrl: activeClub?.logoUrl,
+      nombre: getNombreClubActivo(),
+    });
   };
 
   const equiposListaProps = {

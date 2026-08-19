@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ClubInitialsMark } from "./ClubInitialsMark.jsx";
 
 export function EntityLogoMark({
@@ -10,13 +11,20 @@ export function EntityLogoMark({
   size = 42,
   altPrefix = "Escudo de",
 }) {
-  if (logoUrl) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [logoUrl]);
+
+  if (logoUrl && !imageFailed) {
     return (
       <img
         src={logoUrl}
         alt={nombre ? `${altPrefix} ${nombre}` : "Escudo"}
         className={`club-logo-mark ${className}`}
         style={{ width: size, height: size }}
+        onError={() => setImageFailed(true)}
       />
     );
   }

@@ -10,7 +10,8 @@ import {
   deleteField,
 } from "firebase/firestore";
 import { seedDemoData } from "../seedDemoData.js";
-import { validateLogoFile, uploadClubLogo, removeStoragePrefix } from "../lib/logoStorage.js";
+import { prepareLogoDataUrl, validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
+import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
 
 export function useClubes({
   user,
@@ -243,10 +244,12 @@ export function useClubes({
 
   const getClubLogo = useCallback(
     (clubId) => {
-      const fromList = clubes.find((c) => c.id === clubId)?.logoUrl;
-      if (fromList) return fromList;
-      if (activeClub?.id === clubId && activeClub?.logoUrl) return activeClub.logoUrl;
-      return null;
+      const club = clubes.find((c) => c.id === clubId);
+      const nombre =
+        club?.nombre || (activeClub?.id === clubId ? activeClub?.nombre : null);
+      const logoUrl =
+        club?.logoUrl || (activeClub?.id === clubId ? activeClub?.logoUrl : null);
+      return resolveClubLogoUrl({ logoUrl, nombre });
     },
     [clubes, activeClub]
   );
@@ -262,9 +265,10 @@ export function useClubes({
     setSavingClubLogoId(clubId);
     setErrorMsg("");
     try {
-      const logoUrl = await uploadClubLogo(clubId, file);
+      const logoUrl = await prepareLogoDataUrl(file);
       await updateDoc(doc(db, "Clubes", clubId), {
         logoUrl,
+        logoSource: "inline",
         logoUpdatedAt: new Date(),
       });
       setClubes((prev) => prev.map((c) => (c.id === clubId ? { ...c, logoUrl } : c)));
@@ -272,11 +276,7 @@ export function useClubes({
         setActiveClub((prev) => (prev ? { ...prev, logoUrl } : prev));
       }
     } catch (err) {
-      setErrorMsg(
-        err?.code === "permission-denied"
-          ? "No tienes permiso para subir el escudo del club."
-          : err?.message || "No se pudo subir el escudo del club."
-      );
+      setErrorMsg(getLogoErrorMessage(err));
     } finally {
       setSavingClubLogoId(null);
     }
@@ -290,9 +290,9 @@ export function useClubes({
     setSavingClubLogoId(clubId);
     setErrorMsg("");
     try {
-      await removeStoragePrefix(`clubes/${clubId}`);
       await updateDoc(doc(db, "Clubes", clubId), {
         logoUrl: deleteField(),
+        logoSource: deleteField(),
         logoUpdatedAt: new Date(),
       });
       setClubes((prev) =>
@@ -302,11 +302,7 @@ export function useClubes({
         setActiveClub((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
       }
     } catch (err) {
-      setErrorMsg(
-        err?.code === "permission-denied"
-          ? "No tienes permiso para quitar el escudo del club."
-          : err?.message || "No se pudo quitar el escudo del club."
-      );
+      setErrorMsg(getLogoErrorMessage(err));
     } finally {
       setSavingClubLogoId(null);
     }

@@ -15,7 +15,8 @@
     "test:integration": "node scripts/test-firebase-integration.mjs",
     "test:full": "node scripts/run-tests.mjs --full",
     "test:rules": "JAVA_HOME=\"${JAVA_HOME:-$HOME/.local/java-home}\" firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.mjs\"",
-    "seed:demo": "node scripts/seed-demo-data.mjs"
+    "seed:demo": "node scripts/seed-demo-data.mjs",
+    "seed:logos": "node scripts/seed-club-logos.mjs"
   },
   "dependencies": {
     "firebase": "^12.17.1",

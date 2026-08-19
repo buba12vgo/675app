@@ -78,7 +78,7 @@ export function LogoUpload({
               )}
             </div>
             <div className="club-logo-upload__hint" style={{ color: textMuted }}>
-              PNG, JPG o WEBP · máx. 2 MB
+              PNG, JPG o WEBP · máx. 2 MB · se guarda en Firestore
             </div>
             <input
               ref={inputRef}

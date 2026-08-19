@@ -1,6 +1,7 @@
 import { DemoSeedCard } from "./DemoSeedCard.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
+import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
 
 export function SuperadminClubesPanel({
   userData,
@@ -262,7 +263,13 @@ export function SuperadminClubesPanel({
           </div>
         ) : (
           <div className="responsive-grid-list" style={{ width: "100%" }}>
-            {clubes.map((club) => (
+            {clubes.map((club) => {
+              const clubLogoUrl = resolveClubLogoUrl({
+                logoUrl: club.logoUrl,
+                nombre: club.nombre,
+              });
+
+              return (
               <div
                 key={club.id}
                 className="entity-list-card"
@@ -271,7 +278,7 @@ export function SuperadminClubesPanel({
                 <div className="entity-list-card__body">
                   <div className="entity-list-card__title-row">
                     <EntityLogoMark
-                      logoUrl={club.logoUrl}
+                      logoUrl={clubLogoUrl}
                       nombre={club.nombre}
                       accentLight={accentLight}
                       accentSoft={accentSoft}
@@ -300,7 +307,7 @@ export function SuperadminClubesPanel({
                   <LogoUpload
                     compact
                     title="Escudo del club"
-                    logoUrl={club.logoUrl}
+                    logoUrl={clubLogoUrl}
                     entityName={club.nombre}
                     canEdit
                     uploading={savingClubLogoId === club.id}
@@ -325,7 +332,8 @@ export function SuperadminClubesPanel({
                   </button>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

@@ -17,7 +17,7 @@ import {
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
-import { validateLogoFile, uploadEquipoLogo, removeStoragePrefix } from "../lib/logoStorage.js";
+import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const [equipos, setEquipos] = useState([]);
@@ -171,9 +171,10 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setSavingEquipoLogoId(equipoId);
     setErrorMsg("");
     try {
-      const logoUrl = await uploadEquipoLogo(equipoId, file);
+      const logoUrl = await prepareLogoDataUrl(file);
       await updateDoc(doc(db, "Equipos", equipoId), {
         logoUrl,
+        logoSource: "inline",
         logoUpdatedAt: new Date(),
       });
       setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, logoUrl } : e)));
@@ -181,11 +182,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
         setEquipoActivo((prev) => (prev ? { ...prev, logoUrl } : prev));
       }
     } catch (err) {
-      setErrorMsg(
-        err?.code === "permission-denied"
-          ? "No tienes permiso para subir el escudo del equipo."
-          : err?.message || "No se pudo subir el escudo del equipo."
-      );
+      setErrorMsg(getLogoErrorMessage(err));
     } finally {
       setSavingEquipoLogoId(null);
     }
@@ -201,9 +198,9 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setSavingEquipoLogoId(equipoId);
     setErrorMsg("");
     try {
-      await removeStoragePrefix(`equipos/${equipoId}`);
       await updateDoc(doc(db, "Equipos", equipoId), {
         logoUrl: deleteField(),
+        logoSource: deleteField(),
         logoUpdatedAt: new Date(),
       });
       setEquipos((prev) =>
@@ -213,11 +210,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
         setEquipoActivo((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
       }
     } catch (err) {
-      setErrorMsg(
-        err?.code === "permission-denied"
-          ? "No tienes permiso para quitar el escudo del equipo."
-          : err?.message || "No se pudo quitar el escudo del equipo."
-      );
+      setErrorMsg(getLogoErrorMessage(err));
     } finally {
       setSavingEquipoLogoId(null);
     }

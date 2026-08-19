@@ -83,7 +83,7 @@ service cloud.firestore {
       allow update: if isSuperadmin() || (
         isCoordinador()
         && userClubId() == clubId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl', 'logoUpdatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logoUrl', 'logoSource', 'logoUpdatedAt'])
       );
       allow delete: if isSuperadmin();
     }
