@@ -111,7 +111,7 @@ export function LoginScreen({
               borderRadius: 12,
               cursor: "pointer",
               transition: "all .12s",
-              boxShadow: "0 4px 16px rgba(42, 101, 112, 0.35)",
+              boxShadow: "0 4px 16px rgba(100, 116, 139, 0.35)",
               letterSpacing: ".2px",
             }}
           >

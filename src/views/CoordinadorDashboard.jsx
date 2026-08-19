@@ -45,7 +45,7 @@ export function CoordinadorDashboard({
               borderRadius: 9,
               border:
                 coordinadorVista === key
-                  ? "1px solid rgba(42, 101, 112, 0.35)"
+                  ? "1px solid rgba(100, 116, 139, 0.35)"
                   : "1px solid transparent",
               background: coordinadorVista === key ? accentSoft : "transparent",
               color: coordinadorVista === key ? accentLight : textMuted,

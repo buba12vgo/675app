@@ -5,17 +5,17 @@
   --color-bg: #F8FAFC;
   --color-card: #FFFFFF;
   --color-card-elevated: #F1F5F9;
-  --color-accent: #2A6570;
-  --color-accent-dark: #1F4F58;
-  --color-accent-light: #1F4F58;
-  --color-accent-soft: rgba(42, 101, 112, 0.12);
-  --color-accent-border: rgba(42, 101, 112, 0.32);
-  --color-accent-shadow: rgba(42, 101, 112, 0.18);
+  --color-accent: #64748B;
+  --color-accent-dark: #475569;
+  --color-accent-light: #334155;
+  --color-accent-soft: rgba(100, 116, 139, 0.12);
+  --color-accent-border: rgba(100, 116, 139, 0.28);
+  --color-accent-shadow: rgba(100, 116, 139, 0.16);
   --color-text: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #64748B;
   --color-table-header: #334155;
-  --color-table-header-accent: #2A6570;
+  --color-table-header-accent: #64748B;
   --color-surface: #E2E8F0;
   --color-border: #CBD5E1;
   --color-glass: rgba(255, 255, 255, 0.82);
@@ -45,17 +45,17 @@ html.dark {
   --color-bg: #0B1120;
   --color-card: #151D2E;
   --color-card-elevated: #1A2438;
-  --color-accent: #2A6570;
-  --color-accent-dark: #1F4F58;
-  --color-accent-light: #9EC4CE;
-  --color-accent-soft: rgba(42, 101, 112, 0.18);
-  --color-accent-border: rgba(42, 101, 112, 0.42);
-  --color-accent-shadow: rgba(42, 101, 112, 0.32);
+  --color-accent: #64748B;
+  --color-accent-dark: #475569;
+  --color-accent-light: #CBD5E1;
+  --color-accent-soft: rgba(100, 116, 139, 0.16);
+  --color-accent-border: rgba(100, 116, 139, 0.38);
+  --color-accent-shadow: rgba(100, 116, 139, 0.28);
   --color-text: #F1F5F9;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
   --color-table-header: #E2E8F0;
-  --color-table-header-accent: #A8CCD6;
+  --color-table-header-accent: #CBD5E1;
   --color-surface: #1E293B;
   --color-border: #2D3A52;
   --color-glass: rgba(21, 29, 46, 0.78);
@@ -207,7 +207,7 @@ textarea:focus-visible {
   font-weight: 600;
   font-size: 13.5px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(42, 101, 112, 0.3);
+  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.24);
   transition: filter 0.17s;
   outline: 0;
   font-family: inherit;
@@ -364,7 +364,7 @@ textarea:focus-visible {
 
 .device-preview-control__btn:hover {
   opacity: 0.85;
-  background: rgba(42, 101, 112, 0.12);
+  background: rgba(100, 116, 139, 0.12);
   color: var(--color-accent-light);
 }
 
@@ -372,7 +372,7 @@ textarea:focus-visible {
   opacity: 1;
   background: var(--color-accent-soft);
   color: var(--color-accent-light);
-  box-shadow: inset 0 0 0 1px rgba(42, 101, 112, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.24);
 }
 
 .device-preview-viewport {

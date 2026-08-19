@@ -51,7 +51,7 @@ export function SuperadminClubesPanel({
           fontSize: 30,
           letterSpacing: 0.7,
           textAlign: "center",
-          textShadow: "0 4px 18px rgba(42, 101, 112, 0.13)",
+          textShadow: "0 4px 18px rgba(100, 116, 139, 0.13)",
         }}
       >
         Panel de Gestión de Clubes
@@ -242,7 +242,7 @@ export function SuperadminClubesPanel({
             fontSize: 17,
             cursor: "pointer",
             minHeight: 53,
-            boxShadow: "0 2px 9px rgba(42, 101, 112, 0.08)",
+            boxShadow: "0 2px 9px rgba(100, 116, 139, 0.08)",
             letterSpacing: 0.3,
           }}
           disabled={gestionLoading || !nuevoClubNombre.trim()}

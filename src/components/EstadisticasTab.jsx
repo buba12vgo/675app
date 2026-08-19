@@ -252,7 +252,7 @@ export function EstadisticasTab({
                   flex: 1,
                   border:
                     statsVista === key
-                      ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(42, 101, 112, 0.35)" : inputBorder}`
+                      ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(100, 116, 139, 0.35)" : inputBorder}`
                       : "1px solid transparent",
                   background:
                     statsVista === key

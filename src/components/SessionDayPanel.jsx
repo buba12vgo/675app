@@ -46,7 +46,7 @@ export function SessionDayPanel({
           padding: "9px 18px",
           marginBottom: 18,
           width: "fit-content",
-          boxShadow: "0 2px 8px rgba(42, 101, 112, 0.10)",
+          boxShadow: "0 2px 8px rgba(100, 116, 139, 0.10)",
           cursor: "pointer",
           alignSelf: "flex-start",
           marginTop: -4,
@@ -71,7 +71,7 @@ export function SessionDayPanel({
               borderRadius: 99,
               background: tipoSesion === "partido" ? "rgba(139,92,246,0.2)" : accentSoft,
               color: tipoSesion === "partido" ? colorPartido : accentLight,
-              border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "rgba(42, 101, 112, 0.35)"}`,
+              border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "rgba(100, 116, 139, 0.35)"}`,
               textTransform: "uppercase",
               letterSpacing: "0.06em",
             }}
@@ -138,7 +138,7 @@ export function SessionDayPanel({
                     fontWeight: 700,
                     fontSize: 16,
                     cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(42, 101, 112, 0.28)",
+                    boxShadow: "0 4px 14px rgba(100, 116, 139, 0.28)",
                   }}
                   onClick={onCrearEntreno}
                   disabled={guardandoSesion}

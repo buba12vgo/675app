@@ -9,15 +9,15 @@ export const THEMES = {
     surface: "#1E293B",
     inputBg: "#1A2438",
     inputBorder: "#2D3A52",
-    accent: "#2A6570",
-    accentDark: "#1F4F58",
-    accentLight: "#9EC4CE",
-    accentSoft: "rgba(42, 101, 112, 0.18)",
-    accentBorder: "rgba(42, 101, 112, 0.42)",
-    accentShadow: "rgba(42, 101, 112, 0.32)",
-    accentBgSubtle: "rgba(42, 101, 112, 0.10)",
+    accent: "#64748B",
+    accentDark: "#475569",
+    accentLight: "#CBD5E1",
+    accentSoft: "rgba(100, 116, 139, 0.16)",
+    accentBorder: "rgba(100, 116, 139, 0.38)",
+    accentShadow: "rgba(100, 116, 139, 0.28)",
+    accentBgSubtle: "rgba(100, 116, 139, 0.10)",
     tableHeader: "#E2E8F0",
-    tableHeaderAccent: "#A8CCD6",
+    tableHeaderAccent: "#CBD5E1",
     text: "#F1F5F9",
     textSecondary: "#94A3B8",
     textMuted: "#64748B",
@@ -39,15 +39,15 @@ export const THEMES = {
     surface: "#E2E8F0",
     inputBg: "#FFFFFF",
     inputBorder: "#CBD5E1",
-    accent: "#2A6570",
-    accentDark: "#1F4F58",
-    accentLight: "#1F4F58",
-    accentSoft: "rgba(42, 101, 112, 0.12)",
-    accentBorder: "rgba(42, 101, 112, 0.32)",
-    accentShadow: "rgba(42, 101, 112, 0.18)",
-    accentBgSubtle: "rgba(42, 101, 112, 0.08)",
+    accent: "#64748B",
+    accentDark: "#475569",
+    accentLight: "#334155",
+    accentSoft: "rgba(100, 116, 139, 0.12)",
+    accentBorder: "rgba(100, 116, 139, 0.28)",
+    accentShadow: "rgba(100, 116, 139, 0.16)",
+    accentBgSubtle: "rgba(100, 116, 139, 0.08)",
     tableHeader: "#334155",
-    tableHeaderAccent: "#2A6570",
+    tableHeaderAccent: "#64748B",
     text: "#0F172A",
     textSecondary: "#475569",
     textMuted: "#64748B",
@@ -70,7 +70,7 @@ export function getStoredTheme() {
   } catch {
     /* ignore */
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function applyThemeToDocument(theme) {

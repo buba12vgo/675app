@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import {
   THEMES,
-  STORAGE_THEME_KEY,
   applyThemeToDocument,
   getStoredTheme,
   persistTheme,
@@ -56,9 +55,6 @@ import { EstadisticasTab } from "./components/EstadisticasTab.jsx";
 import { PlantillaTab } from "./components/PlantillaTab.jsx";
 import { SuperadminPanel } from "./components/SuperadminPanel.jsx";
 import { TeamLayout } from "./layouts/TeamLayout.jsx";
-
-
-const THEME = THEMES.dark;
 
 
 function App() {
@@ -245,20 +241,6 @@ function App() {
     applyThemeToDocument(colorMode);
     persistTheme(colorMode);
   }, [colorMode]);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (event) => {
-      try {
-        if (localStorage.getItem(STORAGE_THEME_KEY)) return;
-      } catch {
-        /* ignore */
-      }
-      setColorMode(event.matches ? "dark" : "light");
-    };
-    media.addEventListener("change", handleChange);
-    return () => media.removeEventListener("change", handleChange);
-  }, []);
 
   const toggleColorMode = () => {
     setColorMode(prev => (prev === "dark" ? "light" : "dark"));

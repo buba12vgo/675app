@@ -46,7 +46,7 @@ export function SuperadminPanel({
               flex: 1,
               padding: "10px 14px",
               borderRadius: 9,
-              border: superadminVista === key ? "1px solid rgba(42, 101, 112, 0.35)" : "1px solid transparent",
+              border: superadminVista === key ? "1px solid rgba(100, 116, 139, 0.35)" : "1px solid transparent",
               background: superadminVista === key ? accentSoft : "transparent",
               color: superadminVista === key ? accentLight : textMuted,
               fontWeight: 600,
