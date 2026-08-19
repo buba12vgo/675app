@@ -1662,6 +1662,94 @@ textarea:focus-visible {
   align-items: stretch;
 }
 
+.crear-equipo-card {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  min-height: 148px;
+  cursor: pointer;
+  font-family: inherit;
+  border-style: dashed;
+  border-left-style: dashed;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crear-equipo-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--color-shadow-soft);
+}
+
+.crear-equipo-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.crear-equipo-card__label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.crear-equipo-card__hint {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  max-width: 180px;
+}
+
+.crear-equipo-panel__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.crear-equipo-panel__title {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.crear-equipo-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+
+.crear-equipo-panel__fields {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crear-equipo-panel__fields label {
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .calendar-panel {
   width: 100%;
   max-width: 100%;

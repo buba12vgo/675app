@@ -218,7 +218,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
 
   const handleCrearEquipo = async (e) => {
     e.preventDefault();
-    if (!nuevoEquipoNombre.trim() || !userData?.clubId) return;
+    if (!nuevoEquipoNombre.trim() || !userData?.clubId) return false;
     setCrearEquipoLoading(true);
     try {
       await addDoc(collection(db, "Equipos"), {
@@ -231,10 +231,13 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       setNuevoEquipoNombre("");
       setNuevoEquipoGenero(GENERO_FEMENINO);
       setNuevoEquipoTipoCanasta(TIPO_CANASTA_GRANDE);
+      setCrearEquipoLoading(false);
+      return true;
     } catch {
       setErrorMsg("Error creando equipo");
+      setCrearEquipoLoading(false);
+      return false;
     }
-    setCrearEquipoLoading(false);
   };
 
   const equipoEditProps = {
