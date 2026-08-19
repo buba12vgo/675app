@@ -34,6 +34,7 @@ import {
 import { useCompactHeader } from "./hooks/useCompactHeader.js";
 import { useAuth } from "./hooks/useAuth.js";
 import { resolveClubLogoUrl } from "./lib/clubLogoPresets.js";
+import { useClubes } from "./hooks/useClubes.js";
 import { useEquipos } from "./hooks/useEquipos.js";
 import { usePlantilla } from "./hooks/usePlantilla.js";
 import { useSesiones } from "./hooks/useSesiones.js";
