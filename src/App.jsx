@@ -141,6 +141,15 @@ function App() {
     handleUploadClubLogo,
     handleRemoveClubLogo,
     savingClubLogoId,
+    clubEditandoId,
+    editClubNombre,
+    setEditClubNombre,
+    savingClubId,
+    deletingClubId,
+    handleIniciarEditClub,
+    handleCancelarEditClub,
+    handleGuardarClub,
+    handleEliminarClub,
   } = useClubes({
     user,
     userData,
@@ -910,6 +919,15 @@ function App() {
     onUploadClubLogo: handleUploadClubLogo,
     onRemoveClubLogo: handleRemoveClubLogo,
     savingClubLogoId,
+    clubEditandoId,
+    editClubNombre,
+    onEditClubNombreChange: setEditClubNombre,
+    savingClubId,
+    deletingClubId,
+    onStartEditClub: handleIniciarEditClub,
+    onCancelEditClub: handleCancelarEditClub,
+    onSaveClub: handleGuardarClub,
+    onDeleteClub: handleEliminarClub,
   };
 
   const superadminEquiposPanelProps = {

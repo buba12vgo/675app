@@ -1,6 +1,7 @@
 import { DemoSeedCard } from "./DemoSeedCard.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
+import { IconGear } from "./icons.jsx";
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
 
 export function SuperadminClubesPanel({
@@ -30,6 +31,15 @@ export function SuperadminClubesPanel({
   onUploadClubLogo,
   onRemoveClubLogo,
   savingClubLogoId,
+  clubEditandoId,
+  editClubNombre,
+  onEditClubNombreChange,
+  savingClubId,
+  deletingClubId,
+  onStartEditClub,
+  onCancelEditClub,
+  onSaveClub,
+  onDeleteClub,
 }) {
   return (
     <>
@@ -268,6 +278,88 @@ export function SuperadminClubesPanel({
                 logoUrl: club.logoUrl,
                 nombre: club.nombre,
               });
+              const isEditing = clubEditandoId === club.id;
+              const isBusy = savingClubId === club.id || deletingClubId === club.id;
+
+              if (isEditing) {
+                return (
+                  <div
+                    key={club.id}
+                    className="entity-list-card entity-list-card--editing"
+                    style={{ borderLeftColor: userData?.clubId === club.id ? accent : textMuted }}
+                  >
+                    <input
+                      type="text"
+                      value={editClubNombre}
+                      onChange={(e) => onEditClubNombreChange(e.target.value)}
+                      placeholder="Nombre del club"
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        fontSize: 15,
+                        border: `1px solid ${inputBorder}`,
+                        borderRadius: 10,
+                        background: inputBg,
+                        color: text,
+                        fontFamily: "inherit",
+                        fontWeight: 600,
+                      }}
+                      disabled={isBusy}
+                    />
+                    <LogoUpload
+                      compact
+                      title="Escudo del club"
+                      logoUrl={clubLogoUrl}
+                      entityName={club.nombre}
+                      canEdit
+                      uploading={savingClubLogoId === club.id}
+                      onUpload={(file) => onUploadClubLogo(club.id, file)}
+                      onRemove={() => onRemoveClubLogo(club.id)}
+                      accent={accent}
+                      onAccent={onAccent}
+                      text={text}
+                      textSecondary={textSecondary}
+                      textMuted={textMuted}
+                      inputBorder={inputBorder}
+                      inputBg={inputBg}
+                      accentLight={accentLight}
+                      accentSoft={accentSoft}
+                      accentBorder={inputBorder}
+                      markSize={44}
+                    />
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button
+                        type="button"
+                        className="entity-list-card__action"
+                        onClick={() => onSaveClub(club.id)}
+                        disabled={isBusy || !editClubNombre.trim()}
+                        style={{ flex: "1 1 100px", opacity: isBusy ? 0.7 : 1 }}
+                      >
+                        {savingClubId === club.id ? "Guardando…" : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onCancelEditClub}
+                        disabled={isBusy}
+                        style={{
+                          flex: "1 1 100px",
+                          background: "transparent",
+                          color: textMuted,
+                          border: `1px solid ${inputBorder}`,
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          cursor: isBusy ? "wait" : "pointer",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
               <div
@@ -326,11 +418,43 @@ export function SuperadminClubesPanel({
                     markSize={44}
                   />
                 </div>
-                {userData?.clubId !== club.id && (
-                  <button type="button" className="entity-list-card__action" onClick={() => onSelectClub(club)}>
-                    Mi club
+                <div className="entity-list-card__actions">
+                  <button
+                    type="button"
+                    className="entity-list-card__icon-btn"
+                    onClick={() => onStartEditClub(club)}
+                    aria-label={`Editar ${club.nombre}`}
+                    title="Editar club"
+                    disabled={isBusy}
+                    style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+                  >
+                    <IconGear size={17} />
                   </button>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => onDeleteClub(club)}
+                    disabled={isBusy}
+                    style={{
+                      background: "transparent",
+                      color: "#e57373",
+                      border: "1px solid rgba(229, 115, 115, 0.45)",
+                      borderRadius: 10,
+                      padding: "10px 14px",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor: isBusy ? "wait" : "pointer",
+                      fontFamily: "inherit",
+                      opacity: isBusy ? 0.7 : 1,
+                    }}
+                  >
+                    {deletingClubId === club.id ? "Eliminando…" : "Eliminar"}
+                  </button>
+                  {userData?.clubId !== club.id && (
+                    <button type="button" className="entity-list-card__action" onClick={() => onSelectClub(club)}>
+                      Mi club
+                    </button>
+                  )}
+                </div>
               </div>
             );
             })}

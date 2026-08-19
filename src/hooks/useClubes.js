@@ -7,6 +7,7 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  deleteDoc,
   deleteField,
 } from "firebase/firestore";
 import { seedDemoData } from "../seedDemoData.js";
@@ -33,6 +34,10 @@ export function useClubes({
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [seedNotice, setSeedNotice] = useState(null);
   const [savingClubLogoId, setSavingClubLogoId] = useState(null);
+  const [clubEditandoId, setClubEditandoId] = useState(null);
+  const [editClubNombre, setEditClubNombre] = useState("");
+  const [savingClubId, setSavingClubId] = useState(null);
+  const [deletingClubId, setDeletingClubId] = useState(null);
 
   const resolvedClubId = equipoActivo?.clubId || userData?.clubId || null;
 
@@ -242,6 +247,78 @@ export function useClubes({
     }
   };
 
+  const handleIniciarEditClub = (club) => {
+    if (userData?.rol !== "superadmin" || !club?.id) return;
+    setClubEditandoId(club.id);
+    setEditClubNombre(club.nombre || "");
+    setErrorMsg("");
+  };
+
+  const handleCancelarEditClub = () => {
+    setClubEditandoId(null);
+    setEditClubNombre("");
+  };
+
+  const handleGuardarClub = async (clubId) => {
+    const club = clubes.find((c) => c.id === clubId);
+    if (!clubId || !club || userData?.rol !== "superadmin" || !editClubNombre.trim()) return;
+
+    const nombre = editClubNombre.trim();
+    setSavingClubId(clubId);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Clubes", clubId), { nombre });
+      setClubes((prev) => prev.map((c) => (c.id === clubId ? { ...c, nombre } : c)));
+      if (activeClub?.id === clubId) {
+        setActiveClub((prev) => (prev ? { ...prev, nombre } : prev));
+      }
+      if (user?.uid && userData?.clubId === clubId) {
+        await updateDoc(doc(db, "Usuarios", user.uid), { clubNombre: nombre });
+        setUserData((prev) => (prev ? { ...prev, clubNombre: nombre } : prev));
+      }
+      handleCancelarEditClub();
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para editar este club."
+          : "No se pudo guardar el club."
+      );
+    } finally {
+      setSavingClubId(null);
+    }
+  };
+
+  const handleEliminarClub = async (club) => {
+    if (!club?.id || userData?.rol !== "superadmin") return;
+
+    const confirmed = window.confirm(
+      `¿Eliminar el club "${club.nombre}"?\n\nLos equipos y usuarios vinculados no se borrarán automáticamente.`
+    );
+    if (!confirmed) return;
+
+    setDeletingClubId(club.id);
+    setErrorMsg("");
+    try {
+      await deleteDoc(doc(db, "Clubes", club.id));
+      setClubes((prev) => prev.filter((c) => c.id !== club.id));
+      if (activeClub?.id === club.id) setActiveClub(null);
+      if (clubEditandoId === club.id) handleCancelarEditClub();
+      if (user?.uid && userData?.clubId === club.id) {
+        await updateDoc(doc(db, "Usuarios", user.uid), { clubId: null, clubNombre: null });
+        setUserData((prev) => (prev ? { ...prev, clubId: null, clubNombre: null } : prev));
+        if (equiposFiltroSuperadmin === "propio") setEquiposFiltroSuperadmin("todos");
+      }
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para eliminar este club."
+          : "No se pudo eliminar el club."
+      );
+    } finally {
+      setDeletingClubId(null);
+    }
+  };
+
   const getClubLogo = useCallback(
     (clubId) => {
       const club = clubes.find((c) => c.id === clubId);
@@ -361,5 +438,14 @@ export function useClubes({
     handleUploadClubLogo,
     handleRemoveClubLogo,
     savingClubLogoId,
+    clubEditandoId,
+    editClubNombre,
+    setEditClubNombre,
+    savingClubId,
+    deletingClubId,
+    handleIniciarEditClub,
+    handleCancelarEditClub,
+    handleGuardarClub,
+    handleEliminarClub,
   };
 }
