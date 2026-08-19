@@ -25,6 +25,7 @@ export function EquiposListaSection({
   equipoEditProps,
   onEntrarEquipo,
   getClubNombre,
+  getClubLogo,
   accent,
   accentLight,
   accentSoft,
@@ -189,6 +190,7 @@ export function EquiposListaSection({
               onUploadLogo={(file) => equipoEditProps.onUploadEquipoLogo(equipo.id, file)}
               onRemoveLogo={() => equipoEditProps.onRemoveEquipoLogo(equipo.id)}
               logoUploading={equipoEditProps.savingEquipoLogoId === equipo.id}
+              clubLogoUrl={getClubLogo?.(equipo.clubId) ?? null}
               accent={accent}
               accentLight={accentLight}
               accentSoft={accentSoft}

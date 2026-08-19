@@ -138,6 +138,7 @@ export function CoordinacionPanel({
                   onUploadLogo={(file) => onUploadEquipoLogo(equipo.id, file)}
                   onRemoveLogo={() => onRemoveEquipoLogo(equipo.id)}
                   logoUploading={savingEquipoLogoId === equipo.id}
+                  clubLogoUrl={clubLogoUrl}
                   accent={accent}
                   accentLight={accentLight}
                   accentSoft={accentSoft}

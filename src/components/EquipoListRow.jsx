@@ -30,6 +30,7 @@ export function EquipoListRow({
   onUploadLogo,
   onRemoveLogo,
   logoUploading,
+  clubLogoUrl,
   accent,
   accentLight,
   accentSoft,
@@ -42,6 +43,9 @@ export function EquipoListRow({
   cardBgElevated,
   borderAccent,
 }) {
+  const displayLogoUrl = equipo.logoUrl || clubLogoUrl || null;
+  const logoLabel = equipo.logoUrl ? equipo.nombre : clubNombre || equipo.nombre;
+
   const selectStyle = {
     padding: "8px 10px",
     fontSize: 13,
@@ -124,7 +128,7 @@ export function EquipoListRow({
           <LogoUpload
             compact
             title="Escudo del equipo"
-            logoUrl={equipo.logoUrl}
+            logoUrl={displayLogoUrl}
             entityName={equipo.nombre}
             canEdit
             uploading={logoUploading}
@@ -152,8 +156,8 @@ export function EquipoListRow({
       <div className="entity-list-card__body">
         <div className="entity-list-card__title-row">
           <EntityLogoMark
-            logoUrl={equipo.logoUrl}
-            nombre={equipo.nombre}
+            logoUrl={displayLogoUrl}
+            nombre={logoLabel}
             accentLight={accentLight}
             accentSoft={accentSoft}
             accentBorder={inputBorder}

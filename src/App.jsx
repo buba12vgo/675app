@@ -870,6 +870,7 @@ function App() {
     equipoEditProps,
     onEntrarEquipo: handleEntrarEquipo,
     getClubNombre,
+    getClubLogo,
     accent,
     accentLight,
     accentSoft,
