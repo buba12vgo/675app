@@ -1224,13 +1224,15 @@ textarea:focus-visible {
 
 .club-logo-mark {
   display: block;
-  object-fit: contain;
-  background: var(--color-card-elevated);
+  object-fit: cover;
+  object-position: center;
+  background: #0b0f14;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 4px;
+  padding: 0;
   box-sizing: border-box;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .club-branding-card {
