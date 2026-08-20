@@ -34,6 +34,10 @@ export function EquiposListaSection({
   inputBorder,
   inputBg,
   cardBgElevated,
+  canFavorite,
+  favoritosIds,
+  onToggleFavorite,
+  savingFavoritos,
 }) {
   const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
   const puedeCrear = permitirCrear && permitirCrearForm;
@@ -127,6 +131,18 @@ export function EquiposListaSection({
                 inputBg={inputBg}
                 cardBgElevated={cardBgElevated}
                 borderAccent={equipo.clubId === userClubId ? accent : textMuted}
+                canFavorite={canFavorite}
+                isFavorite={Array.isArray(favoritosIds) && favoritosIds.includes(equipo.id)}
+                favoriteDisabled={
+                  Boolean(savingFavoritos)
+                  || (
+                    canFavorite
+                    && Array.isArray(favoritosIds)
+                    && favoritosIds.length >= 2
+                    && !favoritosIds.includes(equipo.id)
+                  )
+                }
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
             {puedeCrear && (

@@ -32,6 +32,10 @@ export function EquiposListaContainer({
   inputBorder,
   inputBg,
   cardBgElevated,
+  canFavorite,
+  favoritosIds,
+  onToggleFavorite,
+  savingFavoritos,
 }) {
   const equiposVisibles = esSuperadmin
     ? equipos
@@ -69,6 +73,10 @@ export function EquiposListaContainer({
       inputBorder={inputBorder}
       inputBg={inputBg}
       cardBgElevated={cardBgElevated}
+      canFavorite={canFavorite}
+      favoritosIds={favoritosIds}
+      onToggleFavorite={onToggleFavorite}
+      savingFavoritos={savingFavoritos}
     />
   );
 }

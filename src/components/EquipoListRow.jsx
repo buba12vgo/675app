@@ -6,7 +6,7 @@ import {
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
-import { IconGear } from "./icons.jsx";
+import { IconGear, IconStar } from "./icons.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
 
@@ -45,6 +45,10 @@ export function EquipoListRow({
   inputBg,
   cardBgElevated: _cardBgElevated,
   borderAccent,
+  canFavorite,
+  isFavorite,
+  favoriteDisabled,
+  onToggleFavorite,
 }) {
   const displayLogoUrl = equipo.logoUrl || clubLogoUrl || null;
   const logoLabel = equipo.logoUrl ? equipo.nombre : clubNombre || equipo.nombre;
@@ -177,6 +181,24 @@ export function EquipoListRow({
         </span>
       </div>
       <div className="entity-list-card__actions">
+        {canFavorite && onToggleFavorite ? (
+          <button
+            type="button"
+            className="entity-list-card__icon-btn"
+            onClick={() => onToggleFavorite(equipo.id)}
+            disabled={deleting || favoriteDisabled}
+            aria-label={isFavorite ? `Quitar ${equipo.nombre} de favoritos` : `Marcar ${equipo.nombre} como favorito`}
+            aria-pressed={isFavorite}
+            title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? "Ya tienes 2 favoritos" : "Marcar como favorito"}
+            style={{
+              color: isFavorite ? accent : textMuted,
+              borderColor: isFavorite ? `${accent}55` : inputBorder,
+              background: isFavorite ? `${accent}14` : "transparent",
+            }}
+          >
+            <IconStar size={17} color={isFavorite ? accent : textMuted} filled={isFavorite} />
+          </button>
+        ) : null}
         {canEdit && (
           <button
             type="button"

@@ -57,7 +57,8 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     const tieneClub = Boolean(userData?.clubId);
 
     if (esSuperadmin) {
-      const verListaEquipos = superadminVista === "equipos" && !equipoActivo;
+      const verListaEquipos =
+        (superadminVista === "equipos" && !equipoActivo) || superadminVista === "usuarios";
       if (!verListaEquipos) {
         setEquipos([]);
         return;
@@ -65,9 +66,9 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       setEquiposLoading(true);
       const equiposCol = collection(db, "Equipos");
       const q =
-        equiposFiltroSuperadmin === "propio" && tieneClub
-          ? query(equiposCol, where("clubId", "==", userData.clubId))
-          : equiposCol;
+        superadminVista === "usuarios" || equiposFiltroSuperadmin !== "propio" || !tieneClub
+          ? equiposCol
+          : query(equiposCol, where("clubId", "==", userData.clubId));
       const unsub = onSnapshot(
         q,
         (snapshot) => {

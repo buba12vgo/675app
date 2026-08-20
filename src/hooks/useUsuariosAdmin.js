@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { formatRolLabel, isCoordinador } from "../lib/appUtils.js";
+import { normalizeEquiposFavoritos } from "../lib/equiposFavoritos.js";
 
 export function useUsuariosAdmin({
   userData,
@@ -137,6 +138,7 @@ export function useUsuariosAdmin({
         rol: rolFinal,
         solicitudClubId: null,
         solicitudClubNombre: null,
+        equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
       });
 
       await batch.commit();
@@ -151,6 +153,7 @@ export function useUsuariosAdmin({
               rol: rolFinal,
               solicitudClubId: null,
               solicitudClubNombre: null,
+              equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
             };
           }
           if (clubId && rolFinal === "coordinador" && u.clubId === clubId && u.rol === "coordinador") {
@@ -165,7 +168,7 @@ export function useUsuariosAdmin({
     } catch (err) {
       setErrorMsg(
         err?.code === "permission-denied"
-          ? "No tienes permiso para actualizar este usuario. Comprueba que tu cuenta tenga rol superadmin en Firestore."
+          ? "No tienes permiso para actualizar este usuario."
           : `No se pudo guardar el usuario${err?.message ? `: ${err.message}` : "."}`
       );
     } finally {
@@ -184,9 +187,43 @@ export function useUsuariosAdmin({
         rol: "entrenador",
         solicitudClubId: null,
         solicitudClubNombre: null,
+        equiposFavoritos: [],
       });
     } catch {
       setErrorMsg("No se pudo quitar el club del usuario.");
+    } finally {
+      setSavingUsuarioId(null);
+    }
+  };
+
+  const handleGuardarEquiposFavoritos = async (usuario, ids) => {
+    if (!usuario?.id) return;
+    const mismoClub = Boolean(userData?.clubId) && usuario.clubId === userData.clubId;
+    const puede =
+      userData?.rol === "superadmin" || (isCoordinador(userData?.rol) && mismoClub);
+    if (!puede) {
+      setErrorMsg("No tienes permiso para asignar equipos favoritos.");
+      return;
+    }
+    if (usuario.rol === "superadmin") return;
+
+    const equiposFavoritos = normalizeEquiposFavoritos(ids);
+    setSavingUsuarioId(usuario.id);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Usuarios", usuario.id), { equiposFavoritos });
+      setUsuarios((prev) =>
+        prev.map((u) => (u.id === usuario.id ? { ...u, equiposFavoritos } : u))
+      );
+      setClubUsuarios((prev) =>
+        prev.map((u) => (u.id === usuario.id ? { ...u, equiposFavoritos } : u))
+      );
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para guardar los favoritos de este usuario."
+          : "No se pudieron guardar los equipos favoritos."
+      );
     } finally {
       setSavingUsuarioId(null);
     }
@@ -205,5 +242,6 @@ export function useUsuariosAdmin({
     clubUsuariosLoading,
     handleGuardarUsuarioClub,
     handleQuitarClubUsuario,
+    handleGuardarEquiposFavoritos,
   };
 }

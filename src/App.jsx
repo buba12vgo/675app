@@ -57,6 +57,8 @@ function App() {
     logout,
     handleOpenOpciones,
     handleSaveUserNombre,
+    handleToggleEquipoFavorito,
+    savingFavoritos,
   } = useAuth(setErrorMsg);
 
   const [superadminVista, setSuperadminVista] = useState("clubes");
@@ -149,6 +151,7 @@ function App() {
     clubUsuariosLoading,
     handleGuardarUsuarioClub,
     handleQuitarClubUsuario,
+    handleGuardarEquiposFavoritos,
   } = useUsuariosAdmin({
     userData,
     clubes,
@@ -568,6 +571,8 @@ function App() {
     onRemoveEquipoLogo: handleRemoveEquipoLogo,
     savingEquipoLogoId,
     getEquipoLogo,
+    onGuardarFavoritos: handleGuardarEquiposFavoritos,
+    savingUsuarioId,
     accent,
     accentLight,
     accentSoft,
@@ -699,6 +704,8 @@ function App() {
                     onFiltroClubChange: setUsuariosFiltroClub,
                     onGuardarUsuario: handleGuardarUsuarioClub,
                     onQuitarClub: handleQuitarClubUsuario,
+                    onGuardarFavoritos: handleGuardarEquiposFavoritos,
+                    equipos,
                     savingUserId: savingUsuarioId,
                     notice: usuariosNotice,
                     accent,
@@ -732,9 +739,16 @@ function App() {
                     equiposListaProps,
                   }}
                   entrenadorEquiposProps={{
-                    equiposListaProps,
+                    equiposListaProps: {
+                      ...equiposListaProps,
+                      onToggleFavorite: handleToggleEquipoFavorito,
+                      savingFavoritos,
+                    },
                     clubNombre: userData?.clubNombre,
                     text,
+                    textMuted,
+                    accent,
+                    equiposFavoritos: userData?.equiposFavoritos,
                   }}
                   solicitarClubProps={{
                     accent,

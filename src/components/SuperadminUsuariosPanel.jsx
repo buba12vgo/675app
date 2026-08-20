@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { formatRolLabel } from "../lib/appUtils.js";
+import { FavoritosEquipoFields } from "./FavoritosEquipoFields.jsx";
 
 export function UsuarioClubRow({
   usuario,
   clubes,
   onGuardar,
   onQuitarClub,
+  onGuardarFavoritos,
   saving,
+  equiposDelClub,
   accent,
   accentLight,
   accentSoft,
@@ -131,6 +134,18 @@ export function UsuarioClubRow({
           </button>
         )}
       </div>
+      {rol === "entrenador" && effectiveClubId && equiposDelClub?.length > 0 ? (
+        <FavoritosEquipoFields
+          equipos={equiposDelClub}
+          value={usuario.equiposFavoritos}
+          onChange={(ids) => onGuardarFavoritos?.(usuario, ids)}
+          disabled={saving}
+          text={text}
+          textMuted={textMuted}
+          inputBorder={inputBorder}
+          inputBg={inputBg}
+        />
+      ) : null}
     </div>
   );
 }
@@ -143,6 +158,8 @@ export function SuperadminUsuariosPanel({
   onFiltroClubChange,
   onGuardarUsuario,
   onQuitarClub,
+  onGuardarFavoritos,
+  equipos = [],
   savingUserId,
   notice,
   accent,
@@ -244,6 +261,8 @@ export function SuperadminUsuariosPanel({
               clubes={clubes}
               onGuardar={onGuardarUsuario}
               onQuitarClub={onQuitarClub}
+              onGuardarFavoritos={onGuardarFavoritos}
+              equiposDelClub={equipos.filter((equipo) => equipo.clubId === usuario.clubId)}
               saving={savingUserId === usuario.id}
               accent={accent}
               accentLight={accentLight}

@@ -154,6 +154,46 @@ try {
     );
   });
 
+  await test("Entrenador guarda equipos favoritos", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coachA, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-a", "eq-a2"],
+      })
+    );
+  });
+
+  await test("Entrenador no guarda más de dos favoritos", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-a", "eq-a2", "eq-b"],
+      })
+    );
+  });
+
+  await test("Coordinador asigna favoritos a un entrenador de su club", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coordA, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-a"],
+      })
+    );
+  });
+
+  await test("Entrenador no asigna favoritos a otro usuario", async () => {
+    await assertFails(
+      updateDoc(doc(coachNew, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-a2"],
+      })
+    );
+  });
+
+  await test("Coordinador no cambia el rol de un entrenador", async () => {
+    await assertFails(
+      updateDoc(doc(coordA, "Usuarios/coach-a"), {
+        rol: "coordinador",
+      })
+    );
+  });
+
   await test("Coordinador puede crear equipos de su club", async () => {
     await assertSucceeds(
       setDoc(doc(coordA, "Equipos/eq-coord-new"), {

@@ -1,6 +1,7 @@
 import { IconCoordination } from "./icons.jsx";
 import { EquipoListRow } from "./EquipoListRow.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
+import { FavoritosEquipoFields } from "./FavoritosEquipoFields.jsx";
 
 export function CoordinacionPanel({
   clubNombre,
@@ -29,6 +30,8 @@ export function CoordinacionPanel({
   onRemoveEquipoLogo,
   savingEquipoLogoId,
   getEquipoLogo,
+  onGuardarFavoritos,
+  savingUsuarioId,
   accent,
   accentLight,
   accentSoft,
@@ -99,9 +102,32 @@ export function CoordinacionPanel({
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {entrenadores.map((u) => (
-                <div key={u.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "10px 12px", borderRadius: 10, background: inputBg, border: `1px solid ${inputBorder}` }}>
-                  <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>{u.nombre?.trim() || u.email}</span>
-                  <span style={{ color: textMuted, fontSize: 12 }}>{u.email}</span>
+                <div
+                  key={u.id}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    padding: "12px 12px",
+                    borderRadius: 10,
+                    background: inputBg,
+                    border: `1px solid ${inputBorder}`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>{u.nombre?.trim() || u.email}</span>
+                    <span style={{ color: textMuted, fontSize: 12 }}>{u.email}</span>
+                  </div>
+                  <FavoritosEquipoFields
+                    equipos={equipos}
+                    value={u.equiposFavoritos}
+                    onChange={(ids) => onGuardarFavoritos?.(u, ids)}
+                    disabled={equiposLoading || savingUsuarioId === u.id}
+                    text={text}
+                    textMuted={textMuted}
+                    inputBorder={inputBorder}
+                    inputBg={cardBgElevated}
+                  />
                 </div>
               ))}
             </div>

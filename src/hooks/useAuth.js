@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getAuthErrorMessage } from "../lib/authErrors.js";
+import { toggleEquipoFavorito, equiposFavoritosLlenos, isEquipoFavorito } from "../lib/equiposFavoritos.js";
 
 export function useAuth(setErrorMsg) {
   const [user, setUser] = useState(null);
@@ -17,6 +18,7 @@ export function useAuth(setErrorMsg) {
   const [userNombreInput, setUserNombreInput] = useState("");
   const [savingUserNombre, setSavingUserNombre] = useState(false);
   const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
+  const [savingFavoritos, setSavingFavoritos] = useState(false);
 
   useEffect(() => {
     setUserNombreInput(userData?.nombre || "");
@@ -116,6 +118,28 @@ export function useAuth(setErrorMsg) {
     }
   };
 
+  const handleToggleEquipoFavorito = async (equipoId) => {
+    if (!user || !equipoId || userData?.rol !== "entrenador") return;
+    if (!isEquipoFavorito(userData?.equiposFavoritos, equipoId) && equiposFavoritosLlenos(userData?.equiposFavoritos)) {
+      setErrorMsg("Solo puedes marcar 2 equipos como favoritos. Quita uno para cambiarlo.");
+      return;
+    }
+    const next = toggleEquipoFavorito(userData?.equiposFavoritos, equipoId);
+    setSavingFavoritos(true);
+    setErrorMsg("");
+    try {
+      await updateDoc(doc(db, "Usuarios", user.uid), { equiposFavoritos: next });
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para guardar favoritos."
+          : "No se pudieron guardar los equipos favoritos."
+      );
+    } finally {
+      setSavingFavoritos(false);
+    }
+  };
+
   return {
     user,
     userData,
@@ -134,5 +158,7 @@ export function useAuth(setErrorMsg) {
     logout,
     handleOpenOpciones,
     handleSaveUserNombre,
+    handleToggleEquipoFavorito,
+    savingFavoritos,
   };
 }
