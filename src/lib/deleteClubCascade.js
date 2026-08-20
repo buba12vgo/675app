@@ -6,6 +6,7 @@ import {
   writeBatch,
   doc,
 } from "firebase/firestore";
+import { equipoLogoDocId } from "./logoDocs.js";
 
 const BATCH_LIMIT = 400;
 
@@ -15,6 +16,30 @@ async function commitOps(db, ops) {
     ops.slice(i, i + BATCH_LIMIT).forEach((op) => op(batch));
     await batch.commit();
   }
+}
+
+export async function deleteEquipoCascade(db, equipoId) {
+  const [jugadorasSnap, sesionesSnap] = await Promise.all([
+    getDocs(query(collection(db, "Jugadoras"), where("equipoId", "==", equipoId))),
+    getDocs(query(collection(db, "Sesiones"), where("equipoId", "==", equipoId))),
+  ]);
+
+  const ops = [];
+  sesionesSnap.docs.forEach((sesionDoc) => {
+    ops.push((batch) => batch.delete(sesionDoc.ref));
+  });
+  jugadorasSnap.docs.forEach((jugadoraDoc) => {
+    ops.push((batch) => batch.delete(jugadoraDoc.ref));
+  });
+  ops.push((batch) => batch.delete(doc(db, "Logos", equipoLogoDocId(equipoId))));
+  ops.push((batch) => batch.delete(doc(db, "Equipos", equipoId)));
+
+  await commitOps(db, ops);
+
+  return {
+    jugadoras: jugadorasSnap.size,
+    sesiones: sesionesSnap.size,
+  };
 }
 
 export async function deleteClubCascade(db, clubId) {

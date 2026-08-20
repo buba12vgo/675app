@@ -108,6 +108,9 @@ export function EquiposListaSection({
                 onStartEdit={equipoEditProps.onStartEditEquipo}
                 onCancelEdit={equipoEditProps.onCancelEditEquipo}
                 onSave={equipoEditProps.onSaveEquipo}
+                canDelete={equipoEditProps.canDeleteEquipo?.(equipo)}
+                onDelete={equipoEditProps.onDeleteEquipo}
+                deleting={equipoEditProps.deletingEquipoId === equipo.id}
                 onEntrar={onEntrarEquipo}
                 onUploadLogo={(file) => equipoEditProps.onUploadEquipoLogo(equipo.id, file)}
                 onRemoveLogo={() => equipoEditProps.onRemoveEquipoLogo(equipo.id)}

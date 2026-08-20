@@ -26,6 +26,9 @@ export function EquipoListRow({
   onStartEdit,
   onCancelEdit,
   onSave,
+  onDelete,
+  canDelete,
+  deleting,
   onEntrar,
   onUploadLogo,
   onRemoveLogo,
@@ -181,12 +184,37 @@ export function EquipoListRow({
             onClick={() => onStartEdit(equipo)}
             aria-label={`Editar ${equipo.nombre}`}
             title="Editar equipo"
+            disabled={deleting}
             style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
           >
             <IconGear size={17} />
           </button>
         )}
-        <button type="button" className="entity-list-card__action" onClick={() => onEntrar(equipo)}>Entrar</button>
+        {canDelete && onDelete ? (
+          <button
+            type="button"
+            onClick={() => onDelete(equipo)}
+            disabled={deleting}
+            aria-label={`Eliminar ${equipo.nombre}`}
+            style={{
+              background: "transparent",
+              color: "#e57373",
+              border: "1px solid rgba(229, 115, 115, 0.45)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: deleting ? "wait" : "pointer",
+              fontFamily: "inherit",
+              opacity: deleting ? 0.7 : 1,
+            }}
+          >
+            {deleting ? "Eliminando…" : "Eliminar"}
+          </button>
+        ) : null}
+        <button type="button" className="entity-list-card__action" onClick={() => onEntrar(equipo)} disabled={deleting}>
+          Entrar
+        </button>
       </div>
     </div>
   );

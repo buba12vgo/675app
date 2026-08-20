@@ -9,6 +9,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   getDocs,
   query,
@@ -188,6 +189,14 @@ try {
 
   await test("Superadmin lee equipos de cualquier club", async () => {
     await assertSucceeds(getDoc(doc(superadmin, "Equipos/eq-b")));
+  });
+
+  await test("Entrenador no puede eliminar equipos", async () => {
+    await assertFails(deleteDoc(doc(coachNew, "Equipos/eq-a")));
+  });
+
+  await test("Superadmin puede eliminar equipos", async () => {
+    await assertSucceeds(deleteDoc(doc(superadmin, "Equipos/eq-b")));
   });
 
   await test("Superadmin lista jugadoras sin filtro", async () => {

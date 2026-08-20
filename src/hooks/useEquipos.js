@@ -21,6 +21,7 @@ import {
 } from "../lib/appUtils.js";
 import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
 import { equipoLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
+import { deleteEquipoCascade } from "../lib/deleteClubCascade.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const [equipos, setEquipos] = useState([]);
@@ -34,6 +35,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const [editEquipoGenero, setEditEquipoGenero] = useState(GENERO_FEMENINO);
   const [editEquipoTipoCanasta, setEditEquipoTipoCanasta] = useState(TIPO_CANASTA_GRANDE);
   const [savingEquipoId, setSavingEquipoId] = useState(null);
+  const [deletingEquipoId, setDeletingEquipoId] = useState(null);
   const [savingEquipoLogoId, setSavingEquipoLogoId] = useState(null);
   const [equipoActivo, setEquipoActivo] = useState(null);
   const [equipoLogos, setEquipoLogos] = useState({});
@@ -143,6 +145,39 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
 
   const puedeGestionarEquipo = (equipo) =>
     canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
+
+  const puedeEliminarEquipo = () => userData?.rol === "superadmin";
+
+  const handleEliminarEquipo = async (equipo) => {
+    if (!equipo?.id || !puedeEliminarEquipo()) return;
+
+    const confirmed = window.confirm(
+      `¿Eliminar el equipo "${equipo.nombre}"?\n\nSe borrarán su plantilla, sesiones y escudo.`
+    );
+    if (!confirmed) return;
+
+    setDeletingEquipoId(equipo.id);
+    setErrorMsg("");
+    try {
+      await deleteEquipoCascade(db, equipo.id);
+      setEquipos((prev) => prev.filter((item) => item.id !== equipo.id));
+      setEquipoLogos((prev) => {
+        const next = { ...prev };
+        delete next[equipo.id];
+        return next;
+      });
+      if (equipoActivo?.id === equipo.id) setEquipoActivo(null);
+      if (equipoEditandoId === equipo.id) handleCancelarEditEquipo();
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "permission-denied"
+          ? "No tienes permiso para eliminar este equipo."
+          : "No se pudo eliminar el equipo."
+      );
+    } finally {
+      setDeletingEquipoId(null);
+    }
+  };
 
   const handleIniciarEditEquipo = (equipo) => {
     if (!puedeGestionarEquipo(equipo)) return;
@@ -310,9 +345,12 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     editEquipoTipoCanasta,
     setEditEquipoTipoCanasta,
     savingEquipoId,
+    deletingEquipoId,
     onStartEditEquipo: handleIniciarEditEquipo,
     onCancelEditEquipo: handleCancelarEditEquipo,
     onSaveEquipo: handleGuardarEquipo,
+    canDeleteEquipo: puedeEliminarEquipo,
+    onDeleteEquipo: handleEliminarEquipo,
     onUploadEquipoLogo: handleUploadEquipoLogo,
     onRemoveEquipoLogo: handleRemoveEquipoLogo,
     savingEquipoLogoId,
@@ -338,12 +376,14 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     editEquipoTipoCanasta,
     setEditEquipoTipoCanasta,
     savingEquipoId,
+    deletingEquipoId,
     puedeGestionarEquipo,
     equipoEditProps,
     handleCrearEquipo,
     handleIniciarEditEquipo,
     handleCancelarEditEquipo,
     handleGuardarEquipo,
+    handleEliminarEquipo,
     handleEntrarEquipo,
     handleUploadEquipoLogo,
     handleRemoveEquipoLogo,
