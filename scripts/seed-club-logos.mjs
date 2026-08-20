@@ -14,6 +14,27 @@ async function seedClubLogos(db) {
   for (const docSnap of snapshot.docs) {
     const data = docSnap.data();
     const presetUrl = matchPreset(data.nombre);
+    const isInline = typeof data.logoUrl === "string" && data.logoUrl.startsWith("data:");
+
+    if (isInline) {
+      await db.collection("Logos").doc(`club_${docSnap.id}`).set({
+        tipo: "club",
+        entityId: docSnap.id,
+        clubId: docSnap.id,
+        logoUrl: data.logoUrl,
+        logoSource: "inline",
+        actualizadoEn: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      await docSnap.ref.update({
+        logoUrl: admin.firestore.FieldValue.delete(),
+        logoSource: admin.firestore.FieldValue.delete(),
+        logoUpdatedAt: admin.firestore.FieldValue.delete(),
+      });
+      updated += 1;
+      console.log(`✔ ${data.nombre} → Logos/club_${docSnap.id} (inline migrado)`);
+      continue;
+    }
+
     if (!presetUrl || data.logoUrl === presetUrl) continue;
 
     await docSnap.ref.update({

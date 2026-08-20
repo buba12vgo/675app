@@ -21,7 +21,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 | COACH-03 | Club | No puede entrar en equipos de otro club | Reglas / Integración |
 | COACH-04 | Club | Solicitud de cambio de club en Opciones | E2E |
 | COACH-05 | Equipos | Botón Entrar abre vista de equipo | E2E |
-| COACH-06 | Equipos | Crear equipo nuevo en su club | Manual |
+| COACH-06 | Equipos | El entrenador no crea equipos; lo hace el coordinador | Manual / Reglas |
 
 ## 3. Vista de equipo — pestañas
 

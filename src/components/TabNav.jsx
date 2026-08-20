@@ -52,6 +52,8 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
             }}
             tabIndex={0}
             title={label}
+            aria-label={label}
+            aria-current={active ? "page" : undefined}
           >
             <Icon size={isDesktop ? 20 : 20} color={active ? accent : textMuted} />
             <span className="app-nav-btn__label">{displayLabel}</span>

@@ -28,6 +28,7 @@ export function CoordinacionPanel({
   onUploadEquipoLogo,
   onRemoveEquipoLogo,
   savingEquipoLogoId,
+  getEquipoLogo,
   accent,
   accentLight,
   accentSoft,
@@ -120,7 +121,7 @@ export function CoordinacionPanel({
               {equipos.map((equipo) => (
                 <EquipoListRow
                   key={equipo.id}
-                  equipo={equipo}
+                  equipo={{ ...equipo, logoUrl: getEquipoLogo?.(equipo) || undefined }}
                   mostrarClub={false}
                   canEdit={canEditEquipos}
                   isEditing={equipoEditandoId === equipo.id}

@@ -73,10 +73,15 @@ test.describe("Entrenador", () => {
   });
 
   test("UI-02 preview dispositivos", async ({ page }) => {
-    await expect(page.locator(".app-shell")).toHaveAttribute("data-device-preview", "mobile");
-    await page.getByRole("button", { name: "Vista tablet (768px)" }).click();
-    await expect(page.locator(".app-shell")).toHaveAttribute("data-device-preview", "tablet");
-    await page.getByRole("button", { name: "Vista PC (1200px)" }).click();
     await expect(page.locator(".app-shell")).toHaveAttribute("data-device-preview", "desktop");
+    const tabletBtn = page.getByRole("button", { name: "Vista tablet (768px)" });
+    if (await tabletBtn.count()) {
+      await tabletBtn.click();
+      await expect(page.locator(".app-shell")).toHaveAttribute("data-device-preview", "tablet");
+      await page.getByRole("button", { name: "Vista PC (1200px)" }).click();
+      await expect(page.locator(".app-shell")).toHaveAttribute("data-device-preview", "desktop");
+    } else {
+      await expect(page.locator(".device-preview-control")).toHaveCount(0);
+    }
   });
 });

@@ -19,6 +19,7 @@ export function AppHeader({
   onSeedDemo,
   devicePreview,
   onDevicePreviewChange,
+  showDevicePreview,
   colorMode,
   onToggleColorMode,
   onOpenOpciones,
@@ -55,9 +56,6 @@ export function AppHeader({
       <div className="app-header-bar" style={barStyle}>
         <div className="app-header-row app-header-row--primary">
           <AppBrand accent={accent} text={text} fontSize={22} onGoHome={onGoHome} />
-          <button type="button" className="app-header-logout app-header-logout--corner" onClick={onLogout} tabIndex={0}>
-            Salir
-          </button>
         </div>
         <div className="app-header-row app-header-row--tools">
           <span className="app-header-role" style={{ color: textMuted }}>
@@ -95,7 +93,9 @@ export function AppHeader({
               <span className="app-header-seed-btn__short">{seedingDemo ? "…" : "Demo"}</span>
             </button>
           )}
-          <DevicePreviewControl mode={devicePreview} onChange={onDevicePreviewChange} />
+          {showDevicePreview ? (
+            <DevicePreviewControl mode={devicePreview} onChange={onDevicePreviewChange} />
+          ) : null}
           <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
           <button type="button" className="app-header-logout app-header-logout--inline" onClick={onLogout} tabIndex={0}>
             Salir

@@ -5,6 +5,7 @@ import { PlantillaJugadoraRow } from "./PlantillaJugadoraRow.jsx";
 export function PlantillaTab({
   equipoLabels,
   text,
+  textMuted,
   accent,
   plantillaFormProps,
   jugadorasLoading,
@@ -48,7 +49,7 @@ export function PlantillaTab({
         {jugadorasLoading ? (
           <div
             style={{
-              color: "#bbb",
+              color: textMuted,
               fontSize: 16,
               fontStyle: "italic",
               padding: "12px 0",
@@ -58,7 +59,7 @@ export function PlantillaTab({
             {equipoLabels.cargandoJugadores}
           </div>
         ) : jugadoras.length === 0 ? (
-          <div style={{ color: "#757690", fontStyle: "italic", fontSize: 15.5 }}>
+          <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5 }}>
             {equipoLabels.noHayJugadoresPlantilla}
           </div>
         ) : (

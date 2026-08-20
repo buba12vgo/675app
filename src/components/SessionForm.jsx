@@ -19,6 +19,8 @@ export function SessionForm({
   setAsistencias,
   setValoraciones,
   onSubmit,
+  onDelete,
+  guardadoNotice,
   guardandoSesion,
   onGoToPlantilla,
   accent,
@@ -241,18 +243,35 @@ export function SessionForm({
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="session-save-btn"
-        disabled={guardandoSesion}
-        style={
-          tipoSesion === "partido"
-            ? { background: colorPartido, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" }
-            : undefined
-        }
-      >
-        Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
-      </button>
+      <div className="session-form-actions">
+        <button
+          type="submit"
+          className="session-save-btn"
+          disabled={guardandoSesion}
+          style={
+            tipoSesion === "partido"
+              ? { background: colorPartido, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" }
+              : undefined
+          }
+        >
+          Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
+        </button>
+        {onDelete ? (
+          <button
+            type="button"
+            className="session-delete-btn"
+            onClick={onDelete}
+            disabled={guardandoSesion}
+          >
+            Eliminar
+          </button>
+        ) : null}
+        {guardadoNotice ? (
+          <div className="session-saved-notice" role="status" style={{ color: success }}>
+            {guardadoNotice}
+          </div>
+        ) : null}
+      </div>
     </form>
   );
 }

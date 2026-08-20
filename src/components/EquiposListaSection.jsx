@@ -23,6 +23,7 @@ export function EquiposListaSection({
   onEntrarEquipo,
   getClubNombre,
   getClubLogo,
+  getEquipoLogo,
   accent,
   accentLight,
   accentSoft,
@@ -92,7 +93,7 @@ export function EquiposListaSection({
             {equiposVisibles.map((equipo) => (
               <EquipoListRow
                 key={equipo.id}
-                equipo={equipo}
+                equipo={{ ...equipo, logoUrl: getEquipoLogo?.(equipo) || undefined }}
                 clubNombre={getClubNombre(equipo.clubId)}
                 mostrarClub={mostrarClub}
                 canEdit={equipoEditProps.canEditEquipo(equipo)}

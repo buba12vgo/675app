@@ -151,6 +151,7 @@ export function LoginScreen({
         </button>
         {errorMsg && (
           <div
+            role="alert"
             style={{
               color: error,
               marginTop: 8,

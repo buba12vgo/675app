@@ -22,6 +22,18 @@ export function canManageEquipo(rol, userClubId, equipoClubId) {
   return isCoordinador(rol) && Boolean(userClubId) && userClubId === equipoClubId;
 }
 
+export function getDevicePreviewFromWidth(width) {
+  if (width >= 1024) return "desktop";
+  if (width >= 768) return "tablet";
+  return "mobile";
+}
+
+export function dorsalEstaOcupado(jugadoras, dorsal, exceptId = null) {
+  const n = Number(dorsal);
+  if (!Number.isFinite(n)) return false;
+  return (jugadoras || []).some((j) => j.id !== exceptId && Number(j.dorsal) === n);
+}
+
 export const GENERO_FEMENINO = "femenino";
 export const GENERO_MASCULINO = "masculino";
 export const TIPO_CANASTA_GRANDE = "grande";
@@ -40,6 +52,7 @@ const EQUIPO_LABELS = {
     eliminarJugador: "Eliminar jugadora",
     errorAnadirJugador: "Error al añadir jugadora.",
     errorEliminarJugador: "No se pudo eliminar la jugadora.",
+    errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugadora",
     seedJugadoresPorEquipo: "10 jugadoras por equipo",
   },
@@ -55,6 +68,7 @@ const EQUIPO_LABELS = {
     eliminarJugador: "Eliminar jugador",
     errorAnadirJugador: "Error al añadir jugador.",
     errorEliminarJugador: "No se pudo eliminar el jugador.",
+    errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugador",
     seedJugadoresPorEquipo: "10 jugadores por equipo",
   },

@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import { getAuthErrorMessage } from "../lib/authErrors.js";
 
 export function useAuth(setErrorMsg) {
   const [user, setUser] = useState(null);
@@ -49,7 +50,7 @@ export function useAuth(setErrorMsg) {
             },
             () => setUserData(null)
           );
-        } catch (err) {
+        } catch {
           setUserData(null);
         }
       } else {
@@ -71,7 +72,7 @@ export function useAuth(setErrorMsg) {
       setEmail("");
       setPassword("");
     } catch (error) {
-      setErrorMsg(error.message);
+      setErrorMsg(getAuthErrorMessage(error));
     }
   };
 
@@ -80,7 +81,7 @@ export function useAuth(setErrorMsg) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      setErrorMsg(error.message);
+      setErrorMsg(getAuthErrorMessage(error));
     }
   };
 

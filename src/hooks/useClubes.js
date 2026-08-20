@@ -9,10 +9,15 @@ import {
   updateDoc,
   deleteDoc,
   deleteField,
+  setDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { seedDemoData } from "../seedDemoData.js";
 import { prepareLogoDataUrl, validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
+import { clubLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
+import { deleteClubCascade } from "../lib/deleteClubCascade.js";
 
 export function useClubes({
   user,
@@ -21,6 +26,7 @@ export function useClubes({
   setErrorMsg,
   showOpcionesPanel,
   equipoActivo,
+  setEquipoActivo,
   equiposFiltroSuperadmin,
   setEquiposFiltroSuperadmin,
 }) {
@@ -29,8 +35,6 @@ export function useClubes({
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
-  const [solicitudesClub, setSolicitudesClub] = useState([]);
-  const [solicitudesLoading, setSolicitudesLoading] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [seedNotice, setSeedNotice] = useState(null);
   const [savingClubLogoId, setSavingClubLogoId] = useState(null);
@@ -38,6 +42,7 @@ export function useClubes({
   const [editClubNombre, setEditClubNombre] = useState("");
   const [savingClubId, setSavingClubId] = useState(null);
   const [deletingClubId, setDeletingClubId] = useState(null);
+  const [clubLogos, setClubLogos] = useState({});
 
   const resolvedClubId = equipoActivo?.clubId || userData?.clubId || null;
 
@@ -113,32 +118,91 @@ export function useClubes({
   }, [showOpcionesPanel, userData?.rol, userData?.clubId]);
 
   useEffect(() => {
-    if (userData?.rol !== "superadmin") {
-      setSolicitudesClub([]);
-      setSolicitudesLoading(false);
+    if (userData?.rol === "superadmin") {
+      const q = query(collection(db, "Logos"), where("tipo", "==", "club"));
+      const unsub = onSnapshot(
+        q,
+        (snapshot) => {
+          const next = {};
+          snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.entityId && data.logoUrl) next[data.entityId] = data.logoUrl;
+          });
+          setClubLogos(next);
+        },
+        () => setClubLogos({})
+      );
+      return () => unsub();
+    }
+
+    if (!resolvedClubId) {
+      setClubLogos({});
       return;
     }
 
-    setSolicitudesLoading(true);
     const unsub = onSnapshot(
-      collection(db, "Usuarios"),
-      (snapshot) => {
-        setSolicitudesClub(
-          snapshot.docs
-            .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-            .filter((usuario) => usuario.solicitudClubId)
-            .sort((a, b) => (a.email || "").localeCompare(b.email || "", "es"))
-        );
-        setSolicitudesLoading(false);
+      doc(db, "Logos", clubLogoDocId(resolvedClubId)),
+      (snap) => {
+        if (!snap.exists()) {
+          setClubLogos({});
+          return;
+        }
+        const data = snap.data();
+        setClubLogos(data.logoUrl ? { [resolvedClubId]: data.logoUrl } : {});
       },
-      () => {
-        setSolicitudesClub([]);
-        setSolicitudesLoading(false);
-      }
+      () => setClubLogos({})
     );
-
     return () => unsub();
-  }, [userData?.rol]);
+  }, [userData?.rol, resolvedClubId]);
+
+  useEffect(() => {
+    const canWrite =
+      userData?.rol === "superadmin" ||
+      (userData?.rol === "coordinador" && Boolean(userData?.clubId));
+    if (!canWrite) return;
+
+    const pending = [];
+    clubes.forEach((club) => {
+      if (isInlineDataUrl(club.logoUrl)) pending.push(club);
+    });
+    if (
+      activeClub &&
+      isInlineDataUrl(activeClub.logoUrl) &&
+      !pending.some((club) => club.id === activeClub.id)
+    ) {
+      pending.push(activeClub);
+    }
+    if (!pending.length) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const club of pending) {
+        if (cancelled) return;
+        if (userData?.rol === "coordinador" && club.id !== userData.clubId) continue;
+        try {
+          await setDoc(doc(db, "Logos", clubLogoDocId(club.id)), {
+            tipo: "club",
+            entityId: club.id,
+            clubId: club.id,
+            logoUrl: club.logoUrl,
+            logoSource: "inline",
+            actualizadoEn: new Date(),
+          });
+          await updateDoc(doc(db, "Clubes", club.id), {
+            logoUrl: deleteField(),
+            logoSource: deleteField(),
+            logoUpdatedAt: deleteField(),
+          });
+        } catch {
+          /* ignore one-off migration errors */
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clubes, activeClub, userData?.rol, userData?.clubId]);
 
   const getClubNombre = useCallback(
     (clubId) => {
@@ -292,17 +356,20 @@ export function useClubes({
     if (!club?.id || userData?.rol !== "superadmin") return;
 
     const confirmed = window.confirm(
-      `¿Eliminar el club "${club.nombre}"?\n\nLos equipos y usuarios vinculados no se borrarán automáticamente.`
+      `¿Eliminar el club "${club.nombre}"?\n\nSe borrarán sus equipos, plantillas, sesiones y escudos. Los usuarios de este club quedarán sin club asignado.`
     );
     if (!confirmed) return;
 
     setDeletingClubId(club.id);
     setErrorMsg("");
     try {
-      await deleteDoc(doc(db, "Clubes", club.id));
+      await deleteClubCascade(db, club.id);
       setClubes((prev) => prev.filter((c) => c.id !== club.id));
       if (activeClub?.id === club.id) setActiveClub(null);
       if (clubEditandoId === club.id) handleCancelarEditClub();
+      if (typeof setEquipoActivo === "function" && equipoActivo?.clubId === club.id) {
+        setEquipoActivo(null);
+      }
       if (user?.uid && userData?.clubId === club.id) {
         await updateDoc(doc(db, "Usuarios", user.uid), { clubId: null, clubNombre: null });
         setUserData((prev) => (prev ? { ...prev, clubId: null, clubNombre: null } : prev));
@@ -324,12 +391,33 @@ export function useClubes({
       const club = clubes.find((c) => c.id === clubId);
       const nombre =
         club?.nombre || (activeClub?.id === clubId ? activeClub?.nombre : null);
-      const logoUrl =
-        club?.logoUrl || (activeClub?.id === clubId ? activeClub?.logoUrl : null);
-      return resolveClubLogoUrl({ logoUrl, nombre });
+      const custom = clubLogos[clubId];
+      const stored =
+        shortLogoUrl(club?.logoUrl) ||
+        (activeClub?.id === clubId ? shortLogoUrl(activeClub?.logoUrl) : null);
+      return resolveClubLogoUrl({ logoUrl: custom || stored, nombre });
     },
-    [clubes, activeClub]
+    [clubes, activeClub, clubLogos]
   );
+
+  const persistClubLogo = async (clubId, logoUrl) => {
+    await setDoc(doc(db, "Logos", clubLogoDocId(clubId)), {
+      tipo: "club",
+      entityId: clubId,
+      clubId,
+      logoUrl,
+      logoSource: "inline",
+      actualizadoEn: new Date(),
+    });
+    const club = clubes.find((c) => c.id === clubId) || activeClub;
+    if (isInlineDataUrl(club?.logoUrl)) {
+      await updateDoc(doc(db, "Clubes", clubId), {
+        logoUrl: deleteField(),
+        logoSource: deleteField(),
+        logoUpdatedAt: deleteField(),
+      });
+    }
+  };
 
   const handleUploadClubLogo = async (clubId, file) => {
     if (!clubId) return;
@@ -343,15 +431,8 @@ export function useClubes({
     setErrorMsg("");
     try {
       const logoUrl = await prepareLogoDataUrl(file);
-      await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl,
-        logoSource: "inline",
-        logoUpdatedAt: new Date(),
-      });
-      setClubes((prev) => prev.map((c) => (c.id === clubId ? { ...c, logoUrl } : c)));
-      if (activeClub?.id === clubId) {
-        setActiveClub((prev) => (prev ? { ...prev, logoUrl } : prev));
-      }
+      await persistClubLogo(clubId, logoUrl);
+      setClubLogos((prev) => ({ ...prev, [clubId]: logoUrl }));
     } catch (err) {
       setErrorMsg(getLogoErrorMessage(err));
     } finally {
@@ -367,17 +448,20 @@ export function useClubes({
     setSavingClubLogoId(clubId);
     setErrorMsg("");
     try {
-      await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl: deleteField(),
-        logoSource: deleteField(),
-        logoUpdatedAt: new Date(),
-      });
-      setClubes((prev) =>
-        prev.map((c) => (c.id === clubId ? { ...c, logoUrl: undefined } : c))
-      );
-      if (activeClub?.id === clubId) {
-        setActiveClub((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
+      await deleteDoc(doc(db, "Logos", clubLogoDocId(clubId)));
+      const club = clubes.find((c) => c.id === clubId) || activeClub;
+      if (club?.logoUrl) {
+        await updateDoc(doc(db, "Clubes", clubId), {
+          logoUrl: deleteField(),
+          logoSource: deleteField(),
+          logoUpdatedAt: deleteField(),
+        });
       }
+      setClubLogos((prev) => {
+        const next = { ...prev };
+        delete next[clubId];
+        return next;
+      });
     } catch (err) {
       setErrorMsg(getLogoErrorMessage(err));
     } finally {
@@ -422,8 +506,6 @@ export function useClubes({
     setNuevoClubNombre,
     gestionLoading,
     selectClubLoading,
-    solicitudesClub,
-    solicitudesLoading,
     seedingDemo,
     seedNotice,
     getClubNombre,

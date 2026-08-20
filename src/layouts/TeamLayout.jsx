@@ -1,4 +1,3 @@
-import { formatTipoCanasta, formatGeneroEquipo } from "../lib/appUtils.js";
 import { TeamContextHeader } from "../components/TeamContextHeader.jsx";
 import { TabNav } from "../components/TabNav.jsx";
 

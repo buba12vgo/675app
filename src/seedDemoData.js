@@ -279,7 +279,6 @@ export async function seedDemoData(db, { clubIdFilter = null } = {}) {
             local: "casa",
             asistencias,
             valoraciones,
-            jugadorasExternas: [],
             creadoEn: new Date(),
           },
         });
@@ -300,7 +299,6 @@ export async function seedDemoData(db, { clubIdFilter = null } = {}) {
             local: Math.random() > 0.5 ? "casa" : "fuera",
             asistencias,
             valoraciones,
-            jugadorasExternas: [],
             creadoEn: new Date(),
           },
         });

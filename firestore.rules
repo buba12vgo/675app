@@ -64,13 +64,29 @@ service cloud.firestore {
         );
     }
 
+    function validUserCreate() {
+      let keys = request.resource.data.keys();
+      return keys.hasOnly(['email', 'rol', 'creadoEn', 'nombre'])
+        && request.resource.data.rol == 'entrenador'
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && (
+          !keys.hasAny(['nombre'])
+          || (
+            request.resource.data.nombre is string
+            && request.resource.data.nombre.size() > 0
+            && request.resource.data.nombre.size() <= 80
+          )
+        );
+    }
+
     match /Usuarios/{userId} {
       allow read: if isSignedIn() && (
         request.auth.uid == userId
         || isSuperadmin()
         || (isClubStaff() && resource.data.clubId == userClubId())
       );
-      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId && validUserCreate();
       allow update: if isSuperadmin() || (
         isSignedIn() && request.auth.uid == userId && coachSelfUpdateAllowed() && validUserProfileUpdate()
       );
@@ -90,9 +106,7 @@ service cloud.firestore {
 
     match /Equipos/{equipoId} {
       allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
-      allow create: if isSignedIn() && (
-        isSuperadmin() || belongsToClub(request.resource.data.clubId)
-      );
+      allow create: if isSignedIn() && canManageEquipoClub(request.resource.data.clubId);
       allow update, delete: if canManageEquipoClub(resource.data.clubId);
     }
 
@@ -119,6 +133,27 @@ service cloud.firestore {
       allow create: if isSignedIn() && canAccessEquipo(request.resource.data.equipoId);
       allow update: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
       allow delete: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+    }
+
+    match /Logos/{logoId} {
+      allow read: if isSignedIn() && (
+        isSuperadmin()
+        || resource.data.tipo == 'club'
+        || resource.data.clubId == userClubId()
+      );
+      allow create, update: if isSignedIn() && (
+        isSuperadmin()
+        || (
+          isCoordinador()
+          && request.resource.data.clubId == userClubId()
+          && (
+            request.resource.data.tipo == 'club'
+            || request.resource.data.tipo == 'equipo'
+          )
+        )
+      );
+      allow delete: if isSuperadmin()
+        || (isCoordinador() && resource.data.clubId == userClubId());
     }
   }
 }

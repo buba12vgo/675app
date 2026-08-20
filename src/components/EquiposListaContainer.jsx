@@ -21,6 +21,7 @@ export function EquiposListaContainer({
   onEntrarEquipo,
   getClubNombre,
   getClubLogo,
+  getEquipoLogo,
   accent,
   accentLight,
   accentSoft,
@@ -57,8 +58,10 @@ export function EquiposListaContainer({
       onEntrarEquipo={onEntrarEquipo}
       getClubNombre={getClubNombre}
       getClubLogo={getClubLogo}
+      getEquipoLogo={getEquipoLogo}
       accent={accent}
       accentLight={accentLight}
+      accentSoft={accentSoft}
       onAccent={onAccent}
       text={text}
       textSecondary={textSecondary}

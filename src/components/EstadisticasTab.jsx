@@ -182,7 +182,7 @@ export function EstadisticasTab({
       {jugadorasLoading || sesionesLoading ? (
         <div
           style={{
-            color: "#bbb",
+            color: textMuted,
             fontSize: 16,
             fontStyle: "italic",
             padding: "12px 0",
@@ -215,7 +215,7 @@ export function EstadisticasTab({
       ) : sesionesFiltradas.length === 0 ? (
         <div
           style={{
-            color: "#757690",
+            color: textMuted,
             fontStyle: "italic",
             fontSize: 15.5,
             textAlign: "center",

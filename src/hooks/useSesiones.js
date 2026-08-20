@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  deleteDoc,
   collection,
   onSnapshot,
   query,
@@ -31,6 +32,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [mesActual, setMesActual] = useState(() => new Date().getMonth());
   const [anioActual, setAnioActual] = useState(() => new Date().getFullYear());
   const [fechaSesionSeleccionada, setFechaSesionSeleccionada] = useState(null);
+  const [sesionGuardadaNotice, setSesionGuardadaNotice] = useState("");
 
   const sesionSetters = {
     setTematica,
@@ -173,6 +175,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
 
   useEffect(() => {
     setSesionVista("datos");
+    setSesionGuardadaNotice("");
   }, [fechaSesionSeleccionada]);
 
   const resetSesionPanel = () => {
@@ -208,7 +211,6 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         local: "casa",
         asistencias: asist,
         valoraciones: vals,
-        jugadorasExternas: [],
         creadoEn: new Date(),
       });
       const snap = await getDoc(sesionDocRef);
@@ -247,7 +249,6 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         tipo: tipoSesion,
         asistencias,
         valoraciones: valoracionesFiltradas,
-        jugadorasExternas: [],
         actualizadoEn: new Date(),
       };
       if (tipoSesion === "partido") {
@@ -262,8 +263,29 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         payload.local = "casa";
       }
       await setDoc(sesionDocRef, payload, { merge: true });
+      setSesionGuardadaNotice("Guardado");
+      window.setTimeout(() => setSesionGuardadaNotice(""), 2500);
     } catch {
       setErrorMsg("Error guardando la sesión.");
+    }
+    setGuardandoSesion(false);
+  };
+
+  const handleEliminarSesion = async () => {
+    if (!equipoActivo || !fechaSesionSeleccionada || !sesionDoc) return;
+    const etiqueta = tipoSesion === "partido" ? "este partido" : "este entreno";
+    const confirmed = window.confirm(`¿Eliminar ${etiqueta}? Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
+    setGuardandoSesion(true);
+    setErrorMsg("");
+    setSesionGuardadaNotice("");
+    try {
+      await deleteDoc(doc(db, "Sesiones", sesionId || `${equipoActivo.id}_${fechaSesionSeleccionada}`));
+      setSesionDoc(null);
+      setSesionId(null);
+      resetCamposSesion(sesionSetters);
+    } catch {
+      setErrorMsg("No se pudo eliminar la sesión.");
     }
     setGuardandoSesion(false);
   };
@@ -310,6 +332,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setFechaSesionSeleccionada,
     handleCrearSesion,
     handleGuardarSesion,
+    handleEliminarSesion,
+    sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,
   };

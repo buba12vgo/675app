@@ -10,7 +10,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { getEquipoLabels } from "../lib/appUtils.js";
+import { getEquipoLabels, dorsalEstaOcupado } from "../lib/appUtils.js";
 
 export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
   const [jugadoras, setJugadoras] = useState([]);
@@ -76,6 +76,10 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     const clubIdEquipo = equipoActivo?.clubId || userData?.clubId;
     if (!equipoActivo || !clubIdEquipo) return;
     if (!jugadoraNombre.trim() || !jugadoraDorsal.trim()) return;
+    if (dorsalEstaOcupado(jugadoras, jugadoraDorsal)) {
+      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado);
+      return;
+    }
     setAddJugadoraLoading(true);
     setErrorMsg("");
     try {
@@ -127,6 +131,10 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
 
   const handleGuardarJugadora = async (jugadoraId) => {
     if (!editJugadoraNombre.trim() || !editJugadoraDorsal.trim()) return;
+    if (dorsalEstaOcupado(jugadoras, editJugadoraDorsal, jugadoraId)) {
+      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado);
+      return;
+    }
     setEditJugadoraLoading(true);
     setErrorMsg("");
     try {

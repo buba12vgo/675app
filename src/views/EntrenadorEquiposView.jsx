@@ -10,7 +10,7 @@ export function EntrenadorEquiposView({ equiposListaProps, clubNombre, text }) {
         </>
       }
       mostrarClub={false}
-      permitirCrear={true}
+      permitirCrear={false}
     />
   );
 }

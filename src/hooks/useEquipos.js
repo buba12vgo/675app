@@ -6,7 +6,9 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  deleteDoc,
   deleteField,
+  setDoc,
   query,
   where,
 } from "firebase/firestore";
@@ -18,6 +20,7 @@ import {
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
 import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
+import { equipoLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const [equipos, setEquipos] = useState([]);
@@ -33,6 +36,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const [savingEquipoId, setSavingEquipoId] = useState(null);
   const [savingEquipoLogoId, setSavingEquipoLogoId] = useState(null);
   const [equipoActivo, setEquipoActivo] = useState(null);
+  const [equipoLogos, setEquipoLogos] = useState({});
 
   useEffect(() => {
     setEquipoActivo(null);
@@ -85,7 +89,9 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       const unsub = onSnapshot(
         q,
         (snapshot) => {
-          setEquipos(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+          setEquipos(lista);
           setEquiposLoading(false);
         },
         () => {
@@ -98,6 +104,42 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
 
     setEquipos([]);
   }, [userData?.rol, userData?.clubId, superadminVista, equiposFiltroSuperadmin, equipoActivo]);
+
+  useEffect(() => {
+    const clubId = userData?.clubId || (equipoActivo?.clubId && userData?.rol === "superadmin" ? equipoActivo.clubId : null);
+    if (!clubId) {
+      if (equipoActivo?.id) {
+        const unsub = onSnapshot(
+          doc(db, "Logos", equipoLogoDocId(equipoActivo.id)),
+          (snap) => {
+            const url = snap.exists() ? snap.data().logoUrl : null;
+            setEquipoLogos(url ? { [equipoActivo.id]: url } : {});
+          },
+          () => setEquipoLogos({})
+        );
+        return () => unsub();
+      }
+      setEquipoLogos({});
+      return;
+    }
+
+    const q = query(collection(db, "Logos"), where("clubId", "==", clubId));
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const next = {};
+        snapshot.docs.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.tipo === "equipo" && data.entityId && data.logoUrl) {
+            next[data.entityId] = data.logoUrl;
+          }
+        });
+        setEquipoLogos(next);
+      },
+      () => setEquipoLogos({})
+    );
+    return () => unsub();
+  }, [userData?.clubId, userData?.rol, equipoActivo?.id, equipoActivo?.clubId]);
 
   const puedeGestionarEquipo = (equipo) =>
     canManageEquipo(userData?.rol, userData?.clubId, equipo?.clubId);
@@ -158,6 +200,11 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setEquipoActivo(equipo);
   };
 
+  const getEquipoLogo = (equipo) => {
+    if (!equipo) return null;
+    return equipoLogos[equipo.id] || shortLogoUrl(equipo.logoUrl) || null;
+  };
+
   const handleUploadEquipoLogo = async (equipoId, file) => {
     const equipo = equipos.find((e) => e.id === equipoId);
     if (!equipoId || !equipo || !puedeGestionarEquipo(equipo)) return;
@@ -172,15 +219,22 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setErrorMsg("");
     try {
       const logoUrl = await prepareLogoDataUrl(file);
-      await updateDoc(doc(db, "Equipos", equipoId), {
+      await setDoc(doc(db, "Logos", equipoLogoDocId(equipoId)), {
+        tipo: "equipo",
+        entityId: equipoId,
+        clubId: equipo.clubId,
         logoUrl,
         logoSource: "inline",
-        logoUpdatedAt: new Date(),
+        actualizadoEn: new Date(),
       });
-      setEquipos((prev) => prev.map((e) => (e.id === equipoId ? { ...e, logoUrl } : e)));
-      if (equipoActivo?.id === equipoId) {
-        setEquipoActivo((prev) => (prev ? { ...prev, logoUrl } : prev));
+      if (isInlineDataUrl(equipo.logoUrl)) {
+        await updateDoc(doc(db, "Equipos", equipoId), {
+          logoUrl: deleteField(),
+          logoSource: deleteField(),
+          logoUpdatedAt: deleteField(),
+        });
       }
+      setEquipoLogos((prev) => ({ ...prev, [equipoId]: logoUrl }));
     } catch (err) {
       setErrorMsg(getLogoErrorMessage(err));
     } finally {
@@ -198,17 +252,19 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setSavingEquipoLogoId(equipoId);
     setErrorMsg("");
     try {
-      await updateDoc(doc(db, "Equipos", equipoId), {
-        logoUrl: deleteField(),
-        logoSource: deleteField(),
-        logoUpdatedAt: new Date(),
-      });
-      setEquipos((prev) =>
-        prev.map((e) => (e.id === equipoId ? { ...e, logoUrl: undefined } : e))
-      );
-      if (equipoActivo?.id === equipoId) {
-        setEquipoActivo((prev) => (prev ? { ...prev, logoUrl: undefined } : prev));
+      await deleteDoc(doc(db, "Logos", equipoLogoDocId(equipoId)));
+      if (equipo.logoUrl) {
+        await updateDoc(doc(db, "Equipos", equipoId), {
+          logoUrl: deleteField(),
+          logoSource: deleteField(),
+          logoUpdatedAt: deleteField(),
+        });
       }
+      setEquipoLogos((prev) => {
+        const next = { ...prev };
+        delete next[equipoId];
+        return next;
+      });
     } catch (err) {
       setErrorMsg(getLogoErrorMessage(err));
     } finally {
@@ -219,6 +275,10 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const handleCrearEquipo = async (e) => {
     e.preventDefault();
     if (!nuevoEquipoNombre.trim() || !userData?.clubId) return false;
+    if (!canManageEquipo(userData?.rol, userData.clubId, userData.clubId)) {
+      setErrorMsg("Solo el coordinador o superadmin pueden crear equipos.");
+      return false;
+    }
     setCrearEquipoLoading(true);
     try {
       await addDoc(collection(db, "Equipos"), {
@@ -288,5 +348,6 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     handleUploadEquipoLogo,
     handleRemoveEquipoLogo,
     savingEquipoLogoId,
+    getEquipoLogo,
   };
 }

@@ -3,6 +3,7 @@ export function AppErrorBanner({ error, message }) {
 
   return (
     <div
+      role="alert"
       style={{
         color: error,
         background: "rgba(248,113,113,0.1)",

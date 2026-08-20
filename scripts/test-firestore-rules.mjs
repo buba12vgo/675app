@@ -144,6 +144,24 @@ try {
     );
   });
 
+  await test("Entrenador no puede crear equipos", async () => {
+    await assertFails(
+      setDoc(doc(coachA, "Equipos/eq-coach-new"), {
+        nombre: "Cadete",
+        clubId: "club-a",
+      })
+    );
+  });
+
+  await test("Coordinador puede crear equipos de su club", async () => {
+    await assertSucceeds(
+      setDoc(doc(coordA, "Equipos/eq-coord-new"), {
+        nombre: "Infantil",
+        clubId: "club-a",
+      })
+    );
+  });
+
   await test("Superadmin asigna rol coordinador", async () => {
     await assertSucceeds(
       updateDoc(doc(superadmin, "Usuarios/coach-a"), {
@@ -174,6 +192,62 @@ try {
 
   await test("Superadmin lista jugadoras sin filtro", async () => {
     await assertSucceeds(getDocs(collection(superadmin, "Jugadoras")));
+  });
+
+  await test("Nuevo usuario se crea solo como entrenador", async () => {
+    const newbie = testEnv.authenticatedContext("newbie").firestore();
+    await assertSucceeds(
+      setDoc(doc(newbie, "Usuarios/newbie"), {
+        email: "newbie@test.com",
+        rol: "entrenador",
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Nuevo usuario no puede crearse como superadmin", async () => {
+    const evil = testEnv.authenticatedContext("evil").firestore();
+    await assertFails(
+      setDoc(doc(evil, "Usuarios/evil"), {
+        email: "evil@test.com",
+        rol: "superadmin",
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Nuevo usuario no puede asignarse club al crearse", async () => {
+    const sneaky = testEnv.authenticatedContext("sneaky").firestore();
+    await assertFails(
+      setDoc(doc(sneaky, "Usuarios/sneaky"), {
+        email: "sneaky@test.com",
+        rol: "entrenador",
+        clubId: "club-a",
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Coordinador escribe escudo de su club en Logos", async () => {
+    await assertSucceeds(
+      setDoc(doc(coordA, "Logos/club_club-a"), {
+        tipo: "club",
+        entityId: "club-a",
+        clubId: "club-a",
+        logoUrl: "/logos/celta-femenino.png",
+      })
+    );
+  });
+
+  await test("Entrenador no escribe Logos", async () => {
+    await assertFails(
+      setDoc(doc(coachNew, "Logos/club_club-a"), {
+        tipo: "club",
+        entityId: "club-a",
+        clubId: "club-a",
+        logoUrl: "/logos/otro.png",
+      })
+    );
   });
 } finally {
   await testEnv.cleanup();

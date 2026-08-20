@@ -40,7 +40,7 @@ export function EquipoListRow({
   textMuted,
   inputBorder,
   inputBg,
-  cardBgElevated,
+  cardBgElevated: _cardBgElevated,
   borderAccent,
 }) {
   const displayLogoUrl = equipo.logoUrl || clubLogoUrl || null;

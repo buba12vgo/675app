@@ -40,6 +40,7 @@ export function SuperadminClubesPanel({
   onCancelEditClub,
   onSaveClub,
   onDeleteClub,
+  getClubLogo,
 }) {
   return (
     <>
@@ -274,10 +275,12 @@ export function SuperadminClubesPanel({
         ) : (
           <div className="responsive-grid-list" style={{ width: "100%" }}>
             {clubes.map((club) => {
-              const clubLogoUrl = resolveClubLogoUrl({
-                logoUrl: club.logoUrl,
-                nombre: club.nombre,
-              });
+              const clubLogoUrl =
+                getClubLogo?.(club.id) ||
+                resolveClubLogoUrl({
+                  logoUrl: club.logoUrl?.startsWith("data:") ? null : club.logoUrl,
+                  nombre: club.nombre,
+                });
               const isEditing = clubEditandoId === club.id;
               const isBusy = savingClubId === club.id || deletingClubId === club.id;
 

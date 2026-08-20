@@ -11,7 +11,7 @@ export function EstadisticasTablaTipo({
   const esPartido = tipo === "partido";
   const {
     accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary,
-    surface, error, success, inputBorder, cardBgElevated,
+    error, success, inputBorder, cardBgElevated,
   } = theme;
   const color = esPartido ? colorPartido : accent;
   const colorLight = esPartido ? colorPartidoLight : accentLight;

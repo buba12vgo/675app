@@ -17,7 +17,10 @@ import {
   formatGeneroEquipo,
   normalizeGenero,
   canManageEquipo,
+  getDevicePreviewFromWidth,
+  dorsalEstaOcupado,
 } from "../../src/lib/appUtils.js";
+import { getAuthErrorMessage } from "../../src/lib/authErrors.js";
 
 describe("getEquipoLabels", () => {
   it("devuelve textos femeninos y masculinos", () => {
@@ -52,6 +55,35 @@ describe("canManageEquipo", () => {
     expect(canManageEquipo("coordinador", "club-a", "club-a")).toBe(true);
     expect(canManageEquipo("coordinador", "club-a", "club-b")).toBe(false);
     expect(canManageEquipo("entrenador", "club-a", "club-a")).toBe(false);
+  });
+});
+
+describe("getDevicePreviewFromWidth", () => {
+  it("elige desktop, tablet o mobile según el ancho", () => {
+    expect(getDevicePreviewFromWidth(1440)).toBe("desktop");
+    expect(getDevicePreviewFromWidth(800)).toBe("tablet");
+    expect(getDevicePreviewFromWidth(390)).toBe("mobile");
+  });
+});
+
+describe("dorsalEstaOcupado", () => {
+  const plantilla = [
+    { id: "a", dorsal: 4 },
+    { id: "b", dorsal: 10 },
+  ];
+
+  it("detecta dorsales repetidos y permite el propio al editar", () => {
+    expect(dorsalEstaOcupado(plantilla, 10)).toBe(true);
+    expect(dorsalEstaOcupado(plantilla, "4", "a")).toBe(false);
+    expect(dorsalEstaOcupado(plantilla, 7)).toBe(false);
+  });
+});
+
+describe("getAuthErrorMessage", () => {
+  it("traduce códigos de Firebase y oculta el inglés", () => {
+    expect(getAuthErrorMessage({ code: "auth/invalid-credential" })).toMatch(/incorrectos/i);
+    expect(getAuthErrorMessage({ code: "auth/popup-closed-by-user" })).toMatch(/cerrado/i);
+    expect(getAuthErrorMessage({ message: "Firebase: Error (auth/whatever)." })).toMatch(/iniciar sesión/i);
   });
 });
 

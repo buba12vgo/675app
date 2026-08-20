@@ -2267,6 +2267,37 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
+.session-form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.session-delete-btn {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 11px;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+}
+
+.session-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.session-saved-notice {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* ── Mobile header (fallback when JS compact mode is off) ── */
 @media (max-width: 767px) {
   .app-header-bar {

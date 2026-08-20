@@ -1,18 +1,31 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 # 675app
-# 675app
+
+App de clubes de baloncesto: clubes → equipos → plantilla, calendario y estadísticas.
+
+Roles: **superadmin**, **coordinador** y **entrenador**. El coordinador gestiona equipos y escudos del club. El entrenador trabaja la plantilla y las sesiones de sus equipos.
+
+Stack: React 19 + Vite 8 + Firebase Auth/Firestore (plan Spark, **sin Storage**). Los escudos van en la colección `Logos` o como PNG en `public/logos/`.
+
+## Desarrollo
+
+```bash
+npm install
+npm run dev
+```
+
+Variables: configura `src/firebase.js` con el proyecto Firebase. Proyecto de producción: `app-33232`.
+
+## Tests
+
+```bash
+npm test              # lint, build, unitarios e integración
+npm run test:unit
+npm run test:rules    # emulador Firestore (hace falta Java)
+npm run test:full     # incluye Playwright
+```
+
+Desplegar reglas:
+
+```bash
+npm run deploy:rules
+```

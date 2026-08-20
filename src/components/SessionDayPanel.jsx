@@ -16,6 +16,8 @@ export function SessionDayPanel({
   colorPartido,
   surface,
   inputBorder,
+  text,
+  textMuted,
 }) {
   return (
     <div
@@ -59,7 +61,7 @@ export function SessionDayPanel({
         ← Volver al Calendario
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ color: "#fff", fontWeight: 700, fontSize: 18.8 }}>
+        <div style={{ color: text, fontWeight: 700, fontSize: 18.8 }}>
           {fechaSesionSeleccionada.split("-").reverse().join("/")}
         </div>
         {sesionDoc && (
@@ -84,7 +86,7 @@ export function SessionDayPanel({
       {sesionCargando ? (
         <div
           style={{
-            color: "#bbb",
+            color: textMuted,
             fontSize: 16,
             fontStyle: "italic",
             padding: "12px 0",
@@ -108,7 +110,7 @@ export function SessionDayPanel({
             >
               <div
                 style={{
-                  color: "#9F9FA7",
+                  color: textMuted,
                   fontWeight: 500,
                   fontSize: 15,
                   textAlign: "center",

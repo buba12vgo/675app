@@ -10,7 +10,7 @@ export function AsistenciaValoracionPanel({
   accent,
   inputBorder,
   textMuted,
-  textSecondary,
+  textSecondary: _textSecondary,
   success,
   error,
   cardBgElevated,
@@ -19,7 +19,7 @@ export function AsistenciaValoracionPanel({
   btnTodasPresentes = "Todas presentes",
   btnTodasAusentes = "Todas ausentes",
   onGoToPlantilla,
-  text,
+  text: _text,
   labels,
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
@@ -164,7 +164,7 @@ export function AsistenciaValoracionPanel({
       </div>
       <div className="session-asistencia-list">
         {jugadorasLoading ? (
-          <div style={{ color: "#bbb", fontSize: 15.2, fontStyle: "italic" }}>{playerLabels.cargandoJugadores}</div>
+          <div style={{ color: textMuted, fontSize: 15.2, fontStyle: "italic" }}>{playerLabels.cargandoJugadores}</div>
         ) : jugadoras.length === 0 ? (
           <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15, textAlign: "center", lineHeight: 1.5 }}>
             {playerLabels.noHayJugadoresPlantilla}
