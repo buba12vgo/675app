@@ -462,7 +462,7 @@ textarea:focus-visible {
 }
 
 .app-shell[data-device-preview="tablet"] .device-preview-frame .app-main {
-  padding: 118px 24px 32px;
+  padding: 12px 24px 32px;
 }
 
 .app-shell[data-device-preview="tablet"] .device-preview-frame .app-card {
@@ -471,7 +471,7 @@ textarea:focus-visible {
 }
 
 .app-shell[data-device-preview="desktop"] .device-preview-frame .app-main {
-  padding: 120px 32px 40px;
+  padding: 8px 32px 40px;
 }
 
 .app-shell[data-device-preview="desktop"] .device-preview-frame .app-card {
@@ -2596,7 +2596,7 @@ textarea:focus-visible {
   }
 
   .app-main {
-    padding: 120px 32px 40px;
+    padding: 8px 32px 40px;
   }
 
   .app-card {
