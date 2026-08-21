@@ -108,6 +108,16 @@ try {
     await assertFails(getDocs(collection(coachA, "Jugadoras")));
   });
 
+  await test("Entrenador lista jugadoras de su club", async () => {
+    const q = query(collection(coachA, "Jugadoras"), where("clubId", "==", "club-a"));
+    await assertSucceeds(getDocs(q));
+  });
+
+  await test("Entrenador no lista jugadoras de otro club", async () => {
+    const q = query(collection(coachA, "Jugadoras"), where("clubId", "==", "club-b"));
+    await assertFails(getDocs(q));
+  });
+
   await test("Entrenador puede solicitar club", async () => {
     await assertSucceeds(
       updateDoc(doc(coachNew, "Usuarios/coach-new"), {
@@ -157,15 +167,15 @@ try {
   await test("Entrenador guarda equipos favoritos", async () => {
     await assertSucceeds(
       updateDoc(doc(coachA, "Usuarios/coach-a"), {
-        equiposFavoritos: ["eq-a", "eq-a2"],
+        equiposFavoritos: ["eq-a", "eq-a2", "eq-b", "eq-c"],
       })
     );
   });
 
-  await test("Entrenador no guarda más de dos favoritos", async () => {
+  await test("Entrenador no guarda más de cuatro favoritos", async () => {
     await assertFails(
       updateDoc(doc(coachA, "Usuarios/coach-a"), {
-        equiposFavoritos: ["eq-a", "eq-a2", "eq-b"],
+        equiposFavoritos: ["eq-a", "eq-a2", "eq-b", "eq-c", "eq-d"],
       })
     );
   });

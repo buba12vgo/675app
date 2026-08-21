@@ -168,7 +168,7 @@ export function SessionDayPanel({
               </div>
             </div>
           ) : (
-            <SessionForm {...sessionFormProps} />
+            <SessionForm key={fechaSesionSeleccionada} {...sessionFormProps} />
           )}
         </>
       )}

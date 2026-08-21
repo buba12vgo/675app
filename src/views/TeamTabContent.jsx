@@ -10,6 +10,7 @@ import {
   calcularEstadisticasJugadoras,
   normalizarTipoSesion,
 } from "../lib/appUtils.js";
+import { combinarJugadorasSesion } from "../lib/jugadorasClub.js";
 
 export function TeamTabContent({
   equipoActivo,
@@ -48,6 +49,12 @@ export function TeamTabContent({
   setValoraciones,
   handleGuardarSesion,
   handleEliminarSesion,
+  handleAddJugadoraExterna,
+  handleRemoveJugadoraExterna,
+  jugadorasExternasIds = [],
+  jugadorasClub = [],
+  equiposClub = [],
+  jugadorasClubLoading = false,
   sesionGuardadaNotice,
   statsPeriodo,
   setStatsPeriodo,
@@ -163,6 +170,13 @@ export function TeamTabContent({
       }
     };
 
+    const jugadorasSesion = combinarJugadorasSesion(
+      jugadoras,
+      jugadorasClub,
+      jugadorasExternasIds,
+      equiposClub
+    );
+
     return (
       <CalendarioTab
         text={text}
@@ -205,14 +219,14 @@ export function TeamTabContent({
             onTematicaChange: setTematica,
             ejercicios,
             onEjerciciosChange: setEjercicios,
-            jugadorasSesion: jugadoras,
+            jugadorasSesion,
             jugadorasLoading,
             asistencias,
             valoraciones,
             setAsistencias,
             setValoraciones,
             onSubmit: handleGuardarSesion,
-            onDelete: handleEliminarSesion,
+            onDelete: sesionDoc ? handleEliminarSesion : undefined,
             guardadoNotice: sesionGuardadaNotice,
             guardandoSesion,
             onGoToPlantilla: () => setTab("plantilla"),
@@ -225,7 +239,14 @@ export function TeamTabContent({
             success,
             error,
             cardBgElevated,
+            inputBg,
             equipoLabels,
+            jugadorasClub,
+            equiposClub,
+            jugadorasClubLoading,
+            equipoActivoId: equipoActivo.id,
+            onAddJugadoraExterna: handleAddJugadoraExterna,
+            onRemoveJugadoraExterna: handleRemoveJugadoraExterna,
           },
         }}
       />

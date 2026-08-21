@@ -46,27 +46,20 @@ service cloud.firestore {
       return isSuperadmin() || (isCoordinador() && userClubId() == clubId);
     }
 
+    function validFavoritoId(favs, i) {
+      return favs[i] is string
+        && favs[i].size() > 0
+        && favs[i].size() <= 80;
+    }
+
     function validFavoritosValue() {
       let favs = request.resource.data.equiposFavoritos;
       return favs is list
-        && favs.size() <= 2
-        && (
-          favs.size() == 0
-          || (
-            favs[0] is string
-            && favs[0].size() > 0
-            && favs[0].size() <= 80
-          )
-        )
-        && (
-          favs.size() < 2
-          || (
-            favs[1] is string
-            && favs[1].size() > 0
-            && favs[1].size() <= 80
-            && favs[0] != favs[1]
-          )
-        );
+        && favs.size() <= 4
+        && (favs.size() == 0 || validFavoritoId(favs, 0))
+        && (favs.size() < 2 || (validFavoritoId(favs, 1) && favs[0] != favs[1]))
+        && (favs.size() < 3 || (validFavoritoId(favs, 2) && favs[0] != favs[2] && favs[1] != favs[2]))
+        && (favs.size() < 4 || (validFavoritoId(favs, 3) && favs[0] != favs[3] && favs[1] != favs[3] && favs[2] != favs[3]));
     }
 
     function validEquiposFavoritosUpdate() {
@@ -146,8 +139,11 @@ service cloud.firestore {
     }
 
     match /Jugadoras/{jugadoraId} {
-      allow read: if isSignedIn() && (
-        isSuperadmin() || canAccessEquipo(resource.data.equipoId)
+      allow get: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
+      allow list: if isSignedIn() && (
+        isSuperadmin()
+        || resource.data.clubId == userClubId()
+        || canAccessEquipo(resource.data.equipoId)
       );
       allow create: if isSignedIn() && (
         isSuperadmin() || (

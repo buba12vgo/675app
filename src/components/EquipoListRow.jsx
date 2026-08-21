@@ -9,6 +9,7 @@ import {
 import { IconGear, IconStar } from "./icons.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
+import { MAX_EQUIPOS_FAVORITOS } from "../lib/equiposFavoritos.js";
 
 export function EquipoListRow({
   equipo,
@@ -189,7 +190,7 @@ export function EquipoListRow({
             disabled={deleting || favoriteDisabled}
             aria-label={isFavorite ? `Quitar ${equipo.nombre} de favoritos` : `Marcar ${equipo.nombre} como favorito`}
             aria-pressed={isFavorite}
-            title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? "Ya tienes 2 favoritos" : "Marcar como favorito"}
+            title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? `Ya tienes ${MAX_EQUIPOS_FAVORITOS} favoritos` : "Marcar como favorito"}
             style={{
               color: isFavorite ? accent : textMuted,
               borderColor: isFavorite ? `${accent}55` : inputBorder,

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { EquiposListaContainer } from "../components/EquiposListaContainer.jsx";
 import {
+  MAX_EQUIPOS_FAVORITOS,
   normalizeEquiposFavoritos,
   filterEquiposPorFavoritos,
 } from "../lib/equiposFavoritos.js";
@@ -59,7 +60,7 @@ export function EntrenadorEquiposView({
             lineHeight: 1.45,
           }}
         >
-          Marca la estrella en hasta 2 equipos para verlos al entrar. El resto sigue en «todos
+          Marca la estrella en hasta {MAX_EQUIPOS_FAVORITOS} equipos para verlos al entrar. El resto sigue en «todos
           los equipos».
         </p>
       )}

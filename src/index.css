@@ -919,10 +919,96 @@ textarea:focus-visible {
 }
 
 .asistencia-row__equipo {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   display: block;
-  margin-top: 2px;
+  margin-top: 1px;
+}
+
+.asistencia-remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: transparent;
+  color: #f87171;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.club-player-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.club-player-search__label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.club-player-search__results {
+  border: 1px solid;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.club-player-search__empty {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.club-player-search__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.club-player-search__item:last-child {
+  border-bottom: none;
+}
+
+.club-player-search__dorsal {
+  font-weight: 800;
+  font-size: 14px;
+  width: 28px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.club-player-search__info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.club-player-search__nombre {
+  font-weight: 650;
+  font-size: 14px;
+}
+
+.club-player-search__meta {
+  font-size: 12px;
+}
+
+.club-player-search__add {
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .asistencia-row__controls {
@@ -2287,9 +2373,65 @@ textarea:focus-visible {
   font-family: inherit;
 }
 
+.session-delete-btn--compact {
+  width: auto;
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.session-delete-btn--solid {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
 .session-delete-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.session-delete-confirm {
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-delete-confirm__title {
+  color: #f87171;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.session-delete-confirm__text {
+  margin: 0;
+  color: inherit;
+  font-size: 13.5px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.session-delete-confirm__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.session-delete-confirm__cancel {
+  flex: 1;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--color-accent-border);
+  border-radius: 11px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .session-saved-notice {

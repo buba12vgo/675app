@@ -55,6 +55,10 @@ const EQUIPO_LABELS = {
     errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugadora",
     seedJugadoresPorEquipo: "10 jugadoras por equipo",
+    buscarJugadorClub: "Buscar jugadora de otro equipo del club…",
+    anadirDeOtroEquipo: "Añadir de otro equipo del club",
+    quitarDeSesion: "Quitar de esta sesión",
+    sinResultadosBusqueda: "No hay coincidencias en el club",
   },
   [GENERO_MASCULINO]: {
     jugador: "Jugador",
@@ -71,6 +75,10 @@ const EQUIPO_LABELS = {
     errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugador",
     seedJugadoresPorEquipo: "10 jugadores por equipo",
+    buscarJugadorClub: "Buscar jugador de otro equipo del club…",
+    anadirDeOtroEquipo: "Añadir de otro equipo del club",
+    quitarDeSesion: "Quitar de esta sesión",
+    sinResultadosBusqueda: "No hay coincidencias en el club",
   },
 };
 

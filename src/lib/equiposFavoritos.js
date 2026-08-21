@@ -1,4 +1,4 @@
-export const MAX_EQUIPOS_FAVORITOS = 2;
+export const MAX_EQUIPOS_FAVORITOS = 4;
 
 export function normalizeEquiposFavoritos(value) {
   if (!Array.isArray(value)) return [];

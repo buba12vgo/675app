@@ -2,6 +2,7 @@ import { useState } from "react";
 import { EquipoListRow } from "./EquipoListRow.jsx";
 import { CrearEquipoForm } from "./CrearEquipoForm.jsx";
 import { CrearEquipoCard } from "./CrearEquipoCard.jsx";
+import { MAX_EQUIPOS_FAVORITOS } from "../lib/equiposFavoritos.js";
 
 export function EquiposListaSection({
   titulo,
@@ -138,7 +139,7 @@ export function EquiposListaSection({
                   || (
                     canFavorite
                     && Array.isArray(favoritosIds)
-                    && favoritosIds.length >= 2
+                    && favoritosIds.length >= MAX_EQUIPOS_FAVORITOS
                     && !favoritosIds.includes(equipo.id)
                   )
                 }

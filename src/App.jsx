@@ -20,6 +20,7 @@ import { useClubes } from "./hooks/useClubes.js";
 import { useEquipos } from "./hooks/useEquipos.js";
 import { usePlantilla } from "./hooks/usePlantilla.js";
 import { useSesiones } from "./hooks/useSesiones.js";
+import { useJugadorasClub } from "./hooks/useJugadorasClub.js";
 import { useUsuariosAdmin } from "./hooks/useUsuariosAdmin.js";
 import {
   IconHome,
@@ -230,10 +231,20 @@ function App() {
     handleCrearSesion,
     handleGuardarSesion,
     handleEliminarSesion,
+    handleAddJugadoraExterna,
+    handleRemoveJugadoraExterna,
+    jugadorasExternasIds,
     sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,
   } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
+
+  const clubIdSesion = equipoActivo?.clubId || userData?.clubId || null;
+  const { jugadorasClub, equiposClub, jugadorasClubLoading } = useJugadorasClub({
+    clubId: clubIdSesion,
+    enabled: Boolean(equipoActivo && clubIdSesion && tab === "sesiones"),
+    setErrorMsg,
+  });
 
   const compactHeader = useCompactHeader();
 
@@ -370,6 +381,12 @@ function App() {
       setValoraciones={setValoraciones}
       handleGuardarSesion={handleGuardarSesion}
       handleEliminarSesion={handleEliminarSesion}
+      handleAddJugadoraExterna={handleAddJugadoraExterna}
+      handleRemoveJugadoraExterna={handleRemoveJugadoraExterna}
+      jugadorasExternasIds={jugadorasExternasIds}
+      jugadorasClub={jugadorasClub}
+      equiposClub={equiposClub}
+      jugadorasClubLoading={jugadorasClubLoading}
       sesionGuardadaNotice={sesionGuardadaNotice}
       statsPeriodo={statsPeriodo}
       setStatsPeriodo={setStatsPeriodo}

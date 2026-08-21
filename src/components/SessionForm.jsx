@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AsistenciaValoracionPanel } from "./AsistenciaValoracionPanel.jsx";
 
 export function SessionForm({
@@ -32,16 +33,27 @@ export function SessionForm({
   success,
   error,
   cardBgElevated,
+  inputBg,
   equipoLabels,
+  jugadorasClub,
+  equiposClub,
+  jugadorasClubLoading,
+  equipoActivoId,
+  onAddJugadoraExterna,
+  onRemoveJugadoraExterna,
 }) {
+  const [pasoEliminar, setPasoEliminar] = useState(0);
   const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id]).length;
   const totalJugadoras = jugadorasSesion.length;
+  const esPartido = tipoSesion === "partido";
+  const etiqueta = esPartido ? "partido" : "entreno";
 
   return (
     <form
       className="session-form"
       onSubmit={(e) => {
         e.preventDefault();
+        if (pasoEliminar > 0 || guardandoSesion) return;
         onSubmit();
       }}
       autoComplete="off"
@@ -239,6 +251,13 @@ export function SessionForm({
             onGoToPlantilla={onGoToPlantilla}
             text={text}
             labels={equipoLabels}
+            jugadorasClub={jugadorasClub}
+            equiposClub={equiposClub}
+            jugadorasClubLoading={jugadorasClubLoading}
+            equipoActivoId={equipoActivoId}
+            onAddJugadoraExterna={onAddJugadoraExterna}
+            onRemoveJugadoraExterna={onRemoveJugadoraExterna}
+            inputBg={inputBg}
           />
         </div>
       </div>
@@ -247,7 +266,7 @@ export function SessionForm({
         <button
           type="submit"
           className="session-save-btn"
-          disabled={guardandoSesion}
+          disabled={guardandoSesion || pasoEliminar > 0}
           style={
             tipoSesion === "partido"
               ? { background: colorPartido, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" }
@@ -256,15 +275,58 @@ export function SessionForm({
         >
           Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
         </button>
-        {onDelete ? (
+        {onDelete && pasoEliminar === 0 ? (
           <button
             type="button"
             className="session-delete-btn"
-            onClick={onDelete}
+            onClick={() => setPasoEliminar(1)}
             disabled={guardandoSesion}
           >
-            Eliminar
+            Eliminar {etiqueta}
           </button>
+        ) : null}
+        {onDelete && pasoEliminar > 0 ? (
+          <div className="session-delete-confirm" role="alertdialog" aria-labelledby="session-delete-title">
+            <div id="session-delete-title" className="session-delete-confirm__title">
+              {pasoEliminar === 1
+                ? `¿Eliminar este ${etiqueta}?`
+                : "Última confirmación"}
+            </div>
+            <p className="session-delete-confirm__text" style={{ color: textMuted }}>
+              {pasoEliminar === 1
+                ? "Se quitará del calendario y de las estadísticas."
+                : "Esta acción no se puede deshacer. Confirma otra vez para borrar."}
+            </p>
+            <div className="session-delete-confirm__actions">
+              <button
+                type="button"
+                className="session-delete-confirm__cancel"
+                onClick={() => setPasoEliminar(0)}
+                disabled={guardandoSesion}
+                style={{ color: text, borderColor: inputBorder }}
+              >
+                Cancelar
+              </button>
+              {pasoEliminar === 1 ? (
+                <button
+                  type="button"
+                  className="session-delete-btn session-delete-btn--compact"
+                  onClick={() => setPasoEliminar(2)}
+                >
+                  Continuar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="session-delete-btn session-delete-btn--compact session-delete-btn--solid"
+                  onClick={onDelete}
+                  disabled={guardandoSesion}
+                >
+                  {guardandoSesion ? "Eliminando…" : `Sí, eliminar ${etiqueta}`}
+                </button>
+              )}
+            </div>
+          </div>
         ) : null}
         {guardadoNotice ? (
           <div className="session-saved-notice" role="status" style={{ color: success }}>

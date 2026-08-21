@@ -1,4 +1,5 @@
 import { getEquipoLabels, GENERO_FEMENINO } from "../lib/appUtils.js";
+import { BuscadorJugadorasClub } from "./BuscadorJugadorasClub.jsx";
 
 export function AsistenciaValoracionPanel({
   jugadoras,
@@ -19,8 +20,15 @@ export function AsistenciaValoracionPanel({
   btnTodasPresentes = "Todas presentes",
   btnTodasAusentes = "Todas ausentes",
   onGoToPlantilla,
-  text: _text,
+  text,
   labels,
+  jugadorasClub,
+  equiposClub,
+  jugadorasClubLoading,
+  equipoActivoId,
+  onAddJugadoraExterna,
+  onRemoveJugadoraExterna,
+  inputBg,
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
@@ -162,6 +170,23 @@ export function AsistenciaValoracionPanel({
           </div>
         )}
       </div>
+      {onAddJugadoraExterna ? (
+        <BuscadorJugadorasClub
+          jugadorasClub={jugadorasClub}
+          equiposClub={equiposClub}
+          equipoActivoId={equipoActivoId}
+          idsYaEnSesion={jugadoras.map((j) => j.id)}
+          loading={jugadorasClubLoading}
+          onAdd={onAddJugadoraExterna}
+          accent={accent}
+          inputBorder={inputBorder}
+          inputBg={inputBg}
+          text={text}
+          textMuted={textMuted}
+          cardBgElevated={cardBgElevated}
+          labels={playerLabels}
+        />
+      ) : null}
       <div className="session-asistencia-list">
         {jugadorasLoading ? (
           <div style={{ color: textMuted, fontSize: 15.2, fontStyle: "italic" }}>{playerLabels.cargandoJugadores}</div>
@@ -207,6 +232,9 @@ export function AsistenciaValoracionPanel({
                     {(j.apodo && j.apodo.trim() !== "") && (
                       <span className="asistencia-row__apodo">"{j.apodo}"</span>
                     )}
+                    {j.esExterna && j.equipoNombre ? (
+                      <span className="asistencia-row__equipo" style={{ color: textMuted }}>{j.equipoNombre}</span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="asistencia-row__controls">
@@ -247,6 +275,17 @@ export function AsistenciaValoracionPanel({
                     >
                       {estaPresente ? "✓" : "✗"}
                     </button>
+                    {j.esExterna && onRemoveJugadoraExterna ? (
+                      <button
+                        type="button"
+                        className="asistencia-remove-btn"
+                        onClick={() => onRemoveJugadoraExterna(j.id)}
+                        aria-label={`${playerLabels.quitarDeSesion}: ${j.nombre}`}
+                        title={playerLabels.quitarDeSesion}
+                      >
+                        ×
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </div>

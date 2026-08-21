@@ -9,17 +9,18 @@ import {
 } from "../../src/lib/equiposFavoritos.js";
 
 describe("equiposFavoritos", () => {
-  it("normaliza a dos ids únicos", () => {
-    expect(normalizeEquiposFavoritos(["a", "a", "b", "c"])).toEqual(["a", "b"]);
+  it("normaliza a cuatro ids únicos", () => {
+    expect(normalizeEquiposFavoritos(["a", "a", "b", "c", "d", "e"])).toEqual(["a", "b", "c", "d"]);
     expect(normalizeEquiposFavoritos(["  ", null, "x"])).toEqual(["x"]);
-    expect(MAX_EQUIPOS_FAVORITOS).toBe(2);
+    expect(MAX_EQUIPOS_FAVORITOS).toBe(4);
   });
 
-  it("añade y quita favoritos sin pasar de dos", () => {
+  it("añade y quita favoritos sin pasar de cuatro", () => {
     expect(toggleEquipoFavorito([], "eq-1")).toEqual(["eq-1"]);
     expect(toggleEquipoFavorito(["eq-1"], "eq-1")).toEqual([]);
-    expect(toggleEquipoFavorito(["eq-1", "eq-2"], "eq-3")).toEqual(["eq-1", "eq-2"]);
-    expect(equiposFavoritosLlenos(["eq-1", "eq-2"])).toBe(true);
+    expect(toggleEquipoFavorito(["eq-1", "eq-2", "eq-3", "eq-4"], "eq-5")).toEqual(["eq-1", "eq-2", "eq-3", "eq-4"]);
+    expect(equiposFavoritosLlenos(["eq-1", "eq-2", "eq-3", "eq-4"])).toBe(true);
+    expect(equiposFavoritosLlenos(["eq-1", "eq-2"])).toBe(false);
     expect(isEquipoFavorito(["eq-1"], "eq-1")).toBe(true);
   });
 
