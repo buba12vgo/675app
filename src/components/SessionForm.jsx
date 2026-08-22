@@ -19,6 +19,8 @@ export function SessionForm({
   valoraciones,
   setAsistencias,
   setValoraciones,
+  motivosAusencia,
+  setMotivosAusencia,
   onSubmit,
   onDelete,
   guardadoNotice,
@@ -230,6 +232,8 @@ export function SessionForm({
             valoraciones={valoraciones}
             setAsistencias={setAsistencias}
             setValoraciones={setValoraciones}
+            motivosAusencia={motivosAusencia}
+            setMotivosAusencia={setMotivosAusencia}
             accent={tipoSesion === "partido" ? colorPartido : accent}
             inputBorder={inputBorder}
             textMuted={textMuted}

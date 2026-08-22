@@ -195,6 +195,7 @@ describe("calcularEstadisticasJugadoras", () => {
     const stats = calcularEstadisticasJugadoras(jugadoras, sesiones);
     expect(stats[0].entrenos.presentes).toBe(1);
     expect(stats[0].entrenos.ausencias).toBe(1);
+    expect(stats[0].entrenos.noJustificada).toBe(1);
     expect(stats[0].partidos.presentes).toBe(1);
     expect(stats[0].entrenos.notaMedia).toBe(4);
   });

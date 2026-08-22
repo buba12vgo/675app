@@ -1,3 +1,5 @@
+import { MOTIVO_JUSTIFICADA, MOTIVO_SALUD, MOTIVO_AUSENCIA_DEFAULT } from "./motivosAusencia.js";
+
 const ROL_LABELS = {
   superadmin: "Superadmin",
   coordinador: "Coordinador",
@@ -254,6 +256,9 @@ export function filtrarSesionesPorPeriodo(sesiones, periodo, desde, hasta) {
 export function calcularStatsPorLista(jugadoraId, sesiones) {
   let presentes = 0;
   let ausencias = 0;
+  let justificada = 0;
+  let noJustificada = 0;
+  let salud = 0;
   let sumaNotas = 0;
   let countNotas = 0;
   sesiones.forEach((s) => {
@@ -261,6 +266,10 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     if (typeof asist[jugadoraId] === "undefined") return;
     if (asist[jugadoraId] === false) {
       ausencias += 1;
+      const motivo = (s.motivosAusencia || {})[jugadoraId] || MOTIVO_AUSENCIA_DEFAULT;
+      if (motivo === MOTIVO_JUSTIFICADA) justificada += 1;
+      else if (motivo === MOTIVO_SALUD) salud += 1;
+      else noJustificada += 1;
       return;
     }
     presentes += 1;
@@ -274,6 +283,9 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     total: sesiones.length,
     presentes,
     ausencias,
+    justificada,
+    noJustificada,
+    salud,
     notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
   };
 }

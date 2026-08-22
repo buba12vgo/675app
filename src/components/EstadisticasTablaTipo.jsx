@@ -69,7 +69,16 @@ export function EstadisticasTablaTipo({
             </div>
             <span style={{ textAlign: "center", color: textMuted, fontWeight: 600, fontSize: 13 }}>{stats.total}</span>
             <span style={{ textAlign: "center", color: success, fontWeight: 700, fontSize: 13 }}>{stats.presentes}</span>
-            <span style={{ textAlign: "center", color: stats.ausencias > 0 ? error : textMuted, fontWeight: 700, fontSize: 13 }}>{stats.ausencias}</span>
+            <span
+              style={{ textAlign: "center", color: stats.ausencias > 0 ? error : textMuted, fontWeight: 700, fontSize: 13 }}
+              title={
+                stats.ausencias > 0
+                  ? `Justificada ${stats.justificada || 0} · No justificada ${stats.noJustificada || 0} · Salud ${stats.salud || 0}`
+                  : (esPartido ? "No convocadas" : "Ausencias")
+              }
+            >
+              {stats.ausencias}
+            </span>
             <span style={{ textAlign: "center", color: stats.notaMedia !== null ? colorLight : textMuted, fontWeight: 700, fontSize: 13 }}>
               {stats.notaMedia !== null ? stats.notaMedia.toFixed(1) : "—"}
             </span>

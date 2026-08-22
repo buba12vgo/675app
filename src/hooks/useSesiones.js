@@ -15,6 +15,7 @@ import {
 import { normalizarTipoSesion, sugerirFechaLibre } from "../lib/appUtils.js";
 import { resetCamposSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
+import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
 
 export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab }) {
   const [sesionCargando, setSesionCargando] = useState(false);
@@ -36,6 +37,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [fechaSesionSeleccionada, setFechaSesionSeleccionada] = useState(null);
   const [sesionGuardadaNotice, setSesionGuardadaNotice] = useState("");
   const [jugadorasExternasIds, setJugadorasExternasIds] = useState([]);
+  const [motivosAusencia, setMotivosAusencia] = useState({});
 
   const sesionSetters = {
     setTematica,
@@ -47,6 +49,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setLocalPartido,
     setSesionVista,
     setJugadorasExternasIds,
+    setMotivosAusencia,
   };
 
   useEffect(() => {
@@ -114,6 +117,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
             setRivalPartido(docSesion.data().rival || "");
             setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
             setJugadorasExternasIds(normalizeExternasIds(docSesion.data().jugadorasExternas));
+            setMotivosAusencia(normalizeMotivosAusenciaMap(docSesion.data().motivosAusencia));
           } else {
             setSesionDoc(null);
             setSesionId(null);
@@ -160,6 +164,14 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         if (typeof val === "number" && val >= 1 && val <= 5) {
           nuevo[id] = val;
         }
+      });
+      return nuevo;
+    });
+    setMotivosAusencia((prevMotivos) => {
+      const nuevo = {};
+      idsSesion.forEach((id) => {
+        const motivo = prevMotivos[id];
+        if (motivo) nuevo[id] = motivo;
       });
       return nuevo;
     });
@@ -223,6 +235,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         asistencias: asist,
         valoraciones: vals,
         jugadorasExternas: [],
+        motivosAusencia: {},
         creadoEn: new Date(),
       });
       const snap = await getDoc(sesionDocRef);
@@ -237,6 +250,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         setTematica("");
         setEjercicios("");
         setJugadorasExternasIds([]);
+        setMotivosAusencia({});
       }
     } catch {
       setErrorMsg("Error creando la sesión.");
@@ -260,6 +274,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
           valoracionesFiltradas[id] = valoraciones[id];
         }
       });
+      const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion);
       const sesionDocRef = doc(db, "Sesiones", sesionId || `${equipoActivo.id}_${fechaSesionSeleccionada}`);
       const payload = {
         equipoId: equipoActivo.id,
@@ -267,6 +282,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         tipo: tipoSesion,
         asistencias: asistenciasLimpias,
         valoraciones: valoracionesFiltradas,
+        motivosAusencia: motivosLimpios,
         jugadorasExternas: idsExternas,
         actualizadoEn: new Date(),
       };
@@ -318,6 +334,11 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       ...prev,
       [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 3,
     }));
+    setMotivosAusencia((prev) => {
+      const next = { ...prev };
+      delete next[jugadoraId];
+      return next;
+    });
   };
 
   const handleRemoveJugadoraExterna = (jugadoraId) => {
@@ -329,6 +350,11 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       return next;
     });
     setValoraciones((prev) => {
+      const next = { ...prev };
+      delete next[jugadoraId];
+      return next;
+    });
+    setMotivosAusencia((prev) => {
       const next = { ...prev };
       delete next[jugadoraId];
       return next;
@@ -358,6 +384,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setAsistencias,
     valoraciones,
     setValoraciones,
+    motivosAusencia,
+    setMotivosAusencia,
     guardandoSesion,
     tipoSesion,
     setTipoSesion,

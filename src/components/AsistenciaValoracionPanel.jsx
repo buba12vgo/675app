@@ -1,5 +1,9 @@
 import { getEquipoLabels, GENERO_FEMENINO } from "../lib/appUtils.js";
 import { BuscadorJugadorasClub } from "./BuscadorJugadorasClub.jsx";
+import {
+  MOTIVOS_AUSENCIA,
+  MOTIVO_AUSENCIA_DEFAULT,
+} from "../lib/motivosAusencia.js";
 
 export function AsistenciaValoracionPanel({
   jugadoras,
@@ -8,6 +12,8 @@ export function AsistenciaValoracionPanel({
   valoraciones,
   setAsistencias,
   setValoraciones,
+  motivosAusencia = {},
+  setMotivosAusencia,
   accent,
   inputBorder,
   textMuted,
@@ -54,6 +60,11 @@ export function AsistenciaValoracionPanel({
       });
       return nuevo;
     });
+    setMotivosAusencia?.(prev => {
+      const nuevo = { ...prev };
+      jugadoras.forEach(j => { delete nuevo[j.id]; });
+      return nuevo;
+    });
   };
 
   const marcarTodasAusentes = () => {
@@ -63,22 +74,48 @@ export function AsistenciaValoracionPanel({
       return nuevo;
     });
     setValoraciones({});
+    setMotivosAusencia?.(() => {
+      const nuevo = {};
+      jugadoras.forEach(j => { nuevo[j.id] = MOTIVO_AUSENCIA_DEFAULT; });
+      return nuevo;
+    });
   };
 
-  const toggleAsistencia = (jugadoraId, presenteActual) => {
-    setAsistencias(prev => ({ ...prev, [jugadoraId]: !presenteActual }));
-    if (presenteActual) {
-      setValoraciones(prev => {
-        const nuevo = { ...prev };
-        delete nuevo[jugadoraId];
-        return nuevo;
-      });
-    } else {
-      setValoraciones(prev => ({
-        ...prev,
-        [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 3
-      }));
-    }
+  const marcarPresente = (jugadoraId) => {
+    setAsistencias(prev => ({ ...prev, [jugadoraId]: true }));
+    setValoraciones(prev => ({
+      ...prev,
+      [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 3,
+    }));
+    setMotivosAusencia?.(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+  };
+
+  const iniciarAusencia = (jugadoraId) => {
+    setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
+    setValoraciones(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+    setMotivosAusencia?.(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+  };
+
+  const marcarAusente = (jugadoraId, motivo) => {
+    setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
+    setValoraciones(prev => {
+      const nuevo = { ...prev };
+      delete nuevo[jugadoraId];
+      return nuevo;
+    });
+    setMotivosAusencia?.(prev => ({ ...prev, [jugadoraId]: motivo }));
   };
 
   return (
@@ -220,6 +257,7 @@ export function AsistenciaValoracionPanel({
           jugadoras.map(j => {
             const estaPresente = !!asistencias[j.id];
             const valoracionActual = valoraciones[j.id];
+            const motivoActual = motivosAusencia[j.id];
             return (
               <div
                 key={j.id}
@@ -238,7 +276,7 @@ export function AsistenciaValoracionPanel({
                   </div>
                 </div>
                 <div className="asistencia-row__controls">
-                  {estaPresente && (
+                  {estaPresente ? (
                     <div className="asistencia-rating-group" aria-label="Valoración del 1 al 5">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button
@@ -258,14 +296,36 @@ export function AsistenciaValoracionPanel({
                         </button>
                       ))}
                     </div>
+                  ) : (
+                    <div className="asistencia-motivo-group" role="group" aria-label="Motivo de ausencia">
+                      {MOTIVOS_AUSENCIA.map((motivo) => {
+                        const activo = motivoActual === motivo.id;
+                        return (
+                          <button
+                            key={motivo.id}
+                            type="button"
+                            className={`asistencia-motivo-btn${activo ? " asistencia-motivo-btn--active" : ""}`}
+                            aria-pressed={activo}
+                            onClick={() => marcarAusente(j.id, motivo.id)}
+                            title={motivo.label}
+                          >
+                            <span className="asistencia-motivo-btn__full">{motivo.label}</span>
+                            <span className="asistencia-motivo-btn__short">{motivo.short}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                   <div className="asistencia-action-group">
                     <button
                       type="button"
                       className="asistencia-toggle-btn"
                       aria-label={estaPresente ? "Marcar ausente" : "Marcar presente"}
-                      title={estaPresente ? "Presente — pulsa para marcar ausente" : "Ausente — pulsa para marcar presente"}
-                      onClick={() => toggleAsistencia(j.id, estaPresente)}
+                      title={estaPresente ? "Presente — pulsa para elegir el motivo de ausencia" : "Ausente — pulsa para marcar presente"}
+                      onClick={() => {
+                        if (estaPresente) iniciarAusencia(j.id);
+                        else marcarPresente(j.id);
+                      }}
                       style={{
                         background: estaPresente ? verdePresente : rojoAusente,
                         boxShadow: estaPresente

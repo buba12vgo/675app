@@ -211,6 +211,8 @@ function App() {
     setAsistencias,
     valoraciones,
     setValoraciones,
+    motivosAusencia,
+    setMotivosAusencia,
     guardandoSesion,
     tipoSesion,
     setTipoSesion: _setTipoSesion,
@@ -379,6 +381,8 @@ function App() {
       valoraciones={valoraciones}
       setAsistencias={setAsistencias}
       setValoraciones={setValoraciones}
+      motivosAusencia={motivosAusencia}
+      setMotivosAusencia={setMotivosAusencia}
       handleGuardarSesion={handleGuardarSesion}
       handleEliminarSesion={handleEliminarSesion}
       handleAddJugadoraExterna={handleAddJugadoraExterna}
