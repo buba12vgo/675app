@@ -10,6 +10,7 @@ export function PlantillaTab({
   plantillaFormProps,
   jugadorasLoading,
   jugadoras,
+  onOpenFicha,
   plantillaRowProps,
 }) {
   return (
@@ -68,6 +69,7 @@ export function PlantillaTab({
               <PlantillaJugadoraRow
                 key={j.id}
                 jugadora={j}
+                onOpenFicha={onOpenFicha}
                 isEditing={plantillaRowProps.isEditingId === j.id}
                 editNombre={plantillaRowProps.editNombre}
                 setEditNombre={plantillaRowProps.setEditNombre}
@@ -91,6 +93,11 @@ export function PlantillaTab({
                 labels={plantillaRowProps.labels}
               />
             ))}
+            {onOpenFicha ? (
+              <p className="stats-ficha-hint" style={{ color: textMuted }}>
+                Pulsa una {equipoLabels.jugador.toLowerCase()} para ver su ficha.
+              </p>
+            ) : null}
           </div>
         )}
       </div>

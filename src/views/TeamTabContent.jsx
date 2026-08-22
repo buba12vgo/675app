@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { HomeTab } from "../components/HomeTab.jsx";
 import { CalendarioTab } from "../components/CalendarioTab.jsx";
 import { EstadisticasTab } from "../components/EstadisticasTab.jsx";
@@ -88,6 +89,12 @@ export function TeamTabContent({
   handleEliminarJugadora,
   theme,
 }) {
+  const [fichaId, setFichaId] = useState(null);
+
+  useEffect(() => {
+    setFichaId(null);
+  }, [equipoActivo?.id]);
+
   if (!equipoActivo) return null;
 
   const {
@@ -300,6 +307,8 @@ export function TeamTabContent({
         estadisticas={estadisticas}
         equipoLabels={equipoLabels}
         onGoToPlantilla={() => setTab("plantilla")}
+        fichaId={fichaId}
+        onFichaIdChange={setFichaId}
       />
     );
   }
@@ -330,6 +339,10 @@ export function TeamTabContent({
         }}
         jugadorasLoading={jugadorasLoading}
         jugadoras={jugadoras}
+        onOpenFicha={(jugadoraId) => {
+          setFichaId(jugadoraId);
+          setTab("players");
+        }}
         plantillaRowProps={{
           isEditingId: jugadoraEditandoId,
           editNombre: editJugadoraNombre,

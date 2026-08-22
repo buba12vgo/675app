@@ -3,6 +3,7 @@ import { IconGear, IconX } from "./icons.jsx";
 
 export function PlantillaJugadoraRow({
   jugadora,
+  onOpenFicha,
   isEditing,
   editNombre,
   setEditNombre,
@@ -92,7 +93,13 @@ export function PlantillaJugadoraRow({
 
   return (
     <div className="plantilla-jugadora-row" style={{ background: surface, borderLeftColor: accent }}>
-      <div className="plantilla-jugadora-row__info">
+      <button
+        type="button"
+        className="plantilla-jugadora-row__info plantilla-jugadora-row__info--clickable"
+        onClick={() => onOpenFicha?.(jugadora.id)}
+        title={`Ver ficha de ${jugadora.nombre}`}
+        aria-label={`Ver ficha de ${jugadora.nombre}`}
+      >
         <div className="plantilla-jugadora-row__dorsal" style={{ color: accent }}>{jugadora.dorsal}</div>
         <div className="plantilla-jugadora-row__name-block">
           <span className="plantilla-jugadora-row__name" style={{ color: text }}>{jugadora.nombre}</span>
@@ -100,7 +107,7 @@ export function PlantillaJugadoraRow({
             <span className="plantilla-jugadora-row__apodo" style={{ color: textSecondary }}>"{jugadora.apodo}"</span>
           )}
         </div>
-      </div>
+      </button>
       <div className="plantilla-jugadora-row__actions">
         <button
           type="button"

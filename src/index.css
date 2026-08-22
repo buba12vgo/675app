@@ -2066,6 +2066,29 @@ textarea:focus-visible {
   flex: 1;
 }
 
+.plantilla-jugadora-row__info--clickable {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 8px;
+}
+
+.plantilla-jugadora-row__info--clickable:hover .plantilla-jugadora-row__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.plantilla-jugadora-row__info--clickable:focus-visible {
+  outline: 2px solid var(--color-table-header-accent);
+  outline-offset: 3px;
+}
+
 .plantilla-jugadora-row__dorsal {
   font-weight: 700;
   font-size: 22px;

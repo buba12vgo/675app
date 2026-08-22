@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { IconChart } from "./icons.jsx";
 import { EstadisticasTablaTipo } from "./EstadisticasTablaTipo.jsx";
 import { FichaJugadoraStats } from "./FichaJugadoraStats.jsx";
@@ -39,13 +38,9 @@ export function EstadisticasTab({
   estadisticas,
   equipoLabels,
   onGoToPlantilla,
+  fichaId,
+  onFichaIdChange,
 }) {
-  const [fichaId, setFichaId] = useState(null);
-
-  useEffect(() => {
-    setFichaId(null);
-  }, [equipoActivo?.id]);
-
   const ficha = fichaId ? (estadisticas || []).find((row) => row.jugadora.id === fichaId) : null;
 
   const statsTheme = {
@@ -222,25 +217,13 @@ export function EstadisticasTab({
             Ir a Plantilla
           </button>
         </div>
-      ) : sesionesFiltradas.length === 0 ? (
-        <div
-          style={{
-            color: textMuted,
-            fontStyle: "italic",
-            fontSize: 15.5,
-            textAlign: "center",
-            lineHeight: 1.5,
-          }}
-        >
-          No hay entrenos ni partidos en el periodo seleccionado.
-        </div>
       ) : ficha ? (
         <FichaJugadoraStats
           jugadora={ficha.jugadora}
           entrenos={ficha.entrenos}
           partidos={ficha.partidos}
           rango={rango}
-          onBack={() => setFichaId(null)}
+          onBack={() => onFichaIdChange(null)}
           labels={equipoLabels}
           accent={accent}
           accentLight={accentLight}
@@ -254,6 +237,18 @@ export function EstadisticasTab({
           inputBorder={inputBorder}
           cardBgElevated={cardBgElevated}
         />
+      ) : sesionesFiltradas.length === 0 ? (
+        <div
+          style={{
+            color: textMuted,
+            fontStyle: "italic",
+            fontSize: 15.5,
+            textAlign: "center",
+            lineHeight: 1.5,
+          }}
+        >
+          No hay entrenos ni partidos en el periodo seleccionado.
+        </div>
       ) : (
         <>
           <div
@@ -311,7 +306,7 @@ export function EstadisticasTab({
                 estadisticas={estadisticas}
                 theme={statsTheme}
                 labels={equipoLabels}
-                onSelectJugadora={setFichaId}
+                onSelectJugadora={onFichaIdChange}
               />
             )}
             {(statsVista === "partidos" || statsVista === "todo") && (
@@ -321,7 +316,7 @@ export function EstadisticasTab({
                 estadisticas={estadisticas}
                 theme={statsTheme}
                 labels={equipoLabels}
-                onSelectJugadora={setFichaId}
+                onSelectJugadora={onFichaIdChange}
               />
             )}
             <p className="stats-ficha-hint" style={{ color: textMuted }}>
