@@ -56,6 +56,7 @@ const EQUIPO_LABELS = {
     errorEliminarJugador: "No se pudo eliminar la jugadora.",
     errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugadora",
+    fichaTitulo: "Ficha de jugadora",
     seedJugadoresPorEquipo: "10 jugadoras por equipo",
     buscarJugadorClub: "Buscar jugadora de otro equipo del club…",
     anadirDeOtroEquipo: "Añadir de otro equipo del club",
@@ -76,6 +77,7 @@ const EQUIPO_LABELS = {
     errorEliminarJugador: "No se pudo eliminar el jugador.",
     errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
     statsColumnaJugador: "Jugador",
+    fichaTitulo: "Ficha de jugador",
     seedJugadoresPorEquipo: "10 jugadores por equipo",
     buscarJugadorClub: "Buscar jugador de otro equipo del club…",
     anadirDeOtroEquipo: "Añadir de otro equipo del club",
@@ -287,7 +289,31 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     noJustificada,
     salud,
     notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
+    notasCount: countNotas,
   };
+}
+
+export function combinarStatsJugadora(entrenos, partidos) {
+  const a = entrenos || {};
+  const b = partidos || {};
+  const notasCount = (a.notasCount || 0) + (b.notasCount || 0);
+  const sumaNotas = (a.notaMedia || 0) * (a.notasCount || 0) + (b.notaMedia || 0) * (b.notasCount || 0);
+  return {
+    total: (a.total || 0) + (b.total || 0),
+    presentes: (a.presentes || 0) + (b.presentes || 0),
+    ausencias: (a.ausencias || 0) + (b.ausencias || 0),
+    justificada: (a.justificada || 0) + (b.justificada || 0),
+    noJustificada: (a.noJustificada || 0) + (b.noJustificada || 0),
+    salud: (a.salud || 0) + (b.salud || 0),
+    notaMedia: notasCount > 0 ? sumaNotas / notasCount : null,
+    notasCount,
+  };
+}
+
+export function porcentajeAsistencia(stats) {
+  const contabilizadas = (stats?.presentes || 0) + (stats?.ausencias || 0);
+  if (!contabilizadas) return null;
+  return Math.round((stats.presentes / contabilizadas) * 100);
 }
 
 export function calcularEstadisticasJugadoras(jugadoras, sesiones) {

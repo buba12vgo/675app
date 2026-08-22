@@ -6,6 +6,7 @@ export function EstadisticasTablaTipo({
   estadisticas,
   theme,
   labels,
+  onSelectJugadora,
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const esPartido = tipo === "partido";
@@ -54,9 +55,12 @@ export function EstadisticasTablaTipo({
           <span title="Nota media">Nota</span>
         </div>
         {estadisticas.map(({ jugadora: j, [statsKey]: stats }) => (
-          <div
+          <button
             key={j.id}
-            className="stats-table-row stats-table-row--tipo"
+            type="button"
+            className="stats-table-row stats-table-row--tipo stats-table-row--clickable"
+            title={`Ver ficha de ${j.nombre}`}
+            onClick={() => onSelectJugadora?.(j.id)}
             style={{
               background: cardBgElevated,
               border: `1px solid ${inputBorder}`,
@@ -82,7 +86,7 @@ export function EstadisticasTablaTipo({
             <span style={{ textAlign: "center", color: stats.notaMedia !== null ? colorLight : textMuted, fontWeight: 700, fontSize: 13 }}>
               {stats.notaMedia !== null ? stats.notaMedia.toFixed(1) : "—"}
             </span>
-          </div>
+          </button>
         ))}
       </div>
     </div>

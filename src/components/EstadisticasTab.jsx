@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { IconChart } from "./icons.jsx";
 import { EstadisticasTablaTipo } from "./EstadisticasTablaTipo.jsx";
+import { FichaJugadoraStats } from "./FichaJugadoraStats.jsx";
 
 export function EstadisticasTab({
   equipoActivo,
@@ -38,6 +40,14 @@ export function EstadisticasTab({
   equipoLabels,
   onGoToPlantilla,
 }) {
+  const [fichaId, setFichaId] = useState(null);
+
+  useEffect(() => {
+    setFichaId(null);
+  }, [equipoActivo?.id]);
+
+  const ficha = fichaId ? (estadisticas || []).find((row) => row.jugadora.id === fichaId) : null;
+
   const statsTheme = {
     accent,
     accentLight,
@@ -224,6 +234,26 @@ export function EstadisticasTab({
         >
           No hay entrenos ni partidos en el periodo seleccionado.
         </div>
+      ) : ficha ? (
+        <FichaJugadoraStats
+          jugadora={ficha.jugadora}
+          entrenos={ficha.entrenos}
+          partidos={ficha.partidos}
+          rango={rango}
+          onBack={() => setFichaId(null)}
+          labels={equipoLabels}
+          accent={accent}
+          accentLight={accentLight}
+          colorPartido={colorPartido}
+          colorPartidoLight={colorPartidoLight}
+          text={text}
+          textMuted={textMuted}
+          textSecondary={textSecondary}
+          success={success}
+          error={error}
+          inputBorder={inputBorder}
+          cardBgElevated={cardBgElevated}
+        />
       ) : (
         <>
           <div
@@ -281,6 +311,7 @@ export function EstadisticasTab({
                 estadisticas={estadisticas}
                 theme={statsTheme}
                 labels={equipoLabels}
+                onSelectJugadora={setFichaId}
               />
             )}
             {(statsVista === "partidos" || statsVista === "todo") && (
@@ -290,8 +321,12 @@ export function EstadisticasTab({
                 estadisticas={estadisticas}
                 theme={statsTheme}
                 labels={equipoLabels}
+                onSelectJugadora={setFichaId}
               />
             )}
+            <p className="stats-ficha-hint" style={{ color: textMuted }}>
+              Pulsa una {equipoLabels.jugador.toLowerCase()} para ver su ficha.
+            </p>
           </div>
         </>
       )}
