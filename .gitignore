@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+.gstack/
+.gstack-worktrees/
 test-results/
 playwright-report/
 blob-report/
