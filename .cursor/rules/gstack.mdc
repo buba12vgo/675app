@@ -1,0 +1,35 @@
+---
+description: gstack — equipo virtual de Garry Tan. Se aplica a cada prompt.
+alwaysApply: true
+---
+
+# gstack (obligatorio)
+
+Este repo usa [gstack](https://github.com/garrytan/gstack). Cárgalo en cada prompt. No improvises un flujo paralelo.
+
+## Antes de trabajar
+
+Si no existe `$HOME/.cursor/skills/gstack/bin`, ejecuta `bash scripts/install-gstack.sh` y continúa. No ignores gstack ni trabajes alrededor.
+
+Skills de Cursor: `$HOME/.cursor/skills/gstack-*` (también `/skill-name`). Runtime: `$HOME/.cursor/skills/gstack`.
+
+Navegación web: usa `/browse` de gstack. No uses herramientas `mcp__claude-in-chrome__*`.
+
+## Enrutado (elige el skill y síguelo)
+
+| Situación | Skill |
+|-----------|--------|
+| Idea nueva, scope, o "qué construir" | `/office-hours` y luego `/autoplan` |
+| Feature de punta a punta | `/autoplan` → implementar → `/review` → `/qa` → `/ship` |
+| Plan sin implementar | `/office-hours` luego `/autoplan`; guarda el plan |
+| Review de código / PR / diff | `/review` |
+| Bug o fallo raro | `/investigate` (sin fix hasta tener causa) |
+| QA de UI / URL | `/qa` (o `/qa-only` si solo hay que informar) |
+| Auditoría de seguridad | `/cso` |
+| Diseño visual de UI | `/plan-design-review` (antes) o `/design-review` (después) |
+| Docs desfasadas | `/document-release` |
+| Proyecto nuevo (repo vacío) | copia este bootstrap con `bash scripts/bootstrap-gstack.sh <repo>` y arranca con `/office-hours` |
+
+Skills disponibles: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-devex-review`, `/design-consultation`, `/design-shotgun`, `/design-html`, `/review`, `/ship`, `/land-and-deploy`, `/canary`, `/benchmark`, `/browse`, `/open-gstack-browser`, `/qa`, `/qa-only`, `/design-review`, `/setup-browser-cookies`, `/setup-deploy`, `/setup-gbrain`, `/sync-gbrain`, `/retro`, `/investigate`, `/document-release`, `/document-generate`, `/codex`, `/cso`, `/autoplan`, `/pair-agent`, `/spec`, `/learn`, `/careful`, `/freeze`, `/guard`, `/unfreeze`, `/gstack-upgrade`.
+
+Lee el `SKILL.md` del skill elegido y ejecútalo. No resumas el proceso saltándote pasos.
