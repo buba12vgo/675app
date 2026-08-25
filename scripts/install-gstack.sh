@@ -46,5 +46,19 @@ if [ ! -d "$HOME/.cursor/skills/gstack/bin" ]; then
   exit 1
 fi
 
+# Plant Cursor skills in the current git repo so they ship with the project.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+GEN_SKILLS="$GSTACK_SRC/.cursor/skills"
+if [ -n "$REPO_ROOT" ] && [ -d "$GEN_SKILLS" ]; then
+  mkdir -p "$REPO_ROOT/.cursor/skills"
+  for d in "$GEN_SKILLS"/gstack-*; do
+    [ -f "$d/SKILL.md" ] || continue
+    name="$(basename "$d")"
+    mkdir -p "$REPO_ROOT/.cursor/skills/$name"
+    cp "$d/SKILL.md" "$REPO_ROOT/.cursor/skills/$name/SKILL.md"
+  done
+  echo "Project skills: $REPO_ROOT/.cursor/skills/gstack-*"
+fi
+
 echo "GSTACK_OK: $HOME/.cursor/skills/gstack"
 echo "Skills: $HOME/.cursor/skills/gstack-*"

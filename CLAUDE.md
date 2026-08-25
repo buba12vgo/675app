@@ -31,7 +31,8 @@ If GSTACK_MISSING: STOP. Do not proceed. Tell the user:
 Do not skip skills, ignore gstack errors, or work around missing gstack.
 
 Using gstack skills: After install, skills like /qa, /ship, /review, /investigate,
-and /browse are available. Use /browse for all web browsing.
+and /browse are available. In this repo they also live at `.cursor/skills/gstack-*`
+so Cursor loads them on every prompt. Use /browse for all web browsing.
 Use the resolved install path above for gstack file paths
 (Cursor default: ~/.cursor/skills/gstack).
 

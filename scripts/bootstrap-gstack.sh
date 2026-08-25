@@ -13,12 +13,24 @@ fi
 
 DEST="$(cd "$DEST" && pwd)"
 
-mkdir -p "$DEST/scripts" "$DEST/.cursor/rules" "$DEST/.claude/hooks"
+mkdir -p "$DEST/scripts" "$DEST/.cursor/rules" "$DEST/.cursor/skills" "$DEST/.claude/hooks"
 
 install -m 0755 "$SRC/scripts/install-gstack.sh" "$DEST/scripts/install-gstack.sh"
 install -m 0755 "$SRC/scripts/bootstrap-gstack.sh" "$DEST/scripts/bootstrap-gstack.sh"
 cp "$SRC/.cursor/rules/gstack.mdc" "$DEST/.cursor/rules/gstack.mdc"
 cp "$SRC/.cursor/environment.json" "$DEST/.cursor/environment.json"
+
+if [ -d "$SRC/.cursor/skills" ]; then
+  mkdir -p "$DEST/.cursor/skills"
+  for d in "$SRC/.cursor/skills"/gstack-*; do
+    [ -d "$d" ] || continue
+    name="$(basename "$d")"
+    mkdir -p "$DEST/.cursor/skills/$name"
+    if [ -f "$d/SKILL.md" ]; then
+      cp "$d/SKILL.md" "$DEST/.cursor/skills/$name/SKILL.md"
+    fi
+  done
+fi
 
 if [ -f "$SRC/.claude/hooks/check-gstack.sh" ]; then
   install -m 0755 "$SRC/.claude/hooks/check-gstack.sh" "$DEST/.claude/hooks/check-gstack.sh"

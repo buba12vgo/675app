@@ -8,8 +8,9 @@ Stack: React 19 + Vite 8 + Firebase Auth/Firestore.
 Este proyecto usa [gstack](https://github.com/garrytan/gstack) (Garry Tan / YC): un equipo virtual de skills (CEO, eng manager, diseño, review, QA, seguridad, release).
 
 1. Si falta el runtime, instálalo: `bash scripts/install-gstack.sh`
-2. Enruta el trabajo al skill gstack que toque (ver `.cursor/rules/gstack.mdc`) y **sigue ese SKILL.md**.
-3. Usa `/browse` para navegar la web. No uses `mcp__claude-in-chrome__*`.
+2. Las skills viven en `.cursor/skills/gstack-*` de este repo; Cursor las descubre en cada chat.
+3. Enruta el trabajo al skill gstack que toque (ver `.cursor/rules/gstack.mdc`) y **sigue ese SKILL.md**.
+4. Usa `/browse` para navegar la web. No uses `mcp__claude-in-chrome__*`.
 
 Repos de Ruben que también deben llevar este bootstrap: `675app`, `policia-dias`, y **cualquier repo nuevo**. En un repo nuevo: `bash scripts/bootstrap-gstack.sh /ruta/al/repo`.
 

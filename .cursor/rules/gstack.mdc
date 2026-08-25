@@ -11,7 +11,7 @@ Este repo usa [gstack](https://github.com/garrytan/gstack). Cárgalo en cada pro
 
 Si no existe `$HOME/.cursor/skills/gstack/bin`, ejecuta `bash scripts/install-gstack.sh` y continúa. No ignores gstack ni trabajes alrededor.
 
-Skills de Cursor: `$HOME/.cursor/skills/gstack-*` (también `/skill-name`). Runtime: `$HOME/.cursor/skills/gstack`.
+Skills de este repo (Cursor las carga solas): `.cursor/skills/gstack-*`. Runtime de binarios: `$HOME/.cursor/skills/gstack`. Invoca `/skill-name` o `/gstack-skill-name`.
 
 Navegación web: usa `/browse` de gstack. No uses herramientas `mcp__claude-in-chrome__*`.
 
