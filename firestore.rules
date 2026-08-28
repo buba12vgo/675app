@@ -46,6 +46,36 @@ service cloud.firestore {
       return isSuperadmin() || (isCoordinador() && userClubId() == clubId);
     }
 
+    function validLogoPayload(logoId) {
+      let d = request.resource.data;
+      return d.clubId is string
+        && d.entityId is string
+        && d.entityId.size() > 0
+        && (
+          (
+            d.tipo == 'club'
+            && logoId == ('club_' + d.clubId)
+            && d.entityId == d.clubId
+          ) || (
+            d.tipo == 'equipo'
+            && logoId == ('equipo_' + d.entityId)
+            && equipoClubId(d.entityId) == d.clubId
+          )
+        );
+    }
+
+    function canWriteLogo(logoId) {
+      return isSignedIn()
+        && validLogoPayload(logoId)
+        && (
+          isSuperadmin()
+          || (
+            isCoordinador()
+            && request.resource.data.clubId == userClubId()
+          )
+        );
+    }
+
     function validFavoritoId(favs, i) {
       return favs[i] is string
         && favs[i].size() > 0
@@ -135,7 +165,9 @@ service cloud.firestore {
     match /Equipos/{equipoId} {
       allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
       allow create: if isSignedIn() && canManageEquipoClub(request.resource.data.clubId);
-      allow update, delete: if canManageEquipoClub(resource.data.clubId);
+      allow update: if canManageEquipoClub(resource.data.clubId)
+        && canManageEquipoClub(request.resource.data.clubId);
+      allow delete: if canManageEquipoClub(resource.data.clubId);
     }
 
     match /Jugadoras/{jugadoraId} {
@@ -151,7 +183,15 @@ service cloud.firestore {
           && canAccessEquipo(request.resource.data.equipoId)
         )
       );
-      allow update, delete: if isSignedIn() && (
+      allow update: if isSignedIn() && (
+        isSuperadmin() || (
+          belongsToClub(resource.data.clubId)
+          && canAccessEquipo(resource.data.equipoId)
+          && request.resource.data.clubId == resource.data.clubId
+          && canAccessEquipo(request.resource.data.equipoId)
+        )
+      );
+      allow delete: if isSignedIn() && (
         isSuperadmin() || (
           belongsToClub(resource.data.clubId)
           && canAccessEquipo(resource.data.equipoId)
@@ -162,7 +202,9 @@ service cloud.firestore {
     match /Sesiones/{sesionId} {
       allow read: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
       allow create: if isSignedIn() && canAccessEquipo(request.resource.data.equipoId);
-      allow update: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+      allow update: if isSignedIn()
+        && canAccessEquipo(resource.data.equipoId)
+        && canAccessEquipo(request.resource.data.equipoId);
       allow delete: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
     }
 
@@ -172,16 +214,9 @@ service cloud.firestore {
         || resource.data.tipo == 'club'
         || resource.data.clubId == userClubId()
       );
-      allow create, update: if isSignedIn() && (
-        isSuperadmin()
-        || (
-          isCoordinador()
-          && request.resource.data.clubId == userClubId()
-          && (
-            request.resource.data.tipo == 'club'
-            || request.resource.data.tipo == 'equipo'
-          )
-        )
+      allow create: if canWriteLogo(logoId);
+      allow update: if canWriteLogo(logoId) && (
+        isSuperadmin() || resource.data.clubId == userClubId()
       );
       allow delete: if isSuperadmin()
         || (isCoordinador() && resource.data.clubId == userClubId());

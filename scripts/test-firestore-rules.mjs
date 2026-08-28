@@ -68,6 +68,22 @@ try {
     await setDoc(doc(db, "Jugadoras/j-a"), { nombre: "Ana", clubId: "club-a", equipoId: "eq-a", dorsal: 1 });
     await setDoc(doc(db, "Jugadoras/j-a2"), { nombre: "Carla", clubId: "club-a", equipoId: "eq-a2", dorsal: 3 });
     await setDoc(doc(db, "Jugadoras/j-b"), { nombre: "Bea", clubId: "club-b", equipoId: "eq-b", dorsal: 2 });
+    await setDoc(doc(db, "Sesiones/eq-a_2026-08-01"), {
+      equipoId: "eq-a",
+      fecha: "2026-08-01",
+      tipo: "entreno",
+    });
+    await setDoc(doc(db, "Sesiones/eq-b_2026-08-01"), {
+      equipoId: "eq-b",
+      fecha: "2026-08-01",
+      tipo: "entreno",
+    });
+    await setDoc(doc(db, "Logos/equipo_eq-b"), {
+      tipo: "equipo",
+      entityId: "eq-b",
+      clubId: "club-b",
+      logoUrl: "/logos/eq-b.png",
+    });
   });
 
   const coachA = testEnv.authenticatedContext("coach-a").firestore();
@@ -164,6 +180,46 @@ try {
     );
   });
 
+  await test("Entrenador actualiza sesión de su equipo", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coachA, "Sesiones/eq-a_2026-08-01"), {
+        tematica: "Tiro",
+      })
+    );
+  });
+
+  await test("Entrenador no reasigna sesión a equipo de otro club", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Sesiones/eq-a_2026-08-01"), {
+        equipoId: "eq-b",
+      })
+    );
+  });
+
+  await test("Entrenador actualiza jugadora de su equipo", async () => {
+    await assertSucceeds(
+      updateDoc(doc(coachA, "Jugadoras/j-a"), {
+        nombre: "Ana",
+      })
+    );
+  });
+
+  await test("Entrenador no reasigna jugadora a equipo de otro club", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Jugadoras/j-a"), {
+        equipoId: "eq-b",
+      })
+    );
+  });
+
+  await test("Entrenador no cambia el clubId de una jugadora", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Jugadoras/j-a"), {
+        clubId: "club-b",
+      })
+    );
+  });
+
   await test("Entrenador guarda equipos favoritos", async () => {
     await assertSucceeds(
       updateDoc(doc(coachA, "Usuarios/coach-a"), {
@@ -233,6 +289,47 @@ try {
         nombre: "Senior A",
         genero: "femenino",
         tipoCanasta: "grande",
+      })
+    );
+  });
+
+  await test("Coordinador no mueve un equipo a otro club", async () => {
+    await assertFails(
+      updateDoc(doc(coordA, "Equipos/eq-a"), {
+        clubId: "club-b",
+      })
+    );
+  });
+
+  await test("Coordinador escribe escudo de su equipo", async () => {
+    await assertSucceeds(
+      setDoc(doc(coordA, "Logos/equipo_eq-a"), {
+        tipo: "equipo",
+        entityId: "eq-a",
+        clubId: "club-a",
+        logoUrl: "/logos/eq-a.png",
+      })
+    );
+  });
+
+  await test("Coordinador no pisa el escudo de un equipo de otro club", async () => {
+    await assertFails(
+      setDoc(doc(coordA, "Logos/equipo_eq-b"), {
+        tipo: "equipo",
+        entityId: "eq-b",
+        clubId: "club-a",
+        logoUrl: "/logos/hack.png",
+      })
+    );
+  });
+
+  await test("Coordinador no crea escudo con el id de otro equipo", async () => {
+    await assertFails(
+      setDoc(doc(coordA, "Logos/equipo_eq-b"), {
+        tipo: "equipo",
+        entityId: "eq-a",
+        clubId: "club-a",
+        logoUrl: "/logos/hack.png",
       })
     );
   });
