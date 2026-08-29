@@ -188,7 +188,7 @@ export function SuperadminUsuariosPanel({
         Asigna club y rol a cada usuario. Solo puede haber un coordinador por club.
       </p>
       {notice && (
-        <div style={{ color: accentLight, background: accentSoft, border: `1px solid rgba(100, 116, 139, 0.35)`, marginBottom: 16, fontSize: 14, padding: "12px 16px", borderRadius: 12, textAlign: "center", fontWeight: 600 }}>
+        <div style={{ color: accentLight, background: accentSoft, border: `1px solid ${accent}55`, marginBottom: 16, fontSize: 14, padding: "12px 16px", borderRadius: 12, textAlign: "center", fontWeight: 600 }}>
           {notice}
         </div>
       )}

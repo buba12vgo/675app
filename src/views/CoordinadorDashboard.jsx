@@ -9,11 +9,11 @@ const COORDINADOR_TABS = [
 export function CoordinadorDashboard({
   coordinadorVista,
   onCoordinadorVistaChange,
-  accentSoft,
-  accentLight,
-  textMuted,
-  inputBorder,
-  cardBgElevated,
+  accentSoft: _accentSoft,
+  accentLight: _accentLight,
+  textMuted: _textMuted,
+  inputBorder: _inputBorder,
+  cardBgElevated: _cardBgElevated,
   text,
   clubNombre,
   coordinacionProps,
@@ -22,14 +22,9 @@ export function CoordinadorDashboard({
   return (
     <>
       <div
+        className="segmented-control"
         style={{
-          display: "flex",
-          gap: 8,
           marginBottom: 24,
-          padding: 4,
-          background: cardBgElevated,
-          borderRadius: 12,
-          border: `1px solid ${inputBorder}`,
           width: "100%",
           maxWidth: 420,
         }}
@@ -39,21 +34,7 @@ export function CoordinadorDashboard({
             key={key}
             type="button"
             onClick={() => onCoordinadorVistaChange(key)}
-            style={{
-              flex: 1,
-              padding: "10px 14px",
-              borderRadius: 9,
-              border:
-                coordinadorVista === key
-                  ? "1px solid rgba(100, 116, 139, 0.35)"
-                  : "1px solid transparent",
-              background: coordinadorVista === key ? accentSoft : "transparent",
-              color: coordinadorVista === key ? accentLight : textMuted,
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            className={`segmented-control__btn${coordinadorVista === key ? " segmented-control__btn--active" : ""}`}
           >
             {label}
           </button>

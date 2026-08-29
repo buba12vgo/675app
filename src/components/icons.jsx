@@ -1,3 +1,13 @@
+export function IconBasketball({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3v18M3 12h18" />
+      <path d="M6.2 5.4c3.2 2.8 3.2 10.4 0 13.2M17.8 5.4c-3.2 2.8-3.2 10.4 0 13.2" />
+    </svg>
+  );
+}
+
 export function IconHome({ size = 20, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

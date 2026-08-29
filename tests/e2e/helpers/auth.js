@@ -25,9 +25,9 @@ export async function loginAsSuperadmin(page) {
 }
 
 const MOBILE_TAB_ALIASES = {
-  Calendario: "Calend.",
-  Estadísticas: "Estad.",
-  Plantilla: "Plant.",
+  Calendario: "Agenda",
+  Estadísticas: "Stats",
+  Plantilla: "Plantilla",
 };
 
 export function teamTab(page, label) {

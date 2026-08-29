@@ -412,15 +412,7 @@ function App() {
         isDarkMode={isDarkMode}
         colorMode={colorMode}
         onToggleColorMode={toggleColorMode}
-        glassCardStyle={glassCardStyle}
-        inputBorder={inputBorder}
-        cardShadow={cardShadow}
-        accent={accent}
         text={text}
-        textSecondary={textSecondary}
-        textMuted={textMuted}
-        inputBg={inputBg}
-        surface={surface}
         error={error}
         email={email}
         onEmailChange={setEmail}
@@ -710,7 +702,7 @@ function App() {
       data-device-preview={devicePreview}
       data-user-role={userData?.rol || ""}
       data-compact-header={compactHeader ? "true" : "false"}
-      style={{ fontFamily: "'Inter',system-ui,sans-serif" }}
+      style={{ fontFamily: "inherit" }}
     >
       <BlurredBackground isDark={isDarkMode} />
       <div className="device-preview-viewport">

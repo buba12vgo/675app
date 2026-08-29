@@ -29,7 +29,7 @@ export function EstadisticasTablaTipo({
           <span style={{ color: text, fontWeight: 700, fontSize: 15 }}>{titulo}</span>
           <span style={{ color: textMuted, fontSize: 13 }}>0 en el periodo</span>
         </div>
-        <div style={{ color: textMuted, fontStyle: "italic", fontSize: 14, padding: "8px 4px" }}>
+        <div className="empty-state-text" style={{ padding: "8px 4px" }}>
           No hay {esPartido ? "partidos" : "entrenos"} en el periodo seleccionado.
         </div>
       </div>

@@ -1,11 +1,12 @@
 import { IconUsers } from "./icons.jsx";
 import { PlantillaForm } from "./PlantillaForm.jsx";
 import { PlantillaJugadoraRow } from "./PlantillaJugadoraRow.jsx";
+import { EmptyState } from "./EmptyState.jsx";
 
 export function PlantillaTab({
   equipoLabels,
   text,
-  textMuted,
+  textMuted: _textMuted,
   accent,
   plantillaFormProps,
   jugadorasLoading,
@@ -48,21 +49,12 @@ export function PlantillaTab({
         }}
       >
         {jugadorasLoading ? (
-          <div
-            style={{
-              color: textMuted,
-              fontSize: 16,
-              fontStyle: "italic",
-              padding: "12px 0",
-              fontWeight: 500,
-            }}
-          >
-            {equipoLabels.cargandoJugadores}
-          </div>
+          <EmptyState title={equipoLabels.cargandoJugadores} />
         ) : jugadoras.length === 0 ? (
-          <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5 }}>
-            {equipoLabels.noHayJugadoresPlantilla}
-          </div>
+          <EmptyState
+            title={equipoLabels.noHayJugadoresPlantilla}
+            hint="Añádela con el formulario de arriba."
+          />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%", marginTop: 4 }}>
             {jugadoras.map((j) => (

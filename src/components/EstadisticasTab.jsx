@@ -1,6 +1,7 @@
 import { IconChart } from "./icons.jsx";
 import { EstadisticasTablaTipo } from "./EstadisticasTablaTipo.jsx";
 import { FichaJugadoraStats } from "./FichaJugadoraStats.jsx";
+import { EmptyState } from "./EmptyState.jsx";
 
 export function EstadisticasTab({
   equipoActivo,
@@ -241,17 +242,10 @@ export function EstadisticasTab({
           cardBgElevated={cardBgElevated}
         />
       ) : sesionesFiltradas.length === 0 ? (
-        <div
-          style={{
-            color: textMuted,
-            fontStyle: "italic",
-            fontSize: 15.5,
-            textAlign: "center",
-            lineHeight: 1.5,
-          }}
-        >
-          No hay entrenos ni partidos en el periodo seleccionado.
-        </div>
+        <EmptyState
+          title={`No hay entrenos ni partidos en el periodo seleccionado.`}
+          hint="Prueba otro rango o programa una sesión en el calendario."
+        />
       ) : (
         <>
           <div
@@ -280,7 +274,7 @@ export function EstadisticasTab({
                   flex: 1,
                   border:
                     statsVista === key
-                      ? `1px solid ${key === "partidos" ? "rgba(139,92,246,0.45)" : key === "entrenos" ? "rgba(100, 116, 139, 0.35)" : inputBorder}`
+                      ? `1px solid ${key === "partidos" ? colorPartido : key === "entrenos" ? accent : inputBorder}`
                       : "1px solid transparent",
                   background:
                     statsVista === key

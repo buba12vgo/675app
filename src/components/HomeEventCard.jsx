@@ -5,12 +5,6 @@ import {
 } from "../lib/appUtils.js";
 import { IconCalendar } from "./icons.jsx";
 
-function getIconoClimaDecorativo(fechaStr) {
-  const iconos = ["☀️", "⛅", "🌤️", "🌥️", "💨"];
-  const hash = (fechaStr || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return iconos[hash % iconos.length];
-}
-
 export function HomeEventCard({
   tipo,
   sesion,
@@ -56,7 +50,6 @@ export function HomeEventCard({
             <span className="home-event-card__badge" style={{ background: colorSoft, color: colorLight, borderColor: colorBorder }}>
               {etiquetaDiaRelativo(sesion.fecha, hoyStr, mananaStr)}
             </span>
-            <span className="home-event-card__weather" title="Previsión orientativa">{getIconoClimaDecorativo(sesion.fecha)}</span>
           </div>
         )}
       </div>

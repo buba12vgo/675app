@@ -1,3 +1,5 @@
+import { EmptyState } from "../components/EmptyState.jsx";
+
 export function SolicitarClubView({
   accent,
   accentLight,
@@ -48,13 +50,12 @@ export function SolicitarClubView({
         }}
       >
         {selectClubLoading ? (
-          <div className="empty-state-text" style={{ fontSize: 18 }}>
-            Cargando clubes...
-          </div>
+          <EmptyState title="Cargando clubes…" />
         ) : clubes.length === 0 ? (
-          <div className="empty-state-text" style={{ fontSize: 16.5 }}>
-            No hay clubes disponibles.
-          </div>
+          <EmptyState
+            title="No hay clubes disponibles"
+            hint="Cuando el superadmin cree uno, aparecerá aquí."
+          />
         ) : (
           <div className="content-medium responsive-grid-list" style={{ width: "98%" }}>
             {clubes.map((club) => (

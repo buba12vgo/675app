@@ -28,20 +28,20 @@ export function HomeTab({
   return (
     <div className="home-dashboard" style={{ margin: "0 auto", padding: "16px 0 8px" }}>
       <div className="home-dashboard__intro">
-        <div style={{ color: text, fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>
+        <div className="home-dashboard__title" style={{ color: text }}>
           {equipoActivo.nombre}
         </div>
-        <div style={{ marginTop: 4, fontSize: 13, fontWeight: 600, color: textMuted }}>
+        <div className="home-dashboard__meta">
           {formatTipoCanasta(equipoActivo.tipoCanasta)} · {formatGeneroEquipo(equipoActivo.genero)}
         </div>
-        <div style={{ marginTop: 4, fontSize: 14, fontWeight: 500, color: textSecondary }}>
+        <div className="home-dashboard__lead">
           Resumen del equipo
         </div>
       </div>
 
       {sesionesLoading ? (
-        <div style={{ color: textMuted, fontSize: 15, fontStyle: "italic", textAlign: "center" }}>
-          Cargando calendario…
+        <div className="empty-state" style={{ textAlign: "center" }}>
+          <p className="empty-state__title">Cargando calendario…</p>
         </div>
       ) : (
         <div className="home-dashboard__cards">

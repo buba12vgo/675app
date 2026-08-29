@@ -6,15 +6,7 @@ export function LoginScreen({
   isDarkMode,
   colorMode,
   onToggleColorMode,
-  glassCardStyle,
-  inputBorder,
-  cardShadow,
-  accent,
   text,
-  textSecondary,
-  textMuted,
-  inputBg,
-  surface,
   error,
   email,
   onEmailChange,
@@ -25,120 +17,51 @@ export function LoginScreen({
   errorMsg,
 }) {
   return (
-    <div className="login-page" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
+    <div className="login-page">
       <BlurredBackground isDark={isDarkMode} />
       <div className="login-page__toolbar">
         <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
       </div>
-      <div
-        className="login-card"
-        style={{
-          ...glassCardStyle,
-          display: "flex",
-          flexDirection: "column",
-          gap: 18,
-          border: `1px solid ${inputBorder}`,
-          boxShadow: cardShadow,
-        }}
-      >
-        <AppBrand accent={accent} text={text} fontSize={26} />
-        <div style={{ color: textSecondary, fontSize: 16, marginTop: 4, fontWeight: 500 }}>
-          Inicia sesión para continuar
-        </div>
-        <form
-          onSubmit={onEmailLogin}
-          style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}
-          autoComplete="off"
-        >
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-            required
-            autoComplete="username"
-            style={{
-              padding: "13px 16px",
-              fontSize: 15,
-              background: inputBg,
-              color: text,
-              border: `1px solid ${inputBorder}`,
-              borderRadius: 12,
-              outline: "none",
-              transition: "border .18s",
-            }}
-            onFocus={(e) => {
-              e.target.style.border = `1.5px solid ${accent}`;
-            }}
-            onBlur={(e) => {
-              e.target.style.border = `1px solid ${inputBorder}`;
-            }}
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
-            required
-            autoComplete="current-password"
-            style={{
-              padding: "13px 16px",
-              fontSize: 15,
-              background: inputBg,
-              color: text,
-              border: `1px solid ${inputBorder}`,
-              borderRadius: 12,
-              outline: "none",
-              transition: "border .18s",
-            }}
-            onFocus={(e) => {
-              e.target.style.border = `1.5px solid ${accent}`;
-            }}
-            onBlur={(e) => {
-              e.target.style.border = `1px solid ${inputBorder}`;
-            }}
-          />
-          <button
-            type="submit"
-            style={{
-              marginTop: 4,
-              padding: "13px 0",
-              background: accent,
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 16,
-              border: "none",
-              borderRadius: 12,
-              cursor: "pointer",
-              transition: "all .12s",
-              boxShadow: "0 4px 16px rgba(100, 116, 139, 0.35)",
-              letterSpacing: ".2px",
-            }}
-          >
+      <div className="login-card">
+        <AppBrand text={text} fontSize={28} />
+        <p className="login-card__lead">Entra para seguir con tu equipo</p>
+        <form className="login-form" onSubmit={onEmailLogin} autoComplete="off">
+          <div className="login-field">
+            <label className="login-field__label" htmlFor="login-email">
+              Correo electrónico
+            </label>
+            <input
+              id="login-email"
+              className="login-field__input"
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => onEmailChange(e.target.value)}
+              required
+              autoComplete="username"
+            />
+          </div>
+          <div className="login-field">
+            <label className="login-field__label" htmlFor="login-password">
+              Contraseña
+            </label>
+            <input
+              id="login-password"
+              className="login-field__input"
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <button type="submit" className="login-submit">
             Ingresar
           </button>
         </form>
-        <div style={{ textAlign: "center", color: textMuted, margin: "4px 0", fontSize: 12, fontWeight: 500 }}>
-          — o continúa con —
-        </div>
-        <button
-          type="button"
-          onClick={onGoogleLogin}
-          style={{
-            background: surface,
-            color: text,
-            border: `1px solid ${inputBorder}`,
-            padding: "12px 0",
-            borderRadius: 12,
-            fontWeight: 600,
-            fontSize: 15,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-          }}
-        >
+        <p className="login-divider">o continúa con</p>
+        <button type="button" className="login-google" onClick={onGoogleLogin}>
           <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
             <g>
               <path fill="#4285F4" d="M45.34 24.49c0-1.59-.14-3.16-.41-4.66H24v8.84h12.06c-.52 2.72-2.18 5.04-4.72 6.59v5.47h7.62c4.47-4.11 7.05-10.16 7.05-16.24z" />
@@ -150,20 +73,7 @@ export function LoginScreen({
           Iniciar sesión con Google
         </button>
         {errorMsg && (
-          <div
-            role="alert"
-            style={{
-              color: error,
-              marginTop: 8,
-              background: "rgba(248,113,113,0.1)",
-              border: "1px solid rgba(248,113,113,0.25)",
-              padding: "10px 12px",
-              borderRadius: 10,
-              fontWeight: 500,
-              fontSize: 14,
-              textAlign: "center",
-            }}
-          >
+          <div className="login-error" role="alert" style={{ color: error }}>
             {errorMsg}
           </div>
         )}

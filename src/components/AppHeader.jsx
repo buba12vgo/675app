@@ -11,7 +11,7 @@ export function AppHeader({
   accent,
   text,
   textMuted,
-  accentLight,
+  accentLight: _accentLight,
   cardBgElevated,
   userData,
   canSeedDemoData,
@@ -30,7 +30,7 @@ export function AppHeader({
     return (
       <header className="app-header app-header--compact">
         <div className="app-header-bar app-header-bar--compact" style={barStyle}>
-          <AppBrand accent={accent} text={text} fontSize={20} onGoHome={onGoHome} />
+          <AppBrand text={text} fontSize={20} onGoHome={onGoHome} />
           <div className="app-header-compact-actions">
             <button
               type="button"
@@ -55,15 +55,14 @@ export function AppHeader({
     <header className="app-header">
       <div className="app-header-bar" style={barStyle}>
         <div className="app-header-row app-header-row--primary">
-          <AppBrand accent={accent} text={text} fontSize={22} onGoHome={onGoHome} />
+          <AppBrand text={text} fontSize={22} onGoHome={onGoHome} />
         </div>
         <div className="app-header-row app-header-row--tools">
-          <span className="app-header-role" style={{ color: textMuted }}>
-            Rol{" "}
-            <span style={{ color: accentLight, fontWeight: 600 }}>
-              {formatRolLabel(userData?.rol)}
-            </span>
-            {userData?.nombre?.trim() ? ` - ${userData.nombre.trim()}` : ""}
+          <span className="app-header-role">
+            <span className="app-header-role__chip">{formatRolLabel(userData?.rol)}</span>
+            {userData?.nombre?.trim() ? (
+              <span className="app-header-role__name">{userData.nombre.trim()}</span>
+            ) : null}
           </span>
           <button
             type="button"

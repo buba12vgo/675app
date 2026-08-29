@@ -2,6 +2,7 @@ import { useState } from "react";
 import { EquipoListRow } from "./EquipoListRow.jsx";
 import { CrearEquipoForm } from "./CrearEquipoForm.jsx";
 import { CrearEquipoCard } from "./CrearEquipoCard.jsx";
+import { EmptyState } from "./EmptyState.jsx";
 import { MAX_EQUIPOS_FAVORITOS } from "../lib/equiposFavoritos.js";
 
 export function EquiposListaSection({
@@ -80,20 +81,22 @@ export function EquiposListaSection({
       <span className="section-heading__accent">{titulo}</span>
       <div className="content-medium responsive-grid-list" style={{ width: "98%", margin: "17px auto 0" }}>
         {equiposLoading ? (
-          <div className="empty-state-text" style={{ fontSize: 17, padding: "12px 0", gridColumn: "1 / -1" }}>
-            Cargando equipos...
-          </div>
+          <EmptyState className="empty-state--grid" title="Cargando equipos…" />
         ) : (
           <>
             {!equiposVisibles.length && !puedeCrear && (
-              <div className="empty-state-text" style={{ fontSize: 16.5, gridColumn: "1 / -1" }}>
-                No hay equipos registrados.
-              </div>
+              <EmptyState
+                className="empty-state--grid"
+                title="No hay equipos registrados"
+                hint="Cuando se cree el primero, aparecerá aquí."
+              />
             )}
             {!equiposVisibles.length && puedeCrear && (
-              <div className="empty-state-text" style={{ fontSize: 16.5, gridColumn: "1 / -1" }}>
-                No hay equipos aún. Pulsa «Crear equipo» para añadir el primero.
-              </div>
+              <EmptyState
+                className="empty-state--grid"
+                title="Todavía no hay equipos"
+                hint="Pulsa «Crear equipo» para añadir el primero."
+              />
             )}
             {equiposVisibles.map((equipo) => (
               <EquipoListRow

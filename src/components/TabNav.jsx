@@ -1,11 +1,11 @@
 const MOBILE_TAB_LABELS = {
   home: "Inicio",
-  sesiones: "Calend.",
-  players: "Estad.",
-  plantilla: "Plant.",
+  sesiones: "Agenda",
+  players: "Stats",
+  plantilla: "Plantilla",
 };
 
-export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, variant = "mobile" }) {
+export function TabNav({ tabsMenu, tab, setTab, variant = "mobile" }) {
   const isDesktop = variant === "desktop";
 
   const handleTabClick = (key) => {
@@ -15,26 +15,8 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
     }
   };
 
-  const mobileNavStyle = {
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-around",
-    alignItems: "center",
-  };
-
-  const mobileButtonLayoutStyle = {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
   return (
-    <nav
-      className={isDesktop ? "app-nav-desktop" : "app-nav-mobile"}
-      style={isDesktop ? { background: "transparent" } : mobileNavStyle}
-    >
+    <nav className={isDesktop ? "app-nav-desktop" : "app-nav-mobile"}>
       {tabsMenu.map(({ key, label, Icon }) => {
         const active = tab === key;
         const displayLabel = isDesktop ? label : (MOBILE_TAB_LABELS[key] || label);
@@ -43,19 +25,13 @@ export function TabNav({ tabsMenu, tab, setTab, accent, accentSoft, textMuted, v
             key={key}
             type="button"
             onClick={() => handleTabClick(key)}
-            className={isDesktop ? "app-nav-btn app-nav-btn--desktop" : "app-nav-btn app-nav-btn--mobile"}
-            style={{
-              ...(isDesktop ? {} : mobileButtonLayoutStyle),
-              background: active ? accentSoft : "transparent",
-              color: active ? accent : textMuted,
-              fontWeight: active ? 700 : 500,
-            }}
+            className={`app-nav-btn ${isDesktop ? "app-nav-btn--desktop" : "app-nav-btn--mobile"}${active ? " app-nav-btn--active" : ""}`}
             tabIndex={0}
             title={label}
             aria-label={label}
             aria-current={active ? "page" : undefined}
           >
-            <Icon size={isDesktop ? 20 : 20} color={active ? accent : textMuted} />
+            <Icon size={isDesktop ? 20 : 22} />
             <span className="app-nav-btn__label">{displayLabel}</span>
           </button>
         );

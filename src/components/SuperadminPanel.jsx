@@ -12,11 +12,11 @@ export function SuperadminPanel({
   superadminVista,
   onSuperadminVistaChange,
   accent: _accent,
-  accentLight,
-  accentSoft,
-  textMuted,
-  inputBorder,
-  cardBgElevated,
+  accentLight: _accentLight,
+  accentSoft: _accentSoft,
+  textMuted: _textMuted,
+  inputBorder: _inputBorder,
+  cardBgElevated: _cardBgElevated,
   userData: _userData,
   clubesPanelProps,
   equiposPanelProps,
@@ -25,14 +25,9 @@ export function SuperadminPanel({
   return (
     <>
       <div
+        className="segmented-control"
         style={{
-          display: "flex",
-          gap: 8,
           marginBottom: 24,
-          padding: 4,
-          background: cardBgElevated,
-          borderRadius: 12,
-          border: `1px solid ${inputBorder}`,
           width: "100%",
           maxWidth: 520,
         }}
@@ -42,18 +37,7 @@ export function SuperadminPanel({
             key={key}
             type="button"
             onClick={() => onSuperadminVistaChange(key)}
-            style={{
-              flex: 1,
-              padding: "10px 14px",
-              borderRadius: 9,
-              border: superadminVista === key ? "1px solid rgba(100, 116, 139, 0.35)" : "1px solid transparent",
-              background: superadminVista === key ? accentSoft : "transparent",
-              color: superadminVista === key ? accentLight : textMuted,
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            className={`segmented-control__btn${superadminVista === key ? " segmented-control__btn--active" : ""}`}
           >
             {label}
           </button>
