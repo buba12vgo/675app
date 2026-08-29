@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   THEMES,
   applyThemeToDocument,
@@ -36,6 +36,14 @@ import { ClubMemberContent } from "./views/ClubMemberContent.jsx";
 import { SuperadminShell } from "./views/SuperadminShell.jsx";
 import { TeamTabContent } from "./views/TeamTabContent.jsx";
 import { LoginScreen } from "./components/LoginScreen.jsx";
+import { db } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
+import {
+  TEAM_TABS,
+  getSessionContext,
+  persistSessionContext,
+  clearSessionContext,
+} from "./lib/sessionContext.js";
 
 function App() {
   const [errorMsg, setErrorMsg] = useState("");
@@ -162,6 +170,8 @@ function App() {
 
   const [coordinadorVista, setCoordinadorVista] = useState("equipos");
   const [tab, setTab] = useState("home");
+  const sessionRestoredRef = useRef(false);
+  const tabIdentityRef = useRef(null);
   const [devicePreview, setDevicePreview] = useState(() =>
     getDevicePreviewFromWidth(typeof window !== "undefined" ? window.innerWidth : 1200)
   );
@@ -263,9 +273,84 @@ function App() {
   }, [showDevicePreview]);
 
   useEffect(() => {
-    setTab("home");
-    setShowOpcionesPanel(false);
+    if (!userData?.rol) {
+      tabIdentityRef.current = null;
+      return;
+    }
+    const next = `${userData.rol}:${userData.clubId || ""}`;
+    if (tabIdentityRef.current === null) {
+      tabIdentityRef.current = next;
+      return;
+    }
+    if (tabIdentityRef.current !== next) {
+      tabIdentityRef.current = next;
+      setTab("home");
+      setShowOpcionesPanel(false);
+    }
   }, [userData?.clubId, userData?.rol, setShowOpcionesPanel]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      sessionRestoredRef.current = false;
+      return undefined;
+    }
+    if (sessionRestoredRef.current || !userData || equiposLoading) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      const stored = getSessionContext();
+      if (!stored || stored.userId !== user.uid) {
+        if (stored && stored.userId !== user.uid) clearSessionContext();
+        sessionRestoredRef.current = true;
+        return;
+      }
+      const tabToRestore = TEAM_TABS.includes(stored.tab) ? stored.tab : "home";
+      if (stored.tab && TEAM_TABS.includes(stored.tab)) {
+        setTab(stored.tab);
+      }
+      let restoredEquipoId = null;
+      if (stored.equipoId) {
+        let found = equipos.find((equipo) => equipo.id === stored.equipoId) || null;
+        if (!found) {
+          try {
+            const snap = await getDoc(doc(db, "Equipos", stored.equipoId));
+            found = snap.exists() ? { id: snap.id, ...snap.data() } : null;
+          } catch {
+            found = null;
+          }
+        }
+        if (cancelled) return;
+        const permitido =
+          found &&
+          (userData.rol === "superadmin" ||
+            (userData.clubId && found.clubId === userData.clubId));
+        if (permitido) {
+          setEquipoActivo(found);
+          restoredEquipoId = found.id;
+        }
+      }
+      if (cancelled) return;
+      sessionRestoredRef.current = true;
+      persistSessionContext({
+        userId: user.uid,
+        equipoId: restoredEquipoId,
+        tab: tabToRestore,
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid, userData, equipos, equiposLoading, setEquipoActivo]);
+
+  useEffect(() => {
+    if (!user?.uid || !sessionRestoredRef.current) return;
+    persistSessionContext({
+      userId: user.uid,
+      equipoId: equipoActivo?.id || null,
+      tab,
+    });
+  }, [user?.uid, equipoActivo?.id, tab]);
 
   const toggleColorMode = () => {
     setColorMode((prev) => (prev === "dark" ? "light" : "dark"));
@@ -313,6 +398,9 @@ function App() {
   };
 
   const handleLogout = async () => {
+    clearSessionContext();
+    sessionRestoredRef.current = false;
+    tabIdentityRef.current = null;
     await logout();
     setEquipoActivo(null);
     setTab("home");
@@ -549,7 +637,10 @@ function App() {
         equipoLogoUrl: getEquipoLogo(equipoActivo),
         equipoNombre: equipoActivo.nombre,
         equipoMeta: `${formatTipoCanasta(equipoActivo.tipoCanasta)} · ${formatGeneroEquipo(equipoActivo.genero)}`,
-        onCambiarEquipo: () => setEquipoActivo(null),
+        onCambiarEquipo: () => {
+          setEquipoActivo(null);
+          setTab("home");
+        },
         accentLight,
         accentSoft,
         accentBorder,

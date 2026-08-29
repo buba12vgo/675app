@@ -232,6 +232,7 @@ export function getMetricasEvento(sesion) {
 }
 
 export function getRangoFechasEstadisticas(periodo, desde, hasta) {
+  if (periodo === "todo") return { inicio: "", fin: "" };
   const hoy = new Date();
   if (periodo === "semanal") {
     const day = hoy.getDay();

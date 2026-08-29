@@ -95,7 +95,7 @@ export function FichaJugadoraStats({
   const total = combinarStatsJugadora(entrenos, partidos);
   const periodo = rango?.inicio && rango?.fin
     ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")}`
-    : "";
+    : "Todas las sesiones";
 
   return (
     <div className="stats-ficha">

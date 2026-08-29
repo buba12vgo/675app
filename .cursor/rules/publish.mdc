@@ -1,0 +1,15 @@
+---
+description: Publicar en GitHub y producción sin preguntar
+alwaysApply: true
+---
+
+# Publicar siempre
+
+Cuando termines un cambio de la app (fix, feature, reglas), no preguntes si hay que subirlo.
+
+1. Haz commit (mensaje al estilo del repo: Feat/Fix en español).
+2. `git push` a `origin` de la rama actual (`main` salvo que se esté en otra).
+3. Si tocaste `firestore.rules`, despliega con `npm run deploy:rules`.
+4. Vercel publica solo al pushear. La URL de producción es https://675app.vercel.app
+
+No pidas confirmación para commit, push ni deploy de reglas. El usuario ya lo autorizó de forma permanente.

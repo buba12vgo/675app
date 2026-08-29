@@ -119,6 +119,7 @@ export function EstadisticasTab({
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {[
+            { key: "todo", label: "Todo" },
             { key: "semanal", label: "Semanal" },
             { key: "mensual", label: "Mensual" },
             { key: "rango", label: "Personalizado" },
@@ -178,7 +179,9 @@ export function EstadisticasTab({
           </div>
         )}
         <div style={{ color: textMuted, fontSize: 13 }}>
-          {rango.inicio && rango.fin
+          {statsPeriodo === "todo"
+            ? `Todas las sesiones · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"}`
+            : rango.inicio && rango.fin
             ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")} · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"}`
             : "Selecciona un rango de fechas válido"}
         </div>

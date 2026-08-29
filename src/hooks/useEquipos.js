@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import {
   doc,
@@ -39,9 +39,22 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const [savingEquipoLogoId, setSavingEquipoLogoId] = useState(null);
   const [equipoActivo, setEquipoActivo] = useState(null);
   const [equipoLogos, setEquipoLogos] = useState({});
+  const identityRef = useRef(null);
 
   useEffect(() => {
-    setEquipoActivo(null);
+    if (!userData?.rol) {
+      identityRef.current = null;
+      return;
+    }
+    const next = `${userData.rol}:${userData.clubId || ""}`;
+    if (identityRef.current === null) {
+      identityRef.current = next;
+      return;
+    }
+    if (identityRef.current !== next) {
+      identityRef.current = next;
+      setEquipoActivo(null);
+    }
   }, [userData?.clubId, userData?.rol]);
 
   useEffect(() => {

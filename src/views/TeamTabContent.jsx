@@ -95,6 +95,10 @@ export function TeamTabContent({
     setFichaId(null);
   }, [equipoActivo?.id]);
 
+  useEffect(() => {
+    if (tab !== "players") setFichaId(null);
+  }, [tab]);
+
   if (!equipoActivo) return null;
 
   const {
@@ -340,6 +344,7 @@ export function TeamTabContent({
         jugadorasLoading={jugadorasLoading}
         jugadoras={jugadoras}
         onOpenFicha={(jugadoraId) => {
+          setStatsPeriodo("todo");
           setFichaId(jugadoraId);
           setTab("players");
         }}

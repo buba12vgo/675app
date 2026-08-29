@@ -11,6 +11,7 @@ import {
   sugerirFechaLibre,
   getMetricasEvento,
   filtrarSesionesPorPeriodo,
+  getRangoFechasEstadisticas,
   calcularEstadisticasJugadoras,
   combinarStatsJugadora,
   porcentajeAsistencia,
@@ -183,6 +184,11 @@ describe("filtrarSesionesPorPeriodo", () => {
   it("filtra por rango personalizado", () => {
     const filtradas = filtrarSesionesPorPeriodo(sesiones, "rango", "2026-08-01", "2026-08-31");
     expect(filtradas).toHaveLength(2);
+  });
+
+  it("en periodo todo no recorta sesiones", () => {
+    expect(getRangoFechasEstadisticas("todo")).toEqual({ inicio: "", fin: "" });
+    expect(filtrarSesionesPorPeriodo(sesiones, "todo")).toHaveLength(3);
   });
 });
 
