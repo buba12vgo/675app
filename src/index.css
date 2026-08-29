@@ -49,9 +49,9 @@
 
 html.dark {
   color-scheme: dark;
-  --color-bg: #0B1120;
-  --color-card: #151D2E;
-  --color-card-elevated: #1A2438;
+  --color-bg: #171310;
+  --color-card: #221C17;
+  --color-card-elevated: #2C241D;
   --color-accent: #C2410C;
   --color-accent-dark: #9A3412;
   --color-accent-light: #F0B27A;
@@ -63,33 +63,33 @@ html.dark {
   --color-partido-soft: rgba(139, 92, 246, 0.18);
   --color-partido-border: rgba(139, 92, 246, 0.45);
   --color-partido-shadow: rgba(139, 92, 246, 0.35);
-  --color-text: #F1F5F9;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
-  --color-table-header: #E2E8F0;
+  --color-text: #F6F1EA;
+  --color-text-secondary: #C9B8A6;
+  --color-text-muted: #9A8A78;
+  --color-table-header: #EDE4D8;
   --color-table-header-accent: #F0B27A;
-  --color-surface: #1E293B;
-  --color-border: #2D3A52;
-  --color-glass: rgba(21, 29, 46, 0.78);
-  --color-panel-muted: rgba(11, 17, 32, 0.45);
+  --color-surface: #332B23;
+  --color-border: #4A3F35;
+  --color-glass: rgba(34, 28, 23, 0.82);
+  --color-panel-muted: rgba(23, 19, 16, 0.50);
   --color-row-present: rgba(52, 199, 89, 0.08);
   --color-row-absent: rgba(255, 69, 58, 0.06);
-  --color-player-name: #FFFFFF;
-  --color-player-nickname: #BFD6FF;
-  --color-control-bg: rgba(11, 17, 32, 0.45);
-  --color-preview-frame-bg: rgba(11, 17, 32, 0.22);
+  --color-player-name: #F6F1EA;
+  --color-player-nickname: #D4C4B0;
+  --color-control-bg: rgba(23, 19, 16, 0.50);
+  --color-preview-frame-bg: rgba(23, 19, 16, 0.28);
   --color-shadow-soft: rgba(0, 0, 0, 0.22);
-  --color-context-header-bg: rgba(26, 36, 56, 0.72);
-  --color-sidebar-bg: rgba(21, 29, 46, 0.55);
-  --color-nav-mobile-bg: rgba(26, 36, 56, 0.85);
+  --color-context-header-bg: rgba(44, 36, 29, 0.78);
+  --color-sidebar-bg: rgba(34, 28, 23, 0.62);
+  --color-nav-mobile-bg: rgba(44, 36, 29, 0.92);
   --mobile-nav-height: 72px;
-  --color-calendar-day: #292A33;
-  --color-calendar-day-other: #202125;
-  --color-calendar-day-text: #FFFFFF;
-  --color-calendar-day-other-text: #525463;
-  --color-form-shell: #22232A;
-  --color-stats-row-bg: #1E293B;
-  --color-stats-row-border: rgba(45, 58, 82, 0.65);
+  --color-calendar-day: #2C241D;
+  --color-calendar-day-other: #1C1713;
+  --color-calendar-day-text: #F6F1EA;
+  --color-calendar-day-other-text: #6B5E52;
+  --color-form-shell: #2C241D;
+  --color-stats-row-bg: #332B23;
+  --color-stats-row-border: rgba(74, 63, 53, 0.7);
 }
 
 *,
@@ -1475,7 +1475,11 @@ textarea:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(11, 17, 32, 0.55);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+html.dark .confirm-overlay {
+  background: rgba(23, 19, 16, 0.62);
 }
 
 .confirm-dialog {
@@ -1576,7 +1580,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 }
 
 .app-backdrop--dark .app-backdrop__photo {
-  filter: blur(18px) saturate(0.55) brightness(0.42);
+  filter: blur(20px) saturate(0.42) brightness(0.32) sepia(0.42) hue-rotate(-18deg);
 }
 
 .app-backdrop--light .app-backdrop__photo {
@@ -1593,13 +1597,18 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
     radial-gradient(circle at 50% 100%, transparent 18%, rgba(255, 255, 255, 0.16) 18.4%, rgba(255, 255, 255, 0.16) 19%, transparent 19.4%);
 }
 
+.app-backdrop--dark .app-backdrop__court {
+  opacity: 0.14;
+  filter: sepia(0.7) saturate(0.55) hue-rotate(-12deg);
+}
+
 .app-backdrop__veil {
   position: absolute;
   inset: 0;
 }
 
 .app-backdrop--dark .app-backdrop__veil {
-  background: linear-gradient(165deg, rgba(11, 17, 32, 0.92) 0%, rgba(11, 17, 32, 0.78) 48%, rgba(194, 65, 12, 0.22) 100%);
+  background: linear-gradient(165deg, rgba(23, 19, 16, 0.95) 0%, rgba(23, 19, 16, 0.84) 46%, rgba(194, 65, 12, 0.36) 100%);
 }
 
 .app-backdrop--light .app-backdrop__veil {
