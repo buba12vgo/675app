@@ -6,7 +6,7 @@ import { EmptyState } from "./EmptyState.jsx";
 export function PlantillaTab({
   equipoLabels,
   text,
-  textMuted: _textMuted,
+  textMuted,
   accent,
   plantillaFormProps,
   jugadorasLoading,
