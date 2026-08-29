@@ -11,8 +11,8 @@ export function LogoUpload({
   onUpload,
   onRemove,
   compact = false,
-  accent,
-  onAccent,
+  accent: _accent,
+  onAccent: _onAccent,
   text,
   textSecondary,
   textMuted,
@@ -59,7 +59,6 @@ export function LogoUpload({
               <button
                 type="button"
                 className="club-logo-upload__btn"
-                style={{ background: accent, color: onAccent }}
                 disabled={uploading}
                 onClick={() => inputRef.current?.click()}
               >

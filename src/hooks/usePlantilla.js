@@ -11,8 +11,10 @@ import {
   where,
 } from "firebase/firestore";
 import { getEquipoLabels, dorsalEstaOcupado } from "../lib/appUtils.js";
+import { useConfirm } from "../components/ConfirmProvider.jsx";
 
 export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
+  const confirm = useConfirm();
   const [jugadoras, setJugadoras] = useState([]);
   const [jugadorasLoading, setJugadorasLoading] = useState(false);
   const [jugadoraNombre, setJugadoraNombre] = useState("");
@@ -101,7 +103,11 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
   };
 
   const handleEliminarJugadora = async (jugadora) => {
-    const confirmar = window.confirm(`¿Eliminar a ${jugadora.nombre} de la plantilla?`);
+    const confirmar = await confirm({
+      title: `¿Eliminar a ${jugadora.nombre} de la plantilla?`,
+      text: "Desaparecerá de las próximas sesiones. El historial de estadísticas se queda.",
+      confirmLabel: "Sí, eliminar",
+    });
     if (!confirmar) return;
     setErrorMsg("");
     if (jugadoraEditandoId === jugadora.id) {

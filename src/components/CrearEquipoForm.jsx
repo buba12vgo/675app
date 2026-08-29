@@ -17,8 +17,8 @@ export function CrearEquipoForm({
   crearEquipoLoading,
   onSubmit,
   onBack,
-  accent,
-  onAccent,
+  accent: _accent,
+  onAccent: _onAccent,
   text,
   textSecondary,
   textMuted,
@@ -116,18 +116,7 @@ export function CrearEquipoForm({
         </div>
         <button
           type="submit"
-          style={{
-            background: accent,
-            color: onAccent,
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 18px",
-            fontWeight: 700,
-            fontSize: 15,
-            cursor: crearEquipoLoading ? "wait" : "pointer",
-            fontFamily: "inherit",
-            opacity: crearEquipoLoading ? 0.7 : 1,
-          }}
+          className="btn-primary"
           disabled={crearEquipoLoading || !nuevoEquipoNombre.trim()}
         >
           {crearEquipoLoading ? "Creando…" : "Crear equipo"}

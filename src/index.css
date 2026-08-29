@@ -4,22 +4,27 @@
   color-scheme: light;
   --font-body: "Source Sans 3", system-ui, -apple-system, sans-serif;
   --font-display: "Barlow Condensed", "Source Sans 3", sans-serif;
-  --color-bg: #F4F7F7;
-  --color-card: #FFFFFF;
-  --color-card-elevated: #EEF4F4;
-  --color-accent: #1F5C66;
-  --color-accent-dark: #164850;
-  --color-accent-light: #15555C;
-  --color-accent-soft: rgba(31, 92, 102, 0.12);
-  --color-accent-border: rgba(31, 92, 102, 0.28);
-  --color-accent-shadow: rgba(31, 92, 102, 0.22);
+  --color-bg: #F7F3ED;
+  --color-card: #FFFCF8;
+  --color-card-elevated: #F4EDE4;
+  --color-accent: #B45309;
+  --color-accent-dark: #92400E;
+  --color-accent-light: #9A3412;
+  --color-accent-soft: rgba(180, 83, 9, 0.12);
+  --color-accent-border: rgba(180, 83, 9, 0.30);
+  --color-accent-shadow: rgba(180, 83, 9, 0.22);
   --color-text: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #64748B;
-  --color-table-header: #15555C;
-  --color-table-header-accent: #1F5C66;
-  --color-surface: #E2E8F0;
-  --color-border: #CBD5E1;
+  --color-table-header: #9A3412;
+  --color-table-header-accent: #B45309;
+  --color-surface: #EDE4D8;
+  --color-border: #E0D3C4;
+  --color-partido: #6D28D9;
+  --color-partido-light: #5B21B6;
+  --color-partido-soft: rgba(109, 40, 217, 0.12);
+  --color-partido-border: rgba(91, 33, 182, 0.35);
+  --color-partido-shadow: rgba(109, 40, 217, 0.28);
   --color-glass: rgba(255, 255, 255, 0.82);
   --color-panel-muted: rgba(241, 245, 249, 0.85);
   --color-row-present: rgba(16, 185, 129, 0.12);
@@ -47,17 +52,22 @@ html.dark {
   --color-bg: #0B1120;
   --color-card: #151D2E;
   --color-card-elevated: #1A2438;
-  --color-accent: #2A7A86;
-  --color-accent-dark: #1E5C66;
-  --color-accent-light: #9ECFD6;
-  --color-accent-soft: rgba(62, 155, 166, 0.18);
-  --color-accent-border: rgba(62, 155, 166, 0.42);
-  --color-accent-shadow: rgba(42, 122, 134, 0.32);
+  --color-accent: #C2410C;
+  --color-accent-dark: #9A3412;
+  --color-accent-light: #F0B27A;
+  --color-accent-soft: rgba(194, 65, 12, 0.20);
+  --color-accent-border: rgba(240, 178, 122, 0.38);
+  --color-accent-shadow: rgba(194, 65, 12, 0.35);
+  --color-partido: #8B5CF6;
+  --color-partido-light: #C4B5FD;
+  --color-partido-soft: rgba(139, 92, 246, 0.18);
+  --color-partido-border: rgba(139, 92, 246, 0.45);
+  --color-partido-shadow: rgba(139, 92, 246, 0.35);
   --color-text: #F1F5F9;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
   --color-table-header: #E2E8F0;
-  --color-table-header-accent: #9ECFD6;
+  --color-table-header-accent: #F0B27A;
   --color-surface: #1E293B;
   --color-border: #2D3A52;
   --color-glass: rgba(21, 29, 46, 0.78);
@@ -1429,6 +1439,125 @@ textarea:focus-visible {
   text-align: center;
 }
 
+.btn-primary {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  min-height: 44px;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--color-accent-shadow);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.btn-primary--partido {
+  background: var(--color-partido);
+  box-shadow: 0 4px 14px var(--color-partido-shadow);
+}
+
+.btn-primary--block {
+  width: 100%;
+}
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(11, 17, 32, 0.55);
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-card);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 16px;
+  padding: 20px 18px;
+  box-shadow: 0 16px 40px var(--color-shadow-soft);
+}
+
+.confirm-dialog--danger {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: var(--color-card);
+}
+
+.confirm-dialog__title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+.confirm-dialog--danger .confirm-dialog__title {
+  color: #dc2626;
+}
+
+html.dark .confirm-dialog--danger .confirm-dialog__title {
+  color: #f87171;
+}
+
+.confirm-dialog__text {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.confirm-dialog__cancel,
+.confirm-dialog__confirm {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.confirm-dialog__cancel {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.confirm-dialog__confirm {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-light);
+  border: 1px solid var(--color-accent-border);
+}
+
+.confirm-dialog--danger .confirm-dialog__confirm {
+  background: transparent;
+  color: #dc2626;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.confirm-dialog__confirm--solid {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
 .app-backdrop {
   position: fixed;
   inset: 0;
@@ -1470,11 +1599,11 @@ textarea:focus-visible {
 }
 
 .app-backdrop--dark .app-backdrop__veil {
-  background: linear-gradient(165deg, rgba(11, 17, 32, 0.92) 0%, rgba(11, 17, 32, 0.78) 48%, rgba(31, 92, 102, 0.28) 100%);
+  background: linear-gradient(165deg, rgba(11, 17, 32, 0.92) 0%, rgba(11, 17, 32, 0.78) 48%, rgba(194, 65, 12, 0.22) 100%);
 }
 
 .app-backdrop--light .app-backdrop__veil {
-  background: linear-gradient(165deg, rgba(244, 247, 247, 0.94) 0%, rgba(244, 247, 247, 0.82) 48%, rgba(31, 92, 102, 0.16) 100%);
+  background: linear-gradient(165deg, rgba(247, 243, 237, 0.94) 0%, rgba(247, 243, 237, 0.82) 48%, rgba(180, 83, 9, 0.14) 100%);
 }
 
 /* Team layout (tabs) */
@@ -1653,6 +1782,8 @@ textarea:focus-visible {
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  background: var(--color-accent);
+  color: #fff;
 }
 
 .club-logo-upload__btn--ghost {
@@ -2479,6 +2610,8 @@ textarea:focus-visible {
 
 .plantilla-jugadora-row__btn--save {
   color: #fff;
+  background: var(--color-accent);
+  box-shadow: 0 2px 10px var(--color-accent-shadow);
 }
 
 .plantilla-jugadora-row__btn--save:disabled {
@@ -2790,7 +2923,43 @@ textarea:focus-visible {
 
 /* Session day panel */
 .session-day-panel {
+  width: 100%;
   max-width: 480px;
+  margin: auto;
+  padding: 23px 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: stretch;
+  position: relative;
+  background: var(--color-surface);
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 15px var(--color-shadow-soft);
+}
+
+.session-day-panel__back {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1.3px solid var(--color-accent);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 9px 18px;
+  margin: -4px 0 18px -2px;
+  width: fit-content;
+  box-shadow: 0 2px 8px var(--color-accent-shadow);
+  cursor: pointer;
+  align-self: flex-start;
+  font-family: inherit;
+}
+
+.session-day-panel__create {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
 }
 
 .session-form {
@@ -2879,6 +3048,11 @@ textarea:focus-visible {
 .session-save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.session-save-btn--partido {
+  background: var(--color-partido);
+  box-shadow: 0 4px 16px var(--color-partido-shadow);
 }
 
 .session-form-actions {

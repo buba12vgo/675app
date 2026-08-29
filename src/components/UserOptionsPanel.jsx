@@ -69,21 +69,9 @@ export function UserOptionsPanel({
         )}
         <button
           type="submit"
+          className="btn-primary btn-primary--block"
+          style={{ marginTop: 18 }}
           disabled={saving || !userNombre.trim()}
-          style={{
-            marginTop: 18,
-            width: "100%",
-            background: accent,
-            color: "#fff",
-            border: "none",
-            borderRadius: 12,
-            padding: "13px 16px",
-            fontWeight: 700,
-            fontSize: 15,
-            cursor: saving ? "wait" : "pointer",
-            opacity: saving || !userNombre.trim() ? 0.7 : 1,
-            fontFamily: "inherit",
-          }}
         >
           {saving ? "Guardando…" : "Guardar nombre"}
         </button>

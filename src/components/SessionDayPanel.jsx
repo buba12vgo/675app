@@ -10,50 +10,19 @@ export function SessionDayPanel({
   onCrearEntreno,
   onCrearPartido,
   sessionFormProps,
-  accent,
+  accent: _accent,
   accentSoft,
   accentLight,
   colorPartido,
-  surface,
-  inputBorder,
+  surface: _surface,
+  inputBorder: _inputBorder,
   text,
   textMuted,
 }) {
   return (
-    <div
-      className="session-day-panel"
-      style={{
-        width: "100%",
-        background: surface,
-        borderRadius: 16,
-        boxShadow: "0 2px 15px 0 rgba(0,0,0,0.10)",
-        border: `1px solid ${inputBorder}`,
-        margin: "auto",
-        padding: "23px 22px 26px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 15,
-        alignItems: "stretch",
-        position: "relative",
-      }}
-    >
+    <div className="session-day-panel">
       <button
-        style={{
-          background: "transparent",
-          color: accent,
-          border: `1.3px solid ${accent}`,
-          borderRadius: 10,
-          fontWeight: "bold",
-          fontSize: 15.7,
-          padding: "9px 18px",
-          marginBottom: 18,
-          width: "fit-content",
-          boxShadow: "0 2px 8px var(--color-accent-shadow)",
-          cursor: "pointer",
-          alignSelf: "flex-start",
-          marginTop: -4,
-          marginLeft: -2,
-        }}
+        className="session-day-panel__back"
         tabIndex={0}
         type="button"
         onClick={onVolver}
@@ -71,9 +40,9 @@ export function SessionDayPanel({
               fontWeight: 700,
               padding: "4px 10px",
               borderRadius: 99,
-              background: tipoSesion === "partido" ? "rgba(139,92,246,0.2)" : accentSoft,
+              background: tipoSesion === "partido" ? "var(--color-partido-soft)" : accentSoft,
               color: tipoSesion === "partido" ? colorPartido : accentLight,
-              border: `1px solid ${tipoSesion === "partido" ? "rgba(139,92,246,0.45)" : "var(--color-accent-border)"}`,
+              border: `1px solid ${tipoSesion === "partido" ? "var(--color-partido-border)" : "var(--color-accent-border)"}`,
               textTransform: "uppercase",
               letterSpacing: "0.06em",
             }}
@@ -120,28 +89,10 @@ export function SessionDayPanel({
                 <br />
                 Elige qué quieres crear:
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  width: "100%",
-                  maxWidth: 320,
-                }}
-              >
+              <div className="session-day-panel__create">
                 <button
                   type="button"
-                  style={{
-                    background: accent,
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 14,
-                    padding: "14px 20px",
-                    fontWeight: 700,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 14px var(--color-accent-shadow)",
-                  }}
+                  className="btn-primary"
                   onClick={onCrearEntreno}
                   disabled={guardandoSesion}
                 >
@@ -149,17 +100,7 @@ export function SessionDayPanel({
                 </button>
                 <button
                   type="button"
-                  style={{
-                    background: colorPartido,
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 14,
-                    padding: "14px 20px",
-                    fontWeight: 700,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(139,92,246,0.35)",
-                  }}
+                  className="btn-primary btn-primary--partido"
                   onClick={onCrearPartido}
                   disabled={guardandoSesion}
                 >

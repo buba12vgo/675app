@@ -18,6 +18,7 @@ import { prepareLogoDataUrl, validateLogoFile, getLogoErrorMessage } from "../li
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
 import { clubLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
 import { deleteClubCascade } from "../lib/deleteClubCascade.js";
+import { useConfirm } from "../components/ConfirmProvider.jsx";
 
 export function useClubes({
   user,
@@ -30,6 +31,7 @@ export function useClubes({
   equiposFiltroSuperadmin,
   setEquiposFiltroSuperadmin,
 }) {
+  const confirm = useConfirm();
   const [clubes, setClubes] = useState([]);
   const [activeClub, setActiveClub] = useState(null);
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
@@ -355,9 +357,12 @@ export function useClubes({
   const handleEliminarClub = async (club) => {
     if (!club?.id || userData?.rol !== "superadmin") return;
 
-    const confirmed = window.confirm(
-      `¿Eliminar el club "${club.nombre}"?\n\nSe borrarán sus equipos, plantillas, sesiones y escudos. Los usuarios de este club quedarán sin club asignado.`
-    );
+    const confirmed = await confirm({
+      title: `¿Eliminar el club "${club.nombre}"?`,
+      text: "Se borrarán sus equipos, plantillas, sesiones y escudos. Los usuarios de este club quedarán sin club asignado.",
+      confirmLabel: "Sí, eliminar club",
+      steps: 2,
+    });
     if (!confirmed) return;
 
     setDeletingClubId(club.id);
@@ -442,7 +447,11 @@ export function useClubes({
 
   const handleRemoveClubLogo = async (clubId) => {
     if (!clubId) return;
-    const confirmed = window.confirm("¿Quitar el escudo del club?");
+    const confirmed = await confirm({
+      title: "¿Quitar el escudo del club?",
+      text: "El club seguirá usando las iniciales hasta que subas otro.",
+      confirmLabel: "Quitar escudo",
+    });
     if (!confirmed) return;
 
     setSavingClubLogoId(clubId);
@@ -475,9 +484,12 @@ export function useClubes({
       return;
     }
 
-    const confirmed = window.confirm(
-      "¿Generar datos de prueba?\n\nPor cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo."
-    );
+    const confirmed = await confirm({
+      title: "¿Generar datos de prueba?",
+      text: "Por cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo.",
+      confirmLabel: "Generar datos",
+      danger: false,
+    });
     if (!confirmed) return;
 
     setSeedingDemo(true);

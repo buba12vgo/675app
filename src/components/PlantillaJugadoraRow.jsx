@@ -17,7 +17,7 @@ export function PlantillaJugadoraRow({
   onSaveEdit,
   onDelete,
   accent,
-  accentShadow,
+  accentShadow: _accentShadow,
   inputBorder,
   inputBg,
   surface,
@@ -72,7 +72,6 @@ export function PlantillaJugadoraRow({
           <button
             type="button"
             className="plantilla-jugadora-row__btn plantilla-jugadora-row__btn--save"
-            style={{ background: accent, boxShadow: `0 2px 10px ${accentShadow}` }}
             onClick={() => onSaveEdit(jugadora.id)}
             disabled={editLoading || !editNombre.trim() || !editDorsal.trim()}
           >

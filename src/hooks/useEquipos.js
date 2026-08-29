@@ -21,9 +21,10 @@ import {
 } from "../lib/appUtils.js";
 import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
 import { equipoLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
-import { deleteEquipoCascade } from "../lib/deleteClubCascade.js";
+import { useConfirm } from "../components/ConfirmProvider.jsx";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
+  const confirm = useConfirm();
   const [equipos, setEquipos] = useState([]);
   const [equiposLoading, setEquiposLoading] = useState(false);
   const [nuevoEquipoNombre, setNuevoEquipoNombre] = useState("");
@@ -165,9 +166,12 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
   const handleEliminarEquipo = async (equipo) => {
     if (!equipo?.id || !puedeEliminarEquipo()) return;
 
-    const confirmed = window.confirm(
-      `¿Eliminar el equipo "${equipo.nombre}"?\n\nSe borrarán su plantilla, sesiones y escudo.`
-    );
+    const confirmed = await confirm({
+      title: `¿Eliminar el equipo "${equipo.nombre}"?`,
+      text: "Se borrarán su plantilla, sesiones y escudo.",
+      confirmLabel: "Sí, eliminar equipo",
+      steps: 2,
+    });
     if (!confirmed) return;
 
     setDeletingEquipoId(equipo.id);
@@ -295,7 +299,11 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     const equipo = equipos.find((e) => e.id === equipoId);
     if (!equipoId || !equipo || !puedeGestionarEquipo(equipo)) return;
 
-    const confirmed = window.confirm("¿Quitar el escudo del equipo?");
+    const confirmed = await confirm({
+      title: "¿Quitar el escudo del equipo?",
+      text: "El equipo seguirá usando las iniciales hasta que subas otro.",
+      confirmLabel: "Quitar escudo",
+    });
     if (!confirmed) return;
 
     setSavingEquipoLogoId(equipoId);

@@ -9,8 +9,8 @@ export function PlantillaForm({
   jugadoraApodo,
   setJugadoraApodo,
   addJugadoraLoading,
-  accent,
-  accentShadow,
+  accent: _accent,
+  accentShadow: _accentShadow,
   inputBorder,
   inputBg,
   surface,
@@ -95,20 +95,7 @@ export function PlantillaForm({
       </div>
       <button
         type="submit"
-        style={{
-          background: accent,
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "11px 0",
-          fontWeight: 600,
-          fontSize: 16,
-          cursor: "pointer",
-          marginTop: 5,
-          boxShadow: `0 4px 14px ${accentShadow}`,
-          transition: "all .16s",
-          letterSpacing: "0.013em"
-        }}
+        className="btn-primary"
         disabled={addJugadoraLoading || !jugadoraNombre.trim() || !jugadoraDorsal.trim()}
         tabIndex={0}
       >

@@ -269,13 +269,8 @@ export function SessionForm({
       <div className="session-form-actions">
         <button
           type="submit"
-          className="session-save-btn"
+          className={`session-save-btn${tipoSesion === "partido" ? " session-save-btn--partido" : ""}`}
           disabled={guardandoSesion || pasoEliminar > 0}
-          style={
-            tipoSesion === "partido"
-              ? { background: colorPartido, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" }
-              : undefined
-          }
         >
           Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
         </button>

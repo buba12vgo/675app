@@ -32,18 +32,7 @@ export function DemoSeedCard({
         type="button"
         onClick={onSeed}
         disabled={seeding}
-        style={{
-          background: accent,
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "10px 16px",
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: seeding ? "wait" : "pointer",
-          opacity: seeding ? 0.75 : 1,
-          fontFamily: "inherit",
-        }}
+        className="btn-primary"
       >
         {seeding ? "Generando datos…" : "Generar datos de prueba"}
       </button>
