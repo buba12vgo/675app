@@ -747,6 +747,14 @@ textarea:focus-visible {
   display: block !important;
 }
 
+.app-shell[data-device-preview="mobile"] .session-subnav {
+  display: flex !important;
+}
+
+.app-shell[data-device-preview="mobile"] .session-panel-section--hidden-mobile {
+  display: none !important;
+}
+
 .app-shell[data-device-preview="tablet"] .session-subnav,
 .app-shell[data-device-preview="desktop"] .session-subnav {
   display: none;
