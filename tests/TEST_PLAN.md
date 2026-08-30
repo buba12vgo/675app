@@ -81,6 +81,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 | UNIT-04 | Stats | calcularEstadisticasJugadoras | Unit |
 | UNIT-05 | Stats | filtrarSesionesPorPeriodo | Unit |
 | UNIT-06 | Utils | getClubInitials, formatRolLabel | Unit |
+| UNIT-07 | Partido | Planificación de sextos minibasket | Unit |
 
 ## Comandos
 

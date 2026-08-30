@@ -245,7 +245,9 @@ function App() {
     handleEliminarSesion,
     handleAddJugadoraExterna,
     handleRemoveJugadoraExterna,
+    handleToggleSexto,
     jugadorasExternasIds,
+    planificacionSextos,
     sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,
@@ -467,7 +469,9 @@ function App() {
       handleEliminarSesion={handleEliminarSesion}
       handleAddJugadoraExterna={handleAddJugadoraExterna}
       handleRemoveJugadoraExterna={handleRemoveJugadoraExterna}
+      handleToggleSexto={handleToggleSexto}
       jugadorasExternasIds={jugadorasExternasIds}
+      planificacionSextos={planificacionSextos}
       jugadorasClub={jugadorasClub}
       equiposClub={equiposClub}
       jugadorasClubLoading={jugadorasClubLoading}

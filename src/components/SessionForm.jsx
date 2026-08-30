@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { AsistenciaValoracionPanel } from "./AsistenciaValoracionPanel.jsx";
+import { PlanificacionSextosPanel } from "./PlanificacionSextosPanel.jsx";
+import { TIPO_CANASTA_MINI, normalizeTipoCanasta } from "../lib/appUtils.js";
 
 export function SessionForm({
   tipoSesion,
@@ -21,6 +23,8 @@ export function SessionForm({
   setValoraciones,
   motivosAusencia,
   setMotivosAusencia,
+  planificacionSextos = {},
+  onToggleSexto = () => {},
   onSubmit,
   onDelete,
   guardadoNotice,
@@ -41,6 +45,7 @@ export function SessionForm({
   equiposClub,
   jugadorasClubLoading,
   equipoActivoId,
+  tipoCanasta,
   onAddJugadoraExterna,
   onRemoveJugadoraExterna,
 }) {
@@ -48,11 +53,16 @@ export function SessionForm({
   const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id]).length;
   const totalJugadoras = jugadorasSesion.length;
   const esPartido = tipoSesion === "partido";
+  const esMinibasket = normalizeTipoCanasta(tipoCanasta) === TIPO_CANASTA_MINI;
+  const mostrarPlanificacion = esPartido && esMinibasket;
+  const jugadorasConvocadas = jugadorasSesion.filter((j) => asistencias[j.id]);
   const etiqueta = esPartido ? "partido" : "entreno";
+  const vistaActiva =
+    !mostrarPlanificacion && sesionVista === "planificacion" ? "datos" : sesionVista;
 
   return (
     <form
-      className="session-form"
+      className={`session-form${mostrarPlanificacion ? " session-form--con-planificacion" : ""}`}
       onSubmit={(e) => {
         e.preventDefault();
         if (pasoEliminar > 0 || guardandoSesion) return;
@@ -63,24 +73,33 @@ export function SessionForm({
       <div className="session-subnav">
         <button
           type="button"
-          className={`session-subnav-btn${sesionVista === "datos" ? " session-subnav-btn--active" : ""}`}
+          className={`session-subnav-btn${vistaActiva === "datos" ? " session-subnav-btn--active" : ""}`}
           onClick={() => onSesionVistaChange("datos")}
         >
           {tipoSesion === "partido" ? "Datos del partido" : "Datos de sesión"}
         </button>
         <button
           type="button"
-          className={`session-subnav-btn${sesionVista === "asistencia" ? " session-subnav-btn--active" : ""}`}
+          className={`session-subnav-btn${vistaActiva === "asistencia" ? " session-subnav-btn--active" : ""}`}
           onClick={() => onSesionVistaChange("asistencia")}
         >
           {tipoSesion === "partido"
             ? `Convocatoria (${presentesCount}/${totalJugadoras})`
             : `Asistencia (${presentesCount}/${totalJugadoras})`}
         </button>
+        {mostrarPlanificacion ? (
+          <button
+            type="button"
+            className={`session-subnav-btn${vistaActiva === "planificacion" ? " session-subnav-btn--active" : ""}`}
+            onClick={() => onSesionVistaChange("planificacion")}
+          >
+            Planificación
+          </button>
+        ) : null}
       </div>
 
       <div className="session-panel-layout">
-        <div className={`session-panel-datos${sesionVista !== "datos" ? " session-panel-section--hidden-mobile" : ""}`}>
+        <div className={`session-panel-datos${vistaActiva !== "datos" ? " session-panel-section--hidden-mobile" : ""}`}>
           {tipoSesion === "partido" ? (
             <div
               style={{
@@ -223,7 +242,7 @@ export function SessionForm({
         </div>
 
         <div
-          className={`session-panel-asistencia${sesionVista !== "asistencia" ? " session-panel-section--hidden-mobile" : ""}`}
+          className={`session-panel-asistencia${vistaActiva !== "asistencia" ? " session-panel-section--hidden-mobile" : ""}`}
         >
           <AsistenciaValoracionPanel
             jugadoras={jugadorasSesion}
@@ -264,6 +283,22 @@ export function SessionForm({
             inputBg={inputBg}
           />
         </div>
+
+        {mostrarPlanificacion ? (
+          <div
+            className={`session-panel-planificacion${vistaActiva !== "planificacion" ? " session-panel-section--hidden-mobile" : ""}`}
+          >
+            <PlanificacionSextosPanel
+              jugadorasConvocadas={jugadorasConvocadas}
+              planificacionSextos={planificacionSextos}
+              onToggleSexto={onToggleSexto}
+              labels={equipoLabels}
+              inputBorder={inputBorder}
+              textMuted={textMuted}
+              cardBgElevated={cardBgElevated}
+            />
+          </div>
+        ) : null}
       </div>
 
       <div className="session-form-actions">

@@ -16,6 +16,11 @@ import { normalizarTipoSesion, sugerirFechaLibre } from "../lib/appUtils.js";
 import { resetCamposSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
 import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
+import {
+  normalizePlanificacionSextos,
+  planificacionParaGuardar,
+  toggleSexto,
+} from "../lib/planificacionSextos.js";
 
 export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab }) {
   const [sesionCargando, setSesionCargando] = useState(false);
@@ -38,6 +43,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [sesionGuardadaNotice, setSesionGuardadaNotice] = useState("");
   const [jugadorasExternasIds, setJugadorasExternasIds] = useState([]);
   const [motivosAusencia, setMotivosAusencia] = useState({});
+  const [planificacionSextos, setPlanificacionSextos] = useState({});
 
   const sesionSetters = {
     setTematica,
@@ -50,6 +56,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setSesionVista,
     setJugadorasExternasIds,
     setMotivosAusencia,
+    setPlanificacionSextos,
   };
 
   useEffect(() => {
@@ -118,6 +125,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
             setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
             setJugadorasExternasIds(normalizeExternasIds(docSesion.data().jugadorasExternas));
             setMotivosAusencia(normalizeMotivosAusenciaMap(docSesion.data().motivosAusencia));
+            setPlanificacionSextos(normalizePlanificacionSextos(docSesion.data().planificacionSextos));
           } else {
             setSesionDoc(null);
             setSesionId(null);
@@ -236,6 +244,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         valoraciones: vals,
         jugadorasExternas: [],
         motivosAusencia: {},
+        planificacionSextos: {},
         creadoEn: new Date(),
       });
       const snap = await getDoc(sesionDocRef);
@@ -251,6 +260,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         setEjercicios("");
         setJugadorasExternasIds([]);
         setMotivosAusencia({});
+        setPlanificacionSextos({});
       }
     } catch {
       setErrorMsg("Error creando la sesión.");
@@ -275,6 +285,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         }
       });
       const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion);
+      const idsConvocadas = idsSesion.filter((id) => asistenciasLimpias[id]);
+      const planificacionLimpia = planificacionParaGuardar(planificacionSextos, idsConvocadas);
       const sesionDocRef = doc(db, "Sesiones", sesionId || `${equipoActivo.id}_${fechaSesionSeleccionada}`);
       const payload = {
         equipoId: equipoActivo.id,
@@ -291,6 +303,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         payload.local = localPartido;
         payload.tematica = "";
         payload.ejercicios = "";
+        payload.planificacionSextos = planificacionLimpia;
       } else {
         payload.tematica = tematica;
         payload.ejercicios = ejercicios;
@@ -359,6 +372,15 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       delete next[jugadoraId];
       return next;
     });
+    setPlanificacionSextos((prev) => {
+      const next = { ...prev };
+      delete next[jugadoraId];
+      return next;
+    });
+  };
+
+  const handleToggleSexto = (jugadoraId, sexto) => {
+    setPlanificacionSextos((prev) => toggleSexto(prev, jugadoraId, sexto));
   };
 
   const programarDesdeInicio = async (tipo) => {
@@ -409,6 +431,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     handleAddJugadoraExterna,
     handleRemoveJugadoraExterna,
     jugadorasExternasIds,
+    planificacionSextos,
+    handleToggleSexto,
     sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,

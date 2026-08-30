@@ -2,7 +2,7 @@ export function resetCamposSesion(setters) {
   const {
     setTematica, setEjercicios, setAsistencias, setValoraciones,
     setTipoSesion, setRivalPartido, setLocalPartido, setSesionVista,
-    setJugadorasExternasIds, setMotivosAusencia,
+    setJugadorasExternasIds, setMotivosAusencia, setPlanificacionSextos,
   } = setters;
   setTematica("");
   setEjercicios("");
@@ -14,4 +14,5 @@ export function resetCamposSesion(setters) {
   setSesionVista("datos");
   setJugadorasExternasIds?.([]);
   setMotivosAusencia?.({});
+  setPlanificacionSextos?.({});
 }
