@@ -755,6 +755,24 @@ textarea:focus-visible {
   display: none !important;
 }
 
+.app-shell[data-device-preview="mobile"] .planificacion-table__player-col,
+.app-shell[data-device-preview="mobile"] .planificacion-table__player {
+  width: 30%;
+  font-size: 12px;
+  padding-left: 6px !important;
+  padding-right: 4px !important;
+}
+
+.app-shell[data-device-preview="mobile"] .planificacion-table thead th {
+  font-size: 12px;
+  padding: 6px 0;
+}
+
+.app-shell[data-device-preview="mobile"] .planificacion-cell {
+  min-height: 34px;
+  font-size: 15px;
+}
+
 .app-shell[data-device-preview="tablet"] .session-subnav,
 .app-shell[data-device-preview="desktop"] .session-subnav {
   display: none;
@@ -2996,6 +3014,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .session-subnav {
@@ -3052,6 +3071,8 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   flex-direction: column;
   gap: 10px;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .planificacion-panel__title {
@@ -3069,6 +3090,8 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .planificacion-table-wrap {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -3077,7 +3100,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  min-width: 280px;
+  min-width: 0;
   background: var(--color-card);
 }
 
@@ -3094,13 +3117,13 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   color: var(--color-text);
   font-weight: 800;
   font-size: 13px;
-  padding: 8px 4px;
+  padding: 8px 2px;
 }
 
 .planificacion-table__player-col {
   text-align: left !important;
-  width: 38%;
-  padding-left: 10px !important;
+  width: 34%;
+  padding-left: 8px !important;
   border-right-width: 2px;
 }
 
@@ -3108,9 +3131,12 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   text-align: left;
   font-weight: 600;
   color: var(--color-player-name);
-  padding: 6px 10px !important;
+  padding: 6px 8px !important;
   border-right-width: 2px;
-  font-size: 13.5px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .planificacion-cell {
@@ -3118,7 +3144,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 38px;
+  min-height: 36px;
   border: none;
   background: transparent;
   color: var(--color-text);
@@ -3325,6 +3351,23 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   .stats-table-header--tipo {
     font-size: 0.66rem;
     letter-spacing: 0.03em;
+  }
+
+  .planificacion-table__player-col,
+  .planificacion-table__player {
+    width: 30%;
+    font-size: 12px;
+    padding-left: 6px !important;
+    padding-right: 4px !important;
+  }
+
+  .planificacion-table thead th {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+
+  .planificacion-cell {
+    min-height: 34px;
   }
 }
 
