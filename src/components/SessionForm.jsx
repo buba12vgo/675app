@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AsistenciaValoracionPanel } from "./AsistenciaValoracionPanel.jsx";
 import { PlanificacionSextosPanel } from "./PlanificacionSextosPanel.jsx";
-import { TIPO_CANASTA_MINI, normalizeTipoCanasta } from "../lib/appUtils.js";
+import { esEquipoMinibasket } from "../lib/planificacionSextos.js";
 
 export function SessionForm({
   tipoSesion,
@@ -46,6 +46,7 @@ export function SessionForm({
   jugadorasClubLoading,
   equipoActivoId,
   tipoCanasta,
+  nombreEquipo,
   onAddJugadoraExterna,
   onRemoveJugadoraExterna,
 }) {
@@ -53,7 +54,7 @@ export function SessionForm({
   const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id]).length;
   const totalJugadoras = jugadorasSesion.length;
   const esPartido = tipoSesion === "partido";
-  const esMinibasket = normalizeTipoCanasta(tipoCanasta) === TIPO_CANASTA_MINI;
+  const esMinibasket = esEquipoMinibasket(tipoCanasta, nombreEquipo);
   const mostrarPlanificacion = esPartido && esMinibasket;
   const jugadorasConvocadas = jugadorasSesion.filter((j) => asistencias[j.id]);
   const etiqueta = esPartido ? "partido" : "entreno";

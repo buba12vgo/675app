@@ -74,3 +74,17 @@ export function etiquetaJugadoraPlanificacion(jugadora) {
   if (nombre && dorsalTxt) return `${nombre} ${dorsalTxt}`;
   return nombre || dorsalTxt;
 }
+
+export function esEquipoMinibasket(tipoCanasta, nombreEquipo = "") {
+  const tipo = String(tipoCanasta || "").trim().toLowerCase();
+  if (tipo === "minibasket" || tipo === "mini" || tipo.includes("minibasket")) return true;
+  const nombre = String(nombreEquipo || "").trim().toLowerCase();
+  if (!nombre) return false;
+  return (
+    /\bmini\b/.test(nombre)
+    || nombre.includes("minibasket")
+    || nombre.includes("premini")
+    || nombre.includes("alevin")
+    || nombre.includes("alevín")
+  );
+}

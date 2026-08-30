@@ -265,6 +265,7 @@ export function TeamTabContent({
             jugadorasClubLoading,
             equipoActivoId: equipoActivo.id,
             tipoCanasta: equipoActivo.tipoCanasta,
+            nombreEquipo: equipoActivo.nombre,
             onAddJugadoraExterna: handleAddJugadoraExterna,
             onRemoveJugadoraExterna: handleRemoveJugadoraExterna,
           },

@@ -7,6 +7,7 @@ import {
   toggleSexto,
   planificacionParaGuardar,
   etiquetaJugadoraPlanificacion,
+  esEquipoMinibasket,
 } from "../../src/lib/planificacionSextos.js";
 
 describe("normalizeSextosJugadora", () => {
@@ -52,6 +53,17 @@ describe("etiquetaJugadoraPlanificacion", () => {
   it("junta nombre y dorsal", () => {
     expect(etiquetaJugadoraPlanificacion({ nombre: "Mara", dorsal: 17 })).toBe("Mara 17");
     expect(etiquetaJugadoraPlanificacion({ nombre: "Eva" })).toBe("Eva");
+  });
+});
+
+describe("esEquipoMinibasket", () => {
+  it("reconoce minibasket por tipo o por nombre", () => {
+    expect(esEquipoMinibasket("minibasket")).toBe(true);
+    expect(esEquipoMinibasket("mini")).toBe(true);
+    expect(esEquipoMinibasket("grande", "Mini Femenino")).toBe(true);
+    expect(esEquipoMinibasket(undefined, "Alevin Masc")).toBe(true);
+    expect(esEquipoMinibasket("grande", "Cadete")).toBe(false);
+    expect(esEquipoMinibasket(undefined, "Senior")).toBe(false);
   });
 });
 

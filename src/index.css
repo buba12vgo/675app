@@ -778,6 +778,23 @@ textarea:focus-visible {
   display: none;
 }
 
+.session-form--con-planificacion .session-subnav,
+.app-shell[data-device-preview="tablet"] .session-form--con-planificacion .session-subnav,
+.app-shell[data-device-preview="desktop"] .session-form--con-planificacion .session-subnav {
+  display: flex !important;
+}
+
+.session-form--con-planificacion .session-panel-section--hidden-mobile,
+.app-shell[data-device-preview="tablet"] .session-form--con-planificacion .session-panel-section--hidden-mobile,
+.app-shell[data-device-preview="desktop"] .session-form--con-planificacion .session-panel-section--hidden-mobile {
+  display: none !important;
+}
+
+.session-form--con-planificacion .session-panel-layout,
+.app-shell[data-device-preview="desktop"] .session-form--con-planificacion .session-panel-layout {
+  flex-direction: column !important;
+}
+
 .app-main {
   width: 100%;
   min-height: 0;
@@ -3420,8 +3437,20 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
     display: none;
   }
 
+  .session-form--con-planificacion .session-subnav {
+    display: flex !important;
+  }
+
   .session-panel-section--hidden-mobile {
     display: block !important;
+  }
+
+  .session-form--con-planificacion .session-panel-section--hidden-mobile {
+    display: none !important;
+  }
+
+  .session-form--con-planificacion .session-panel-layout {
+    flex-direction: column;
   }
 
   .session-panel-layout {
