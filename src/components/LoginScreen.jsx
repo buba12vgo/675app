@@ -23,7 +23,7 @@ export function LoginScreen({
         <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
       </div>
       <div className="login-card">
-        <AppBrand text={text} fontSize={28} />
+        <AppBrand text={text} fontSize={28} markSize={52} />
         <p className="login-card__lead">Entra para seguir con tu equipo</p>
         <form className="login-form" onSubmit={onEmailLogin} autoComplete="off">
           <div className="login-field">
