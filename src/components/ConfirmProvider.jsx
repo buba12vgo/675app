@@ -61,6 +61,8 @@ export function ConfirmProvider({ children }) {
   );
 }
 
+// Hook del provider: el export conjunto es el patrón habitual de context.
+// eslint-disable-next-line react-refresh/only-export-components -- useConfirm junto al provider
 export function useConfirm() {
   const ctx = useContext(ConfirmContext);
   if (!ctx) {

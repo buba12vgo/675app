@@ -22,6 +22,7 @@ import {
 import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
 import { equipoLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
 import { useConfirm } from "../components/ConfirmProvider.jsx";
+import { deleteEquipoCascade } from "../lib/deleteClubCascade.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const confirm = useConfirm();
