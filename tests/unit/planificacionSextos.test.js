@@ -51,7 +51,7 @@ describe("planificacionParaGuardar", () => {
 
 describe("etiquetaJugadoraPlanificacion", () => {
   it("junta nombre y dorsal", () => {
-    expect(etiquetaJugadoraPlanificacion({ nombre: "Mara", dorsal: 17 })).toBe("Mara 17");
+    expect(etiquetaJugadoraPlanificacion({ nombre: "Mara", dorsal: 17 })).toBe("17 Mara");
     expect(etiquetaJugadoraPlanificacion({ nombre: "Eva" })).toBe("Eva");
   });
 });

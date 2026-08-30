@@ -71,7 +71,7 @@ export function etiquetaJugadoraPlanificacion(jugadora) {
   const dorsal = jugadora?.dorsal;
   const dorsalTxt =
     dorsal != null && dorsal !== "" && dorsal !== "—" ? String(dorsal).trim() : "";
-  if (nombre && dorsalTxt) return `${nombre} ${dorsalTxt}`;
+  if (nombre && dorsalTxt) return `${dorsalTxt} ${nombre}`;
   return nombre || dorsalTxt;
 }
 

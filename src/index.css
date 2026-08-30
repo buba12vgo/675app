@@ -3151,9 +3151,30 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   padding: 6px 8px !important;
   border-right-width: 2px;
   font-size: 13px;
+}
+
+.planificacion-table__player-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.planificacion-table__dorsal {
+  flex: 0 0 1.6em;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.planificacion-table__nombre {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .planificacion-cell {

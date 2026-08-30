@@ -45,29 +45,38 @@ export function PlanificacionSextosPanel({
               </tr>
             </thead>
             <tbody>
-              {jugadorasConvocadas.map((j) => (
-                <tr key={j.id}>
-                  <th scope="row" className="planificacion-table__player">
-                    {etiquetaJugadoraPlanificacion(j)}
-                  </th>
-                  {SEXTOS_PARTIDO.map((sexto) => {
-                    const marcado = estaEnSexto(planificacionSextos, j.id, sexto);
-                    return (
-                      <td key={sexto}>
-                        <button
-                          type="button"
-                          className={`planificacion-cell${marcado ? " planificacion-cell--on" : ""}`}
-                          aria-pressed={marcado}
-                          aria-label={`${etiquetaJugadoraPlanificacion(j)}, ${SEXTOS_LABELS[sexto - 1]}`}
-                          onClick={() => onToggleSexto(j.id, sexto)}
-                        >
-                          {marcado ? "X" : ""}
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {jugadorasConvocadas.map((j) => {
+                const dorsal = j.dorsal != null && j.dorsal !== "" && j.dorsal !== "—"
+                  ? String(j.dorsal).trim()
+                  : "";
+                const nombre = String(j.nombre || "").trim();
+                return (
+                  <tr key={j.id}>
+                    <th scope="row" className="planificacion-table__player">
+                      <span className="planificacion-table__player-inner">
+                        {dorsal ? <span className="planificacion-table__dorsal">{dorsal}</span> : null}
+                        <span className="planificacion-table__nombre">{nombre}</span>
+                      </span>
+                    </th>
+                    {SEXTOS_PARTIDO.map((sexto) => {
+                      const marcado = estaEnSexto(planificacionSextos, j.id, sexto);
+                      return (
+                        <td key={sexto}>
+                          <button
+                            type="button"
+                            className={`planificacion-cell${marcado ? " planificacion-cell--on" : ""}`}
+                            aria-pressed={marcado}
+                            aria-label={`${etiquetaJugadoraPlanificacion(j)}, ${SEXTOS_LABELS[sexto - 1]}`}
+                            onClick={() => onToggleSexto(j.id, sexto)}
+                          >
+                            {marcado ? "X" : ""}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
