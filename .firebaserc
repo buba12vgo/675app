@@ -1,5 +1,11 @@
 {
   "projects": {
-    "default": "app-33232"
+    "default": "app-33232",
+    "675app": "app-33232",
+    "cuadrapp": "cuadrapp-899d5",
+    "dias-policia-portuaria": "dias-policia-portuaria",
+    "hr-compass": "hr-compass-3zsz6",
+    "policia-dias": "policia-dias",
+    "studioshift": "studioshift-2yqxf"
   }
 }
