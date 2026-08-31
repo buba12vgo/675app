@@ -9,7 +9,7 @@ import {
 function autoResize(el) {
   if (!el) return;
   el.style.height = "auto";
-  el.style.height = `${Math.max(el.scrollHeight, 40)}px`;
+  el.style.height = `${Math.max(el.scrollHeight, el.offsetHeight || 0, 72)}px`;
 }
 
 export function EjerciciosListaEditor({
@@ -81,8 +81,29 @@ export function EjerciciosListaEditor({
                 <span className="ejercicios-lista__num" style={{ color: accent }}>
                   {index + 1}
                 </span>
-                {readOnly ? (
-                  <p className="ejercicios-lista__text" style={{ color: text }}>{item}</p>
+                {readOnly || draftIndex !== index ? (
+                  <p
+                    className={`ejercicios-lista__text${locked ? "" : " ejercicios-lista__text--editable"}`}
+                    style={{ color: text }}
+                    onClick={() => {
+                      if (locked) return;
+                      setDraftIndex(index);
+                      setDraftValue(items[index] || "");
+                    }}
+                    onKeyDown={(e) => {
+                      if (locked) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setDraftIndex(index);
+                        setDraftValue(items[index] || "");
+                      }
+                    }}
+                    tabIndex={locked ? undefined : 0}
+                    role={locked ? undefined : "button"}
+                    aria-label={locked ? `Ejercicio ${index + 1}` : `Editar ejercicio ${index + 1}`}
+                  >
+                    {item}
+                  </p>
                 ) : (
                   <textarea
                     ref={(el) => {
@@ -91,11 +112,8 @@ export function EjerciciosListaEditor({
                     className="ejercicios-lista__input"
                     value={item}
                     disabled={locked}
-                    rows={1}
-                    onFocus={() => {
-                      setDraftIndex(index);
-                      setDraftValue(items[index] || "");
-                    }}
+                    rows={3}
+                    autoFocus
                     onChange={(e) => {
                       setDraftValue(e.target.value);
                       autoResize(e.target);
@@ -161,7 +179,7 @@ export function EjerciciosListaEditor({
             placeholder={placeholder}
             value={nuevo}
             disabled={locked}
-            rows={2}
+            rows={3}
             onChange={(e) => {
               setNuevo(e.target.value);
               autoResize(e.target);
