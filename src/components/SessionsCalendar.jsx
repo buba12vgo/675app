@@ -3,6 +3,9 @@ import {
   formatDateYYYYMMDD,
   getCalendarMatrix,
   normalizarTipoSesion,
+  TIPO_SESION_ENTRENO,
+  TIPO_SESION_FISICO,
+  TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
 
 const MONTH_NAMES = [
@@ -18,11 +21,13 @@ export function SessionsCalendar({
   sesionesEquipo,
   accent,
   colorPartido,
+  colorFisico,
   onSelectDate,
 }) {
   const sesionesPorFecha = {};
   sesionesEquipo.forEach((s) => {
-    sesionesPorFecha[s.fecha] = s;
+    if (!sesionesPorFecha[s.fecha]) sesionesPorFecha[s.fecha] = [];
+    sesionesPorFecha[s.fecha].push(s);
   });
   const weeksMatrix = getCalendarMatrix(anioActual, mesActual);
 
@@ -65,11 +70,17 @@ export function SessionsCalendar({
         {weeksMatrix.map((semana, widx) =>
           semana.map(({ date, otherMonth }, didx) => {
             const ymd = formatDateYYYYMMDD(date);
-            const sesionDia = sesionesPorFecha[ymd];
-            const tieneSesion = !!sesionDia;
-            const esPartido = tieneSesion && normalizarTipoSesion(sesionDia) === "partido";
+            const sesionesDia = sesionesPorFecha[ymd] || [];
+            const tieneSesion = sesionesDia.length > 0;
+            const tipos = new Set(sesionesDia.map((s) => normalizarTipoSesion(s)));
             const hoy = formatDateYYYYMMDD(new Date());
-            const colorEvento = esPartido ? colorPartido : accent;
+            const borderColor = tipos.has(TIPO_SESION_PARTIDO)
+              ? colorPartido
+              : tipos.has(TIPO_SESION_FISICO) && !tipos.has(TIPO_SESION_ENTRENO)
+                ? colorFisico
+                : tieneSesion
+                  ? accent
+                  : undefined;
             return (
               <button
                 key={widx + "-" + didx}
@@ -78,16 +89,23 @@ export function SessionsCalendar({
                 onClick={() => onSelectDate(ymd)}
                 className={`calendar-day${otherMonth ? " calendar-day--other" : ""}${ymd === hoy ? " calendar-day--today" : ""}`}
                 style={{
-                  borderColor: tieneSesion ? colorEvento : undefined,
+                  borderColor,
                 }}
                 tabIndex={otherMonth ? -1 : 0}
               >
                 {date.getDate()}
                 {tieneSesion && (
-                  <span
-                    className="calendar-day__dot"
-                    style={{ background: colorEvento }}
-                  />
+                  <span className="calendar-day__dots">
+                    {tipos.has(TIPO_SESION_ENTRENO) && (
+                      <span className="calendar-day__dot" style={{ background: accent }} />
+                    )}
+                    {tipos.has(TIPO_SESION_PARTIDO) && (
+                      <span className="calendar-day__dot" style={{ background: colorPartido }} />
+                    )}
+                    {tipos.has(TIPO_SESION_FISICO) && (
+                      <span className="calendar-day__dot" style={{ background: colorFisico }} />
+                    )}
+                  </span>
                 )}
                 {ymd === hoy && (
                   <span className="calendar-day__today-mark" title="Hoy" />

@@ -10,6 +10,11 @@ import {
   getRangoFechasEstadisticas,
   calcularEstadisticasJugadoras,
   normalizarTipoSesion,
+  canEditSesion,
+  canManagePlantilla,
+  TIPO_SESION_ENTRENO,
+  TIPO_SESION_PARTIDO,
+  TIPO_SESION_FISICO,
 } from "../lib/appUtils.js";
 import { combinarJugadorasSesion } from "../lib/jugadorasClub.js";
 
@@ -32,6 +37,11 @@ export function TeamTabContent({
   sesionCargando,
   guardandoSesion,
   handleCrearSesion,
+  sesionesDiaActual = [],
+  seleccionarSesion,
+  cerrarSesionFormulario,
+  abrirSesionEnCalendario,
+  userRol,
   sesionVista,
   setSesionVista,
   rivalPartido,
@@ -113,6 +123,10 @@ export function TeamTabContent({
     colorPartidoLight,
     colorPartidoSoft,
     colorPartidoBorder,
+    colorFisico,
+    colorFisicoLight,
+    colorFisicoSoft,
+    colorFisicoBorder,
     text,
     textMuted,
     textSecondary,
@@ -127,17 +141,12 @@ export function TeamTabContent({
   } = theme;
 
   const equipoLabels = getEquipoLabels(equipoActivo.genero);
+  const puedeEditarPlantilla = canManagePlantilla(userRol);
+  const sesionEditable = sesionDoc ? canEditSesion(userRol, sesionDoc) : false;
 
   if (tab === "home") {
-    const { proximoEntreno, proximoPartido, hoyStr, mananaStr } = getProximosEventosInicio(sesionesEquipo);
-    const abrirEnCalendario = (fecha) => {
-      if (!fecha) return;
-      const [y, m] = fecha.split("-").map(Number);
-      setAnioActual(y);
-      setMesActual(m - 1);
-      setFechaSesionSeleccionada(fecha);
-      setTab("sesiones");
-    };
+    const { proximoEntreno, proximoPartido, proximoFisico, hoyStr, mananaStr } =
+      getProximosEventosInicio(sesionesEquipo);
 
     return (
       <HomeTab
@@ -145,6 +154,7 @@ export function TeamTabContent({
         sesionesLoading={sesionesLoading}
         proximoEntreno={proximoEntreno}
         proximoPartido={proximoPartido}
+        proximoFisico={proximoFisico}
         hoyStr={hoyStr}
         mananaStr={mananaStr}
         accent={accent}
@@ -155,13 +165,32 @@ export function TeamTabContent({
         colorPartidoLight={colorPartidoLight}
         colorPartidoSoft={colorPartidoSoft}
         colorPartidoBorder={colorPartidoBorder}
+        colorFisico={colorFisico}
+        colorFisicoLight={colorFisicoLight}
+        colorFisicoSoft={colorFisicoSoft}
+        colorFisicoBorder={colorFisicoBorder}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
         success={success}
-        onOpenCalendar={abrirEnCalendario}
-        onScheduleEntreno={() => programarDesdeInicio("entreno")}
-        onSchedulePartido={() => programarDesdeInicio("partido")}
+        onOpenCalendar={(fecha, tipo) => {
+          if (abrirSesionEnCalendario) {
+            abrirSesionEnCalendario(fecha, tipo);
+            return;
+          }
+          if (!fecha) return;
+          const [y, m] = fecha.split("-").map(Number);
+          setAnioActual(y);
+          setMesActual(m - 1);
+          setFechaSesionSeleccionada(fecha);
+          setTab("sesiones");
+        }}
+        onScheduleEntreno={() => programarDesdeInicio(TIPO_SESION_ENTRENO)}
+        onSchedulePartido={() => programarDesdeInicio(TIPO_SESION_PARTIDO)}
+        onScheduleFisico={() => programarDesdeInicio(TIPO_SESION_FISICO)}
+        canScheduleEntreno={canEditSesion(userRol, { tipo: TIPO_SESION_ENTRENO })}
+        canSchedulePartido={canEditSesion(userRol, { tipo: TIPO_SESION_PARTIDO })}
+        canScheduleFisico={canEditSesion(userRol, { tipo: TIPO_SESION_FISICO })}
         guardandoSesion={guardandoSesion}
       />
     );
@@ -198,6 +227,7 @@ export function TeamTabContent({
         textMuted={textMuted}
         accent={accent}
         colorPartido={colorPartido}
+        colorFisico={colorFisico}
         fechaSesionSeleccionada={fechaSesionSeleccionada}
         anioActual={anioActual}
         mesActual={mesActual}
@@ -212,12 +242,19 @@ export function TeamTabContent({
           tipoSesion,
           sesionCargando,
           guardandoSesion,
-          onCrearEntreno: () => handleCrearSesion("entreno"),
-          onCrearPartido: () => handleCrearSesion("partido"),
+          sesionesDelDia: sesionesDiaActual,
+          onSelectSesion: seleccionarSesion,
+          onCerrarSesion: cerrarSesionFormulario,
+          onCrearEntreno: () => handleCrearSesion(TIPO_SESION_ENTRENO),
+          onCrearPartido: () => handleCrearSesion(TIPO_SESION_PARTIDO),
+          onCrearFisico: () => handleCrearSesion(TIPO_SESION_FISICO),
+          userRol,
+          readOnly: Boolean(sesionDoc) && !sesionEditable,
           accent,
           accentSoft,
           accentLight,
           colorPartido,
+          colorFisico,
           surface,
           inputBorder,
           text,
@@ -245,12 +282,13 @@ export function TeamTabContent({
             planificacionSextos,
             onToggleSexto: handleToggleSexto,
             onSubmit: handleGuardarSesion,
-            onDelete: sesionDoc ? handleEliminarSesion : undefined,
+            onDelete: sesionDoc && sesionEditable ? handleEliminarSesion : undefined,
             guardadoNotice: sesionGuardadaNotice,
             guardandoSesion,
             onGoToPlantilla: () => setTab("plantilla"),
             accent,
             colorPartido,
+            colorFisico,
             inputBorder,
             textMuted,
             textSecondary,
@@ -278,8 +316,9 @@ export function TeamTabContent({
     const sesionesFiltradas = filtrarSesionesPorPeriodo(sesionesEquipo, statsPeriodo, statsDesde, statsHasta);
     const rango = getRangoFechasEstadisticas(statsPeriodo, statsDesde, statsHasta);
     const estadisticas = calcularEstadisticasJugadoras(jugadoras, sesionesFiltradas);
-    const totalEntrenos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === "entreno").length;
-    const totalPartidos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === "partido").length;
+    const totalEntrenos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO).length;
+    const totalPartidos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO).length;
+    const totalFisicos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO).length;
     return (
       <EstadisticasTab
         equipoActivo={equipoActivo}
@@ -291,6 +330,8 @@ export function TeamTabContent({
         accentSoft={accentSoft}
         colorPartido={colorPartido}
         colorPartidoLight={colorPartidoLight}
+        colorFisico={colorFisico}
+        colorFisicoLight={colorFisicoLight}
         inputBorder={inputBorder}
         inputBg={inputBg}
         cardBgElevated={cardBgElevated}
@@ -308,6 +349,7 @@ export function TeamTabContent({
         rango={rango}
         totalEntrenos={totalEntrenos}
         totalPartidos={totalPartidos}
+        totalFisicos={totalFisicos}
         jugadorasLoading={jugadorasLoading}
         sesionesLoading={sesionesLoading}
         jugadoras={jugadoras}
@@ -330,6 +372,7 @@ export function TeamTabContent({
         text={text}
         textMuted={textMuted}
         accent={accent}
+        readOnly={!puedeEditarPlantilla}
         plantillaFormProps={{
           handleAddJugadora,
           jugadoraNombre,
@@ -376,6 +419,7 @@ export function TeamTabContent({
           textSecondary,
           error,
           labels: equipoLabels,
+          readOnly: !puedeEditarPlantilla,
         }}
       />
     );

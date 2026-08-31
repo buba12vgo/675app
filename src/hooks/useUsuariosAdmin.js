@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { formatRolLabel, isCoordinador } from "../lib/appUtils.js";
-import { normalizeEquiposFavoritos } from "../lib/equiposFavoritos.js";
+import { normalizeEquiposFavoritos, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
 
 export function useUsuariosAdmin({
   userData,
@@ -105,10 +105,16 @@ export function useUsuariosAdmin({
     }
 
     const clubId = (clubIdFromForm || usuario.clubId || "").trim() || null;
-    const rolFinal = clubId && rolSeleccionado === "coordinador" ? "coordinador" : "entrenador";
+    let rolFinal = "entrenador";
+    if (clubId && rolSeleccionado === "coordinador") rolFinal = "coordinador";
+    else if (clubId && rolSeleccionado === "preparador_fisico") rolFinal = "preparador_fisico";
 
-    if (rolSeleccionado === "coordinador" && !clubId) {
-      setErrorMsg("El coordinador debe tener un club asignado. Elige un club en el desplegable.");
+    if ((rolSeleccionado === "coordinador" || rolSeleccionado === "preparador_fisico") && !clubId) {
+      setErrorMsg(
+        rolSeleccionado === "coordinador"
+          ? "El coordinador debe tener un club asignado. Elige un club en el desplegable."
+          : "El preparador físico debe tener un club asignado. Elige un club en el desplegable."
+      );
       return;
     }
 
@@ -138,7 +144,10 @@ export function useUsuariosAdmin({
         rol: rolFinal,
         solicitudClubId: null,
         solicitudClubNombre: null,
-        equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
+        equiposFavoritos:
+          clubId === usuario.clubId
+            ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
+            : [],
       });
 
       await batch.commit();
@@ -153,7 +162,10 @@ export function useUsuariosAdmin({
               rol: rolFinal,
               solicitudClubId: null,
               solicitudClubNombre: null,
-              equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
+              equiposFavoritos:
+                clubId === usuario.clubId
+                  ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
+                  : [],
             };
           }
           if (clubId && rolFinal === "coordinador" && u.clubId === clubId && u.rol === "coordinador") {
@@ -207,7 +219,10 @@ export function useUsuariosAdmin({
     }
     if (usuario.rol === "superadmin") return;
 
-    const equiposFavoritos = normalizeEquiposFavoritos(ids);
+    const equiposFavoritos = normalizeEquiposFavoritos(
+      ids,
+      maxEquiposFavoritosParaRol(usuario.rol)
+    );
     setSavingUsuarioId(usuario.id);
     setErrorMsg("");
     try {

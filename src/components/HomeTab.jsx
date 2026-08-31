@@ -6,6 +6,7 @@ export function HomeTab({
   sesionesLoading,
   proximoEntreno,
   proximoPartido,
+  proximoFisico,
   hoyStr,
   mananaStr,
   accent,
@@ -16,6 +17,10 @@ export function HomeTab({
   colorPartidoLight,
   colorPartidoSoft,
   colorPartidoBorder,
+  colorFisico,
+  colorFisicoLight,
+  colorFisicoSoft,
+  colorFisicoBorder,
   text,
   textMuted,
   textSecondary,
@@ -23,8 +28,31 @@ export function HomeTab({
   onOpenCalendar,
   onScheduleEntreno,
   onSchedulePartido,
+  onScheduleFisico,
+  canScheduleEntreno = true,
+  canSchedulePartido = true,
+  canScheduleFisico = true,
   guardandoSesion,
 }) {
+  const colorProps = {
+    accent,
+    accentLight,
+    accentSoft,
+    accentBorder,
+    colorPartido,
+    colorPartidoLight,
+    colorPartidoSoft,
+    colorPartidoBorder,
+    colorFisico,
+    colorFisicoLight,
+    colorFisicoSoft,
+    colorFisicoBorder,
+    text,
+    textMuted,
+    textSecondary,
+    success,
+  };
+
   return (
     <div className="home-dashboard" style={{ margin: "0 auto", padding: "16px 0 8px" }}>
       <div className="home-dashboard__intro">
@@ -50,20 +78,9 @@ export function HomeTab({
             sesion={proximoEntreno}
             hoyStr={hoyStr}
             mananaStr={mananaStr}
-            accent={accent}
-            accentLight={accentLight}
-            accentSoft={accentSoft}
-            accentBorder={accentBorder}
-            colorPartido={colorPartido}
-            colorPartidoLight={colorPartidoLight}
-            colorPartidoSoft={colorPartidoSoft}
-            colorPartidoBorder={colorPartidoBorder}
-            text={text}
-            textMuted={textMuted}
-            textSecondary={textSecondary}
-            success={success}
-            onOpen={onOpenCalendar}
-            onSchedule={proximoEntreno ? undefined : onScheduleEntreno}
+            {...colorProps}
+            onOpen={(fecha) => onOpenCalendar(fecha, "entreno")}
+            onSchedule={proximoEntreno || !canScheduleEntreno ? undefined : onScheduleEntreno}
             scheduling={guardandoSesion}
           />
           <HomeEventCard
@@ -71,20 +88,19 @@ export function HomeTab({
             sesion={proximoPartido}
             hoyStr={hoyStr}
             mananaStr={mananaStr}
-            accent={accent}
-            accentLight={accentLight}
-            accentSoft={accentSoft}
-            accentBorder={accentBorder}
-            colorPartido={colorPartido}
-            colorPartidoLight={colorPartidoLight}
-            colorPartidoSoft={colorPartidoSoft}
-            colorPartidoBorder={colorPartidoBorder}
-            text={text}
-            textMuted={textMuted}
-            textSecondary={textSecondary}
-            success={success}
-            onOpen={onOpenCalendar}
-            onSchedule={proximoPartido ? undefined : onSchedulePartido}
+            {...colorProps}
+            onOpen={(fecha) => onOpenCalendar(fecha, "partido")}
+            onSchedule={proximoPartido || !canSchedulePartido ? undefined : onSchedulePartido}
+            scheduling={guardandoSesion}
+          />
+          <HomeEventCard
+            tipo="fisico"
+            sesion={proximoFisico}
+            hoyStr={hoyStr}
+            mananaStr={mananaStr}
+            {...colorProps}
+            onOpen={(fecha) => onOpenCalendar(fecha, "fisico")}
+            onSchedule={proximoFisico || !canScheduleFisico ? undefined : onScheduleFisico}
             scheduling={guardandoSesion}
           />
         </div>

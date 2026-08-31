@@ -2,6 +2,12 @@ import { useState } from "react";
 import { AsistenciaValoracionPanel } from "./AsistenciaValoracionPanel.jsx";
 import { PlanificacionSextosPanel } from "./PlanificacionSextosPanel.jsx";
 import { esEquipoMinibasket } from "../lib/planificacionSextos.js";
+import {
+  etiquetaTipoSesion,
+  TIPO_SESION_FISICO,
+  TIPO_SESION_PARTIDO,
+} from "../lib/appUtils.js";
+import { EjerciciosListaEditor } from "./EjerciciosListaEditor.jsx";
 
 export function SessionForm({
   tipoSesion,
@@ -32,6 +38,7 @@ export function SessionForm({
   onGoToPlantilla,
   accent,
   colorPartido,
+  colorFisico,
   inputBorder,
   textMuted,
   textSecondary,
@@ -49,24 +56,28 @@ export function SessionForm({
   nombreEquipo,
   onAddJugadoraExterna,
   onRemoveJugadoraExterna,
+  readOnly = false,
 }) {
   const [pasoEliminar, setPasoEliminar] = useState(0);
   const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id]).length;
   const totalJugadoras = jugadorasSesion.length;
-  const esPartido = tipoSesion === "partido";
+  const esPartido = tipoSesion === TIPO_SESION_PARTIDO;
+  const esFisico = tipoSesion === TIPO_SESION_FISICO;
   const esMinibasket = esEquipoMinibasket(tipoCanasta, nombreEquipo);
   const mostrarPlanificacion = esPartido && esMinibasket;
   const jugadorasConvocadas = jugadorasSesion.filter((j) => asistencias[j.id]);
-  const etiqueta = esPartido ? "partido" : "entreno";
+  const etiqueta = etiquetaTipoSesion(tipoSesion).toLowerCase();
   const vistaActiva =
     !mostrarPlanificacion && sesionVista === "planificacion" ? "datos" : sesionVista;
+  const colorSesion = esPartido ? colorPartido : esFisico ? colorFisico || accent : accent;
+  const disabledFields = readOnly || guardandoSesion;
 
   return (
     <form
       className={`session-form${mostrarPlanificacion ? " session-form--con-planificacion" : ""}`}
       onSubmit={(e) => {
         e.preventDefault();
-        if (pasoEliminar > 0 || guardandoSesion) return;
+        if (readOnly || pasoEliminar > 0 || guardandoSesion) return;
         onSubmit();
       }}
       autoComplete="off"
@@ -77,7 +88,7 @@ export function SessionForm({
           className={`session-subnav-btn${vistaActiva === "datos" ? " session-subnav-btn--active" : ""}`}
           onClick={() => onSesionVistaChange("datos")}
         >
-          {tipoSesion === "partido" ? "Datos del partido" : "Datos de sesión"}
+          {tipoSesion === "partido" ? "Datos del partido" : esFisico ? "Datos del físico" : "Datos de sesión"}
         </button>
         <button
           type="button"
@@ -138,6 +149,8 @@ export function SessionForm({
                 placeholder="Nombre del equipo rival"
                 value={rivalPartido}
                 onChange={(e) => onRivalPartidoChange(e.target.value)}
+                disabled={disabledFields}
+                readOnly={readOnly}
                 style={{
                   width: "100%",
                   padding: "11px 13px",
@@ -167,7 +180,8 @@ export function SessionForm({
                   <button
                     key={op}
                     type="button"
-                    onClick={() => onLocalPartidoChange(op)}
+                    onClick={() => !readOnly && onLocalPartidoChange(op)}
+                    disabled={disabledFields}
                     style={{
                       flex: 1,
                       padding: "10px 0",
@@ -177,8 +191,9 @@ export function SessionForm({
                       color: localPartido === op ? "#fff" : textMuted,
                       fontWeight: 700,
                       fontSize: 14,
-                      cursor: "pointer",
+                      cursor: readOnly ? "default" : "pointer",
                       textTransform: "capitalize",
+                      opacity: readOnly ? 0.85 : 1,
                     }}
                   >
                     {op === "casa" ? "En casa" : "Fuera"}
@@ -198,13 +213,15 @@ export function SessionForm({
                   letterSpacing: "0.05em",
                 }}
               >
-                Temática y ejercicios
+                {esFisico ? "Temática y trabajo físico" : "Temática y ejercicios"}
               </div>
               <input
                 type="text"
-                placeholder="Temática"
+                placeholder={esFisico ? "Temática del físico" : "Temática"}
                 value={tematica}
                 onChange={(e) => onTematicaChange(e.target.value)}
+                disabled={disabledFields}
+                readOnly={readOnly}
                 style={{
                   width: "100%",
                   padding: "11px 13px",
@@ -218,25 +235,31 @@ export function SessionForm({
                   marginBottom: 12,
                 }}
               />
-              <textarea
-                placeholder="Ejercicios de la sesión"
-                value={ejercicios}
-                onChange={(e) => onEjerciciosChange(e.target.value)}
-                rows={5}
+              <div
                 style={{
-                  width: "100%",
-                  padding: "11px 13px",
-                  fontSize: 16.2,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: 9,
-                  background: cardBgElevated,
-                  color: text,
-                  outline: "none",
-                  fontWeight: 500,
-                  resize: "vertical",
-                  minHeight: 120,
-                  maxHeight: 220,
+                  color: textSecondary,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
                 }}
+              >
+                Ejercicios
+              </div>
+              <EjerciciosListaEditor
+                value={ejercicios}
+                onChange={onEjerciciosChange}
+                readOnly={readOnly}
+                disabled={guardandoSesion}
+                placeholder={esFisico ? "Bloque o ejercicio físico" : "Ejercicio de la sesión"}
+                emptyHint={esFisico ? "Añade bloques o ejercicios físicos, uno por uno." : "Añade ejercicios, uno por uno. Enter para meter el siguiente."}
+                accent={colorSesion}
+                inputBorder={inputBorder}
+                inputBg={inputBg}
+                cardBgElevated={cardBgElevated}
+                text={text}
+                textMuted={textMuted}
               />
             </>
           )}
@@ -250,18 +273,24 @@ export function SessionForm({
             jugadorasLoading={jugadorasLoading}
             asistencias={asistencias}
             valoraciones={valoraciones}
-            setAsistencias={setAsistencias}
-            setValoraciones={setValoraciones}
+            setAsistencias={readOnly ? () => {} : setAsistencias}
+            setValoraciones={readOnly ? () => {} : setValoraciones}
             motivosAusencia={motivosAusencia}
-            setMotivosAusencia={setMotivosAusencia}
-            accent={tipoSesion === "partido" ? colorPartido : accent}
+            setMotivosAusencia={readOnly ? () => {} : setMotivosAusencia}
+            accent={colorSesion}
             inputBorder={inputBorder}
             textMuted={textMuted}
             textSecondary={textSecondary}
             success={success}
             error={error}
             cardBgElevated={cardBgElevated}
-            titulo={tipoSesion === "partido" ? "Convocatoria" : "Asistencia y valoración"}
+            titulo={
+              esPartido
+                ? "Convocatoria"
+                : esFisico
+                  ? "Asistencia y valoración (físico)"
+                  : "Asistencia y valoración"
+            }
             resumenPresentes={
               tipoSesion === "partido"
                 ? (p, t) =>
@@ -279,9 +308,10 @@ export function SessionForm({
             equiposClub={equiposClub}
             jugadorasClubLoading={jugadorasClubLoading}
             equipoActivoId={equipoActivoId}
-            onAddJugadoraExterna={onAddJugadoraExterna}
-            onRemoveJugadoraExterna={onRemoveJugadoraExterna}
+            onAddJugadoraExterna={readOnly ? undefined : onAddJugadoraExterna}
+            onRemoveJugadoraExterna={readOnly ? undefined : onRemoveJugadoraExterna}
             inputBg={inputBg}
+            readOnly={readOnly}
           />
         </div>
 
@@ -292,7 +322,7 @@ export function SessionForm({
             <PlanificacionSextosPanel
               jugadorasConvocadas={jugadorasConvocadas}
               planificacionSextos={planificacionSextos}
-              onToggleSexto={onToggleSexto}
+              onToggleSexto={readOnly ? () => {} : onToggleSexto}
               labels={equipoLabels}
               inputBorder={inputBorder}
               textMuted={textMuted}
@@ -302,13 +332,14 @@ export function SessionForm({
         ) : null}
       </div>
 
+      {!readOnly && (
       <div className="session-form-actions">
         <button
           type="submit"
-          className={`session-save-btn${tipoSesion === "partido" ? " session-save-btn--partido" : ""}`}
+          className={`session-save-btn${esPartido ? " session-save-btn--partido" : ""}${esFisico ? " session-save-btn--fisico" : ""}`}
           disabled={guardandoSesion || pasoEliminar > 0}
         >
-          Guardar {tipoSesion === "partido" ? "Partido" : "Sesión"}
+          Guardar {etiquetaTipoSesion(tipoSesion)}
         </button>
         {onDelete && pasoEliminar === 0 ? (
           <button
@@ -369,6 +400,7 @@ export function SessionForm({
           </div>
         ) : null}
       </div>
+      )}
     </form>
   );
 }

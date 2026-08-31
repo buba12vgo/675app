@@ -5,14 +5,17 @@ export function FavoritosEquipoFields({
   value,
   onChange,
   disabled,
-  label = `Equipos favoritos (máx. ${MAX_EQUIPOS_FAVORITOS})`,
+  max = MAX_EQUIPOS_FAVORITOS,
+  label,
   text,
   textMuted,
   inputBorder,
   inputBg,
 }) {
-  const ids = normalizeEquiposFavoritos(value);
-  const slots = Array.from({ length: MAX_EQUIPOS_FAVORITOS }, (_, index) => ids[index] || "");
+  const limit = Math.max(1, Number(max) || MAX_EQUIPOS_FAVORITOS);
+  const ids = normalizeEquiposFavoritos(value, limit);
+  const slots = Array.from({ length: limit }, (_, index) => ids[index] || "");
+  const fieldLabel = label || `Equipos favoritos (máx. ${limit})`;
 
   const selectStyle = {
     padding: "8px 10px",
@@ -30,12 +33,12 @@ export function FavoritosEquipoFields({
   const setSlot = (index, nextId) => {
     const next = [...slots];
     next[index] = nextId;
-    onChange(normalizeEquiposFavoritos(next));
+    onChange(normalizeEquiposFavoritos(next, limit));
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
-      <div style={{ color: textMuted, fontSize: 12, fontWeight: 600 }}>{label}</div>
+      <div style={{ color: textMuted, fontSize: 12, fontWeight: 600 }}>{fieldLabel}</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {slots.map((current, index) => (
           <select

@@ -50,6 +50,7 @@ export function EquipoListRow({
   isFavorite,
   favoriteDisabled,
   onToggleFavorite,
+  maxFavoritos = MAX_EQUIPOS_FAVORITOS,
 }) {
   const displayLogoUrl = equipo.logoUrl || clubLogoUrl || null;
   const logoLabel = equipo.logoUrl ? equipo.nombre : clubNombre || equipo.nombre;
@@ -190,7 +191,7 @@ export function EquipoListRow({
             disabled={deleting || favoriteDisabled}
             aria-label={isFavorite ? `Quitar ${equipo.nombre} de favoritos` : `Marcar ${equipo.nombre} como favorito`}
             aria-pressed={isFavorite}
-            title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? `Ya tienes ${MAX_EQUIPOS_FAVORITOS} favoritos` : "Marcar como favorito"}
+            title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? `Ya tienes ${maxFavoritos} favoritos` : "Marcar como favorito"}
             style={{
               color: isFavorite ? accent : textMuted,
               borderColor: isFavorite ? `${accent}55` : inputBorder,

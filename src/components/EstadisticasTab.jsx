@@ -13,6 +13,8 @@ export function EstadisticasTab({
   accentSoft,
   colorPartido,
   colorPartidoLight,
+  colorFisico,
+  colorFisicoLight,
   inputBorder,
   inputBg,
   cardBgElevated,
@@ -30,6 +32,7 @@ export function EstadisticasTab({
   rango,
   totalEntrenos,
   totalPartidos,
+  totalFisicos = 0,
   jugadorasLoading,
   sesionesLoading,
   jugadoras,
@@ -181,9 +184,9 @@ export function EstadisticasTab({
         )}
         <div style={{ color: textMuted, fontSize: 13 }}>
           {statsPeriodo === "todo"
-            ? `Todas las sesiones · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"}`
+            ? `Todas las sesiones · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"} · ${totalFisicos} físico${totalFisicos === 1 ? "" : "s"}`
             : rango.inicio && rango.fin
-            ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")} · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"}`
+            ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")} · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"} · ${totalFisicos} físico${totalFisicos === 1 ? "" : "s"}`
             : "Selecciona un rango de fechas válido"}
         </div>
       </div>
@@ -226,6 +229,7 @@ export function EstadisticasTab({
           jugadora={ficha.jugadora}
           entrenos={ficha.entrenos}
           partidos={ficha.partidos}
+          fisicos={ficha.fisicos}
           rango={rango}
           onBack={() => onFichaIdChange(null)}
           labels={equipoLabels}
@@ -233,6 +237,8 @@ export function EstadisticasTab({
           accentLight={accentLight}
           colorPartido={colorPartido}
           colorPartidoLight={colorPartidoLight}
+          colorFisico={colorFisico}
+          colorFisicoLight={colorFisicoLight}
           text={text}
           textMuted={textMuted}
           textSecondary={textSecondary}
@@ -243,7 +249,7 @@ export function EstadisticasTab({
         />
       ) : sesionesFiltradas.length === 0 ? (
         <EmptyState
-          title={`No hay entrenos ni partidos en el periodo seleccionado.`}
+          title={`No hay sesiones en el periodo seleccionado.`}
           hint="Prueba otro rango o programa una sesión en el calendario."
         />
       ) : (
@@ -263,6 +269,7 @@ export function EstadisticasTab({
             {[
               { key: "entrenos", label: "Entrenos", color: accent },
               { key: "partidos", label: "Partidos", color: colorPartido },
+              { key: "fisicos", label: "Físicos", color: colorFisico },
               { key: "todo", label: "Todo", color: textSecondary },
             ].map(({ key, label, color: tabColor }) => (
               <button
@@ -274,7 +281,7 @@ export function EstadisticasTab({
                   flex: 1,
                   border:
                     statsVista === key
-                      ? `1px solid ${key === "partidos" ? colorPartido : key === "entrenos" ? accent : inputBorder}`
+                      ? `1px solid ${key === "partidos" ? colorPartido : key === "entrenos" ? accent : key === "fisicos" ? colorFisico : inputBorder}`
                       : "1px solid transparent",
                   background:
                     statsVista === key
@@ -282,7 +289,9 @@ export function EstadisticasTab({
                         ? "rgba(139,92,246,0.18)"
                         : key === "entrenos"
                           ? accentSoft
-                          : "rgba(148,163,184,0.12)"
+                          : key === "fisicos"
+                            ? "var(--color-fisico-soft)"
+                            : "rgba(148,163,184,0.12)"
                       : "transparent",
                   color: statsVista === key ? (key === "todo" ? text : tabColor) : textMuted,
                 }}
@@ -312,6 +321,16 @@ export function EstadisticasTab({
                 totalSesiones={totalPartidos}
                 estadisticas={estadisticas}
                 theme={statsTheme}
+                labels={equipoLabels}
+                onSelectJugadora={onFichaIdChange}
+              />
+            )}
+            {(statsVista === "fisicos" || statsVista === "todo") && (
+              <EstadisticasTablaTipo
+                tipo="fisico"
+                totalSesiones={totalFisicos}
+                estadisticas={estadisticas}
+                theme={{ ...statsTheme, colorPartido: colorFisico, colorPartidoLight: colorFisicoLight }}
                 labels={equipoLabels}
                 onSelectJugadora={onFichaIdChange}
               />

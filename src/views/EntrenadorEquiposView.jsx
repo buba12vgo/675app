@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { EquiposListaContainer } from "../components/EquiposListaContainer.jsx";
 import {
-  MAX_EQUIPOS_FAVORITOS,
+  maxEquiposFavoritosParaRol,
   normalizeEquiposFavoritos,
   filterEquiposPorFavoritos,
 } from "../lib/equiposFavoritos.js";
@@ -13,13 +13,17 @@ export function EntrenadorEquiposView({
   textMuted,
   accent,
   equiposFavoritos,
+  userRol = "entrenador",
 }) {
   const [verTodos, setVerTodos] = useState(false);
-  const favoritosIds = normalizeEquiposFavoritos(equiposFavoritos);
+  const maxFavoritos = maxEquiposFavoritosParaRol(userRol);
+  const esPreparador = userRol === "preparador_fisico";
+  const favoritosIds = normalizeEquiposFavoritos(equiposFavoritos, maxFavoritos);
   const hayFavoritos = favoritosIds.length > 0;
   const mostrarTodos = verTodos || !hayFavoritos;
   const equiposFiltrados = filterEquiposPorFavoritos(equiposListaProps.equipos, favoritosIds, {
     mostrarTodos,
+    max: maxFavoritos,
   });
 
   return (
@@ -60,8 +64,9 @@ export function EntrenadorEquiposView({
             lineHeight: 1.45,
           }}
         >
-          Marca la estrella en hasta {MAX_EQUIPOS_FAVORITOS} equipos para verlos al entrar. El resto sigue en «todos
-          los equipos».
+          {esPreparador
+            ? `Marca la estrella en hasta ${maxFavoritos} equipos para verlos al entrar. El resto sigue en «todos los equipos».`
+            : `Marca la estrella en hasta ${maxFavoritos} equipos para verlos al entrar. El resto sigue en «todos los equipos».`}
         </p>
       )}
       <EquiposListaContainer
@@ -77,6 +82,7 @@ export function EntrenadorEquiposView({
         permitirCrear={false}
         canFavorite
         favoritosIds={favoritosIds}
+        maxFavoritos={maxFavoritos}
       />
       {hayFavoritos && !verTodos && equiposFiltrados.length === 0 ? (
         <p style={{ color: textMuted, textAlign: "center", fontSize: 14 }}>

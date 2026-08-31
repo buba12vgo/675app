@@ -25,6 +25,11 @@
   --color-partido-soft: rgba(109, 40, 217, 0.12);
   --color-partido-border: rgba(91, 33, 182, 0.35);
   --color-partido-shadow: rgba(109, 40, 217, 0.28);
+  --color-fisico: #0F766E;
+  --color-fisico-light: #0D9488;
+  --color-fisico-soft: rgba(15, 118, 110, 0.12);
+  --color-fisico-border: rgba(13, 148, 136, 0.35);
+  --color-fisico-shadow: rgba(15, 118, 110, 0.28);
   --color-glass: rgba(255, 255, 255, 0.82);
   --color-panel-muted: rgba(241, 245, 249, 0.85);
   --color-row-present: rgba(16, 185, 129, 0.12);
@@ -63,6 +68,11 @@ html.dark {
   --color-partido-soft: rgba(139, 92, 246, 0.18);
   --color-partido-border: rgba(139, 92, 246, 0.45);
   --color-partido-shadow: rgba(139, 92, 246, 0.35);
+  --color-fisico: #2DD4BF;
+  --color-fisico-light: #5EEAD4;
+  --color-fisico-soft: rgba(45, 212, 191, 0.18);
+  --color-fisico-border: rgba(45, 212, 191, 0.45);
+  --color-fisico-shadow: rgba(45, 212, 191, 0.35);
   --color-text: #F6F1EA;
   --color-text-secondary: #C9B8A6;
   --color-text-muted: #9A8A78;
@@ -1518,6 +1528,11 @@ textarea:focus-visible {
   box-shadow: 0 4px 14px var(--color-partido-shadow);
 }
 
+.btn-primary--fisico {
+  background: var(--color-fisico);
+  box-shadow: 0 4px 14px var(--color-fisico-shadow);
+}
+
 .btn-primary--block {
   width: 100%;
 }
@@ -2462,15 +2477,22 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   filter: brightness(1.06);
 }
 
-.calendar-day__dot {
+.calendar-day__dots {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 3px;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.calendar-day__dot {
+  width: 7px;
+  height: 7px;
   border-radius: 99px;
   display: block;
+  flex-shrink: 0;
 }
 
 .calendar-day__today-mark {
@@ -3248,11 +3270,136 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   box-shadow: 0 4px 16px var(--color-partido-shadow);
 }
 
+.session-save-btn--fisico {
+  background: var(--color-fisico);
+  box-shadow: 0 4px 16px var(--color-fisico-shadow);
+}
+
 .session-form-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
+}
+
+.ejercicios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.ejercicios-lista__empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.ejercicios-lista__ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ejercicios-lista__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 8px 8px 10px;
+}
+
+.ejercicios-lista__num {
+  flex: 0 0 22px;
+  font-weight: 800;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ejercicios-lista__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.ejercicios-lista__input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  outline: none;
+}
+
+.ejercicios-lista__input--add {
+  border: 1px solid var(--color-border);
+}
+
+.ejercicios-lista__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ejercicios-lista__icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.ejercicios-lista__icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ejercicios-lista__add {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.ejercicios-lista__add-btn {
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 0 14px;
+  min-height: 42px;
+  cursor: pointer;
+}
+
+.ejercicios-lista__add-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .ejercicios-lista__add {
+    flex-direction: column;
+  }
 }
 
 .session-delete-btn {

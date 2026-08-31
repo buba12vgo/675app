@@ -12,7 +12,18 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { normalizarTipoSesion, sugerirFechaLibre } from "../lib/appUtils.js";
+import {
+  buildSesionDocId,
+  canCreateTipoSesion,
+  diaTieneSesionTactica,
+  diaTieneTipo,
+  normalizarTipoSesion,
+  sesionesDelDia as filtrarSesionesDelDia,
+  sugerirFechaLibre,
+  TIPO_SESION_ENTRENO,
+  TIPO_SESION_FISICO,
+  TIPO_SESION_PARTIDO,
+} from "../lib/appUtils.js";
 import { resetCamposSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
 import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
@@ -21,6 +32,35 @@ import {
   planificacionParaGuardar,
   toggleSexto,
 } from "../lib/planificacionSextos.js";
+
+function aplicarSesionAlEstado(data, id, setters) {
+  const {
+    setSesionDoc,
+    setSesionId,
+    setTematica,
+    setEjercicios,
+    setAsistencias,
+    setValoraciones,
+    setTipoSesion,
+    setRivalPartido,
+    setLocalPartido,
+    setJugadorasExternasIds,
+    setMotivosAusencia,
+    setPlanificacionSextos,
+  } = setters;
+  setSesionDoc(data);
+  setSesionId(id);
+  setTematica(data.tematica || "");
+  setEjercicios(data.ejercicios || "");
+  setAsistencias(data.asistencias || {});
+  setValoraciones(data.valoraciones || {});
+  setTipoSesion(normalizarTipoSesion(data));
+  setRivalPartido(data.rival || "");
+  setLocalPartido(data.local === "fuera" ? "fuera" : "casa");
+  setJugadorasExternasIds(normalizeExternasIds(data.jugadorasExternas));
+  setMotivosAusencia(normalizeMotivosAusenciaMap(data.motivosAusencia));
+  setPlanificacionSextos(normalizePlanificacionSextos(data.planificacionSextos));
+}
 
 export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab }) {
   const [sesionCargando, setSesionCargando] = useState(false);
@@ -31,7 +71,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [asistencias, setAsistencias] = useState({});
   const [valoraciones, setValoraciones] = useState({});
   const [guardandoSesion, setGuardandoSesion] = useState(false);
-  const [tipoSesion, setTipoSesion] = useState("entreno");
+  const [tipoSesion, setTipoSesion] = useState(TIPO_SESION_ENTRENO);
   const [rivalPartido, setRivalPartido] = useState("");
   const [localPartido, setLocalPartido] = useState("casa");
   const [sesionVista, setSesionVista] = useState("datos");
@@ -44,6 +84,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [jugadorasExternasIds, setJugadorasExternasIds] = useState([]);
   const [motivosAusencia, setMotivosAusencia] = useState({});
   const [planificacionSextos, setPlanificacionSextos] = useState({});
+  const [pendingSelectTipo, setPendingSelectTipo] = useState(null);
 
   const sesionSetters = {
     setTematica,
@@ -58,6 +99,17 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setMotivosAusencia,
     setPlanificacionSextos,
   };
+
+  const formSetters = {
+    setSesionDoc,
+    setSesionId,
+    ...sesionSetters,
+  };
+
+  const rol = userData?.rol;
+  const sesionesDiaActual = fechaSesionSeleccionada
+    ? filtrarSesionesDelDia(sesionesEquipo, fechaSesionSeleccionada)
+    : [];
 
   useEffect(() => {
     let unsub;
@@ -112,20 +164,17 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
             where("fecha", "==", fechaSesionSeleccionada)
           );
           const snap = await getDocs(qSesion);
-          if (!snap.empty) {
-            const docSesion = snap.docs[0];
-            setSesionDoc(docSesion.data());
-            setSesionId(docSesion.id);
-            setTematica(docSesion.data().tematica || "");
-            setEjercicios(docSesion.data().ejercicios || "");
-            setAsistencias(docSesion.data().asistencias || {});
-            setValoraciones(docSesion.data().valoraciones || {});
-            setTipoSesion(normalizarTipoSesion(docSesion.data()));
-            setRivalPartido(docSesion.data().rival || "");
-            setLocalPartido(docSesion.data().local === "fuera" ? "fuera" : "casa");
-            setJugadorasExternasIds(normalizeExternasIds(docSesion.data().jugadorasExternas));
-            setMotivosAusencia(normalizeMotivosAusenciaMap(docSesion.data().motivosAusencia));
-            setPlanificacionSextos(normalizePlanificacionSextos(docSesion.data().planificacionSextos));
+          const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const preferTipo = pendingSelectTipo;
+          setPendingSelectTipo(null);
+          let elegido = null;
+          if (preferTipo) {
+            elegido = docs.find((d) => normalizarTipoSesion(d) === preferTipo) || null;
+          } else if (docs.length === 1) {
+            elegido = docs[0];
+          }
+          if (elegido) {
+            aplicarSesionAlEstado(elegido, elegido.id, formSetters);
           } else {
             setSesionDoc(null);
             setSesionId(null);
@@ -145,6 +194,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       resetCamposSesion(sesionSetters);
       setSesionCargando(false);
     }
+    // pendingSelectTipo is consumed intentionally on fecha/tab change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equipoActivo, fechaSesionSeleccionada, tab]);
 
   useEffect(() => {
@@ -207,21 +258,49 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   useEffect(() => {
     setSesionVista("datos");
     setSesionGuardadaNotice("");
-  }, [fechaSesionSeleccionada]);
+  }, [fechaSesionSeleccionada, sesionId]);
+
+  const seleccionarSesion = (sesion) => {
+    if (!sesion) return;
+    aplicarSesionAlEstado(sesion, sesion.id, formSetters);
+  };
+
+  const cerrarSesionFormulario = () => {
+    setSesionDoc(null);
+    setSesionId(null);
+    resetCamposSesion(sesionSetters);
+    setSesionGuardadaNotice("");
+  };
 
   const resetSesionPanel = () => {
     setFechaSesionSeleccionada(null);
     setSesionDoc(null);
     setSesionId(null);
+    setPendingSelectTipo(null);
     resetCamposSesion(sesionSetters);
     setSesionCargando(false);
     setGuardandoSesion(false);
     setErrorMsg("");
   };
 
-  const handleCrearSesion = async (tipo = "entreno", fechaOverride = null) => {
+  const handleCrearSesion = async (tipo = TIPO_SESION_ENTRENO, fechaOverride = null) => {
     const fecha = fechaOverride || fechaSesionSeleccionada;
     if (!equipoActivo || !fecha) return;
+    const tipoNorm = normalizarTipoSesion({ tipo });
+    if (!canCreateTipoSesion(rol, tipoNorm)) {
+      setErrorMsg("No tienes permiso para crear este tipo de sesión.");
+      return;
+    }
+    if (tipoNorm === TIPO_SESION_FISICO) {
+      if (diaTieneTipo(sesionesEquipo, fecha, TIPO_SESION_FISICO)) {
+        setErrorMsg("Ya hay un entrenamiento físico este día.");
+        return;
+      }
+    } else if (diaTieneSesionTactica(sesionesEquipo, fecha)) {
+      setErrorMsg("Ya hay un entreno o partido este día.");
+      return;
+    }
+
     setGuardandoSesion(true);
     setErrorMsg("");
     try {
@@ -231,11 +310,12 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         asist[j.id] = true;
         vals[j.id] = 3;
       });
-      const sesionDocRef = doc(db, "Sesiones", `${equipoActivo.id}_${fecha}`);
+      const docId = buildSesionDocId(equipoActivo.id, fecha, tipoNorm);
+      const sesionDocRef = doc(db, "Sesiones", docId);
       await setDoc(sesionDocRef, {
         equipoId: equipoActivo.id,
         fecha,
-        tipo,
+        tipo: tipoNorm,
         tematica: "",
         ejercicios: "",
         rival: "",
@@ -249,18 +329,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       });
       const snap = await getDoc(sesionDocRef);
       if (snap.exists()) {
-        setSesionDoc(snap.data());
-        setSesionId(snap.id);
-        setAsistencias(asist);
-        setValoraciones(vals);
-        setTipoSesion(tipo);
-        setRivalPartido("");
-        setLocalPartido("casa");
-        setTematica("");
-        setEjercicios("");
-        setJugadorasExternasIds([]);
-        setMotivosAusencia({});
-        setPlanificacionSextos({});
+        aplicarSesionAlEstado(snap.data(), snap.id, formSetters);
+        if (!fechaSesionSeleccionada) setFechaSesionSeleccionada(fecha);
       }
     } catch {
       setErrorMsg("Error creando la sesión.");
@@ -269,7 +339,12 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   };
 
   const handleGuardarSesion = async () => {
-    if (!equipoActivo || !fechaSesionSeleccionada) return;
+    if (!equipoActivo || !fechaSesionSeleccionada || !sesionId) return;
+    const tipoNorm = normalizarTipoSesion({ tipo: tipoSesion });
+    if (!canCreateTipoSesion(rol, tipoNorm)) {
+      setErrorMsg("No tienes permiso para editar esta sesión.");
+      return;
+    }
     setGuardandoSesion(true);
     setErrorMsg("");
     try {
@@ -287,18 +362,18 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion);
       const idsConvocadas = idsSesion.filter((id) => asistenciasLimpias[id]);
       const planificacionLimpia = planificacionParaGuardar(planificacionSextos, idsConvocadas);
-      const sesionDocRef = doc(db, "Sesiones", sesionId || `${equipoActivo.id}_${fechaSesionSeleccionada}`);
+      const sesionDocRef = doc(db, "Sesiones", sesionId);
       const payload = {
         equipoId: equipoActivo.id,
         fecha: fechaSesionSeleccionada,
-        tipo: tipoSesion,
+        tipo: tipoNorm,
         asistencias: asistenciasLimpias,
         valoraciones: valoracionesFiltradas,
         motivosAusencia: motivosLimpios,
         jugadorasExternas: idsExternas,
         actualizadoEn: new Date(),
       };
-      if (tipoSesion === "partido") {
+      if (tipoNorm === TIPO_SESION_PARTIDO) {
         payload.rival = rivalPartido.trim();
         payload.local = localPartido;
         payload.tematica = "";
@@ -309,6 +384,9 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         payload.ejercicios = ejercicios;
         payload.rival = "";
         payload.local = "casa";
+        if (tipoNorm === TIPO_SESION_FISICO) {
+          payload.planificacionSextos = {};
+        }
       }
       await updateDoc(sesionDocRef, payload);
       setSesionGuardadaNotice("Guardado");
@@ -320,12 +398,16 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   };
 
   const handleEliminarSesion = async () => {
-    if (!equipoActivo || !fechaSesionSeleccionada || !sesionDoc) return;
+    if (!equipoActivo || !fechaSesionSeleccionada || !sesionDoc || !sesionId) return;
+    if (!canCreateTipoSesion(rol, normalizarTipoSesion(sesionDoc))) {
+      setErrorMsg("No tienes permiso para eliminar esta sesión.");
+      return;
+    }
     setGuardandoSesion(true);
     setErrorMsg("");
     setSesionGuardadaNotice("");
     try {
-      await deleteDoc(doc(db, "Sesiones", sesionId || `${equipoActivo.id}_${fechaSesionSeleccionada}`));
+      await deleteDoc(doc(db, "Sesiones", sesionId));
       setSesionDoc(null);
       setSesionId(null);
       resetCamposSesion(sesionSetters);
@@ -385,13 +467,29 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
 
   const programarDesdeInicio = async (tipo) => {
     if (!equipoActivo || guardandoSesion) return;
-    const fecha = sugerirFechaLibre(sesionesEquipo);
+    const tipoNorm = normalizarTipoSesion({ tipo });
+    if (!canCreateTipoSesion(rol, tipoNorm)) {
+      setErrorMsg("No tienes permiso para programar este tipo de sesión.");
+      return;
+    }
+    const fecha = sugerirFechaLibre(sesionesEquipo, tipoNorm);
     const [y, m] = fecha.split("-").map(Number);
     setAnioActual(y);
     setMesActual(m - 1);
+    setPendingSelectTipo(tipoNorm);
     setFechaSesionSeleccionada(fecha);
     setTab("sesiones");
-    await handleCrearSesion(tipo, fecha);
+    await handleCrearSesion(tipoNorm, fecha);
+  };
+
+  const abrirSesionEnCalendario = (fecha, tipoPreferido = null) => {
+    if (!fecha) return;
+    const [y, m] = fecha.split("-").map(Number);
+    setAnioActual(y);
+    setMesActual(m - 1);
+    setPendingSelectTipo(tipoPreferido ? normalizarTipoSesion({ tipo: tipoPreferido }) : null);
+    setFechaSesionSeleccionada(fecha);
+    setTab("sesiones");
   };
 
   return {
@@ -419,6 +517,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setSesionVista,
     sesionesEquipo,
     sesionesLoading,
+    sesionesDiaActual,
     mesActual,
     setMesActual,
     anioActual,
@@ -436,5 +535,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,
+    seleccionarSesion,
+    cerrarSesionFormulario,
+    abrirSesionEnCalendario,
   };
 }

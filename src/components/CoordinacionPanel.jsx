@@ -2,6 +2,7 @@ import { IconCoordination } from "./icons.jsx";
 import { EquipoListRow } from "./EquipoListRow.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
 import { FavoritosEquipoFields } from "./FavoritosEquipoFields.jsx";
+import { maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
 
 export function CoordinacionPanel({
   clubNombre,
@@ -43,7 +44,9 @@ export function CoordinacionPanel({
   cardBgElevated,
   onAccent,
 }) {
-  const entrenadores = usuarios.filter((u) => u.rol === "entrenador");
+  const staffFavoritos = usuarios.filter(
+    (u) => u.rol === "entrenador" || u.rol === "preparador_fisico"
+  );
   const coordinador = usuarios.find((u) => u.rol === "coordinador");
 
   return (
@@ -93,15 +96,15 @@ export function CoordinacionPanel({
 
         <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
           <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 12 }}>
-            Entrenadores ({usuariosLoading ? "…" : entrenadores.length})
+            Entrenadores y preparadores ({usuariosLoading ? "…" : staffFavoritos.length})
           </div>
           {usuariosLoading ? (
             <div style={{ color: textMuted, fontSize: 14 }}>Cargando usuarios…</div>
-          ) : entrenadores.length === 0 ? (
-            <div style={{ color: textMuted, fontSize: 14 }}>No hay entrenadores asignados al club.</div>
+          ) : staffFavoritos.length === 0 ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>No hay entrenadores ni preparadores asignados al club.</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {entrenadores.map((u) => (
+              {staffFavoritos.map((u) => (
                 <div
                   key={u.id}
                   style={{
@@ -115,7 +118,12 @@ export function CoordinacionPanel({
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>{u.nombre?.trim() || u.email}</span>
+                    <span style={{ color: text, fontWeight: 600, fontSize: 14 }}>
+                      {u.nombre?.trim() || u.email}
+                      {u.rol === "preparador_fisico" ? (
+                        <span style={{ color: textMuted, fontWeight: 500, marginLeft: 8 }}>Preparador físico</span>
+                      ) : null}
+                    </span>
                     <span style={{ color: textMuted, fontSize: 12 }}>{u.email}</span>
                   </div>
                   <FavoritosEquipoFields
@@ -123,6 +131,7 @@ export function CoordinacionPanel({
                     value={u.equiposFavoritos}
                     onChange={(ids) => onGuardarFavoritos?.(u, ids)}
                     disabled={equiposLoading || savingUsuarioId === u.id}
+                    max={maxEquiposFavoritosParaRol(u.rol)}
                     text={text}
                     textMuted={textMuted}
                     inputBorder={inputBorder}

@@ -7,6 +7,7 @@ export function CalendarioTab({
   textMuted,
   accent,
   colorPartido,
+  colorFisico,
   fechaSesionSeleccionada,
   anioActual,
   mesActual,
@@ -53,6 +54,8 @@ export function CalendarioTab({
             fontSize: 12.5,
             color: textMuted,
             marginBottom: -8,
+            flexWrap: "wrap",
+            justifyContent: "center",
           }}
         >
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -79,6 +82,18 @@ export function CalendarioTab({
             />
             Partido
           </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 99,
+                background: colorFisico,
+                display: "inline-block",
+              }}
+            />
+            Físico
+          </span>
         </div>
       )}
       {!fechaSesionSeleccionada && (
@@ -90,6 +105,7 @@ export function CalendarioTab({
           sesionesEquipo={sesionesEquipo}
           accent={accent}
           colorPartido={colorPartido}
+          colorFisico={colorFisico}
           onSelectDate={onSelectDate}
         />
       )}

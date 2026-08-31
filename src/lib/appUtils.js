@@ -4,7 +4,12 @@ const ROL_LABELS = {
   superadmin: "Superadmin",
   coordinador: "Coordinador",
   entrenador: "Entrenador",
+  preparador_fisico: "Preparador físico",
 };
+
+export const TIPO_SESION_ENTRENO = "entreno";
+export const TIPO_SESION_PARTIDO = "partido";
+export const TIPO_SESION_FISICO = "fisico";
 
 export function formatRolLabel(rol) {
   if (!rol) return "N/A";
@@ -15,13 +20,64 @@ export function isCoordinador(rol) {
   return rol === "coordinador";
 }
 
+export function isPreparadorFisico(rol) {
+  return rol === "preparador_fisico";
+}
+
 export function isClubStaff(rol) {
-  return rol === "entrenador" || rol === "coordinador";
+  return rol === "entrenador" || rol === "coordinador" || rol === "preparador_fisico";
 }
 
 export function canManageEquipo(rol, userClubId, equipoClubId) {
   if (rol === "superadmin") return true;
   return isCoordinador(rol) && Boolean(userClubId) && userClubId === equipoClubId;
+}
+
+export function canManagePlantilla(rol) {
+  return rol === "superadmin" || rol === "coordinador" || rol === "entrenador";
+}
+
+export function canCreateTipoSesion(rol, tipo) {
+  const t = normalizarTipoSesion({ tipo });
+  if (rol === "superadmin" || rol === "coordinador" || rol === "entrenador") return true;
+  if (isPreparadorFisico(rol)) return t === TIPO_SESION_FISICO;
+  return false;
+}
+
+export function canEditSesion(rol, sesion) {
+  const t = normalizarTipoSesion(sesion);
+  if (rol === "superadmin" || rol === "coordinador" || rol === "entrenador") return true;
+  if (isPreparadorFisico(rol)) return t === TIPO_SESION_FISICO;
+  return false;
+}
+
+export function etiquetaTipoSesion(tipo) {
+  const t = normalizarTipoSesion({ tipo });
+  if (t === TIPO_SESION_PARTIDO) return "Partido";
+  if (t === TIPO_SESION_FISICO) return "Físico";
+  return "Entreno";
+}
+
+export function buildSesionDocId(equipoId, fecha, tipo) {
+  return `${equipoId}_${fecha}_${normalizarTipoSesion({ tipo })}`;
+}
+
+export function sesionesDelDia(sesiones, fecha) {
+  return (sesiones || [])
+    .filter((s) => s.fecha === fecha)
+    .sort((a, b) => normalizarTipoSesion(a).localeCompare(normalizarTipoSesion(b)));
+}
+
+export function diaTieneTipo(sesiones, fecha, tipo) {
+  const t = normalizarTipoSesion({ tipo });
+  return sesionesDelDia(sesiones, fecha).some((s) => normalizarTipoSesion(s) === t);
+}
+
+export function diaTieneSesionTactica(sesiones, fecha) {
+  return sesionesDelDia(sesiones, fecha).some((s) => {
+    const t = normalizarTipoSesion(s);
+    return t === TIPO_SESION_ENTRENO || t === TIPO_SESION_PARTIDO;
+  });
 }
 
 export function getDevicePreviewFromWidth(width) {
@@ -173,7 +229,10 @@ export function formatDateYYYYMMDD(date) {
 }
 
 export function normalizarTipoSesion(sesion) {
-  return sesion?.tipo === "partido" ? "partido" : "entreno";
+  const tipo = typeof sesion === "string" ? sesion : sesion?.tipo;
+  if (tipo === TIPO_SESION_PARTIDO) return TIPO_SESION_PARTIDO;
+  if (tipo === TIPO_SESION_FISICO) return TIPO_SESION_FISICO;
+  return TIPO_SESION_ENTRENO;
 }
 
 export function formatearFechaCorta(fechaStr) {
@@ -200,25 +259,51 @@ export function getProximosEventosInicio(sesiones, hoy = new Date()) {
 
   const proximoEntreno =
     futuras.find(
-      (s) => normalizarTipoSesion(s) === "entreno" && (s.fecha === hoyStr || s.fecha === mananaStr)
+      (s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO && (s.fecha === hoyStr || s.fecha === mananaStr)
     ) || null;
 
-  const proximoPartido = futuras.find((s) => normalizarTipoSesion(s) === "partido") || null;
+  const proximoPartido = futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO) || null;
 
-  return { proximoEntreno, proximoPartido, hoyStr, mananaStr };
+  const proximoFisico =
+    futuras.find(
+      (s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO && (s.fecha === hoyStr || s.fecha === mananaStr)
+    ) || futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO) || null;
+
+  return { proximoEntreno, proximoPartido, proximoFisico, hoyStr, mananaStr };
 }
 
-export function sugerirFechaLibre(sesiones, desde = new Date(), maxDias = 30) {
-  const ocupadas = new Set(
-    sesiones.map((s) => s.fecha).filter(Boolean)
-  );
+export function sugerirFechaLibre(sesiones, segundo = null, tercero = undefined, maxDiasArg = 30) {
+  let tipoDeseado = null;
+  let desde = new Date();
+  let maxDias = 30;
+  if (segundo instanceof Date) {
+    desde = segundo;
+    if (typeof tercero === "number") maxDias = tercero;
+  } else {
+    tipoDeseado = segundo;
+    if (tercero instanceof Date) {
+      desde = tercero;
+      maxDias = maxDiasArg;
+    } else if (typeof tercero === "number") {
+      maxDias = tercero;
+    }
+  }
+  const tipo = tipoDeseado ? normalizarTipoSesion({ tipo: tipoDeseado }) : null;
   const start = new Date(desde);
   start.setHours(0, 0, 0, 0);
   for (let i = 0; i < maxDias; i += 1) {
     const dia = new Date(start);
     dia.setDate(start.getDate() + i);
     const ymd = formatDateYYYYMMDD(dia);
-    if (!ocupadas.has(ymd)) return ymd;
+    if (!tipo) {
+      if (!sesionesDelDia(sesiones, ymd).length) return ymd;
+      continue;
+    }
+    if (tipo === TIPO_SESION_FISICO) {
+      if (!diaTieneTipo(sesiones, ymd, TIPO_SESION_FISICO)) return ymd;
+      continue;
+    }
+    if (!diaTieneSesionTactica(sesiones, ymd)) return ymd;
   }
   return formatDateYYYYMMDD(start);
 }
@@ -294,18 +379,32 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
   };
 }
 
-export function combinarStatsJugadora(entrenos, partidos) {
-  const a = entrenos || {};
-  const b = partidos || {};
-  const notasCount = (a.notasCount || 0) + (b.notasCount || 0);
-  const sumaNotas = (a.notaMedia || 0) * (a.notasCount || 0) + (b.notaMedia || 0) * (b.notasCount || 0);
+export function combinarStatsJugadora(...listas) {
+  const partes = listas.filter(Boolean);
+  if (!partes.length) {
+    return {
+      total: 0,
+      presentes: 0,
+      ausencias: 0,
+      justificada: 0,
+      noJustificada: 0,
+      salud: 0,
+      notaMedia: null,
+      notasCount: 0,
+    };
+  }
+  const notasCount = partes.reduce((acc, p) => acc + (p.notasCount || 0), 0);
+  const sumaNotas = partes.reduce(
+    (acc, p) => acc + (p.notaMedia || 0) * (p.notasCount || 0),
+    0
+  );
   return {
-    total: (a.total || 0) + (b.total || 0),
-    presentes: (a.presentes || 0) + (b.presentes || 0),
-    ausencias: (a.ausencias || 0) + (b.ausencias || 0),
-    justificada: (a.justificada || 0) + (b.justificada || 0),
-    noJustificada: (a.noJustificada || 0) + (b.noJustificada || 0),
-    salud: (a.salud || 0) + (b.salud || 0),
+    total: partes.reduce((acc, p) => acc + (p.total || 0), 0),
+    presentes: partes.reduce((acc, p) => acc + (p.presentes || 0), 0),
+    ausencias: partes.reduce((acc, p) => acc + (p.ausencias || 0), 0),
+    justificada: partes.reduce((acc, p) => acc + (p.justificada || 0), 0),
+    noJustificada: partes.reduce((acc, p) => acc + (p.noJustificada || 0), 0),
+    salud: partes.reduce((acc, p) => acc + (p.salud || 0), 0),
     notaMedia: notasCount > 0 ? sumaNotas / notasCount : null,
     notasCount,
   };
@@ -318,11 +417,13 @@ export function porcentajeAsistencia(stats) {
 }
 
 export function calcularEstadisticasJugadoras(jugadoras, sesiones) {
-  const entrenos = sesiones.filter((s) => normalizarTipoSesion(s) === "entreno");
-  const partidos = sesiones.filter((s) => normalizarTipoSesion(s) === "partido");
+  const entrenos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO);
+  const partidos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO);
+  const fisicos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO);
   return jugadoras.map((j) => ({
     jugadora: j,
     entrenos: calcularStatsPorLista(j.id, entrenos),
     partidos: calcularStatsPorLista(j.id, partidos),
+    fisicos: calcularStatsPorLista(j.id, fisicos),
   }));
 }

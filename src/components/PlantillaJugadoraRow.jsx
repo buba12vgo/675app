@@ -25,6 +25,7 @@ export function PlantillaJugadoraRow({
   textSecondary,
   error,
   labels,
+  readOnly = false,
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const inputStyle = {
@@ -108,6 +109,8 @@ export function PlantillaJugadoraRow({
         </div>
       </button>
       <div className="plantilla-jugadora-row__actions">
+        {!readOnly && (
+          <>
         <button
           type="button"
           className="plantilla-jugadora-row__icon-btn plantilla-jugadora-row__icon-btn--edit"
@@ -128,6 +131,8 @@ export function PlantillaJugadoraRow({
         >
           <IconX size={18} />
         </button>
+          </>
+        )}
       </div>
     </div>
   );
