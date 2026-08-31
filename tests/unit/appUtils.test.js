@@ -20,6 +20,10 @@ import {
   formatGeneroEquipo,
   normalizeGenero,
   canManageEquipo,
+  canEditSesion,
+  canCreateTipoSesion,
+  canManagePlantilla,
+  buildSesionDocId,
   getDevicePreviewFromWidth,
   dorsalEstaOcupado,
 } from "../../src/lib/appUtils.js";
@@ -58,6 +62,23 @@ describe("canManageEquipo", () => {
     expect(canManageEquipo("coordinador", "club-a", "club-a")).toBe(true);
     expect(canManageEquipo("coordinador", "club-a", "club-b")).toBe(false);
     expect(canManageEquipo("entrenador", "club-a", "club-a")).toBe(false);
+    expect(canManageEquipo("preparador_fisico", "club-a", "club-a")).toBe(false);
+  });
+});
+
+describe("permisos preparador físico", () => {
+  it("solo edita y crea sesiones físicas", () => {
+    expect(canEditSesion("preparador_fisico", { tipo: "fisico" })).toBe(true);
+    expect(canEditSesion("preparador_fisico", { tipo: "entreno" })).toBe(false);
+    expect(canCreateTipoSesion("preparador_fisico", "fisico")).toBe(true);
+    expect(canCreateTipoSesion("preparador_fisico", "partido")).toBe(false);
+    expect(canCreateTipoSesion("entrenador", "fisico")).toBe(true);
+    expect(canManagePlantilla("preparador_fisico")).toBe(false);
+    expect(canManagePlantilla("entrenador")).toBe(true);
+  });
+
+  it("genera id de sesión con tipo", () => {
+    expect(buildSesionDocId("eq1", "2026-08-17", "fisico")).toBe("eq1_2026-08-17_fisico");
   });
 });
 
@@ -95,6 +116,7 @@ describe("formatRolLabel", () => {
     expect(formatRolLabel("entrenador")).toBe("Entrenador");
     expect(formatRolLabel("superadmin")).toBe("Superadmin");
     expect(formatRolLabel("coordinador")).toBe("Coordinador");
+    expect(formatRolLabel("preparador_fisico")).toBe("Preparador físico");
   });
 
   it("devuelve N/A si falta rol", () => {
@@ -124,8 +146,9 @@ describe("formatDateYYYYMMDD", () => {
 });
 
 describe("normalizarTipoSesion", () => {
-  it("distingue partido y entreno", () => {
+  it("distingue partido, físico y entreno", () => {
     expect(normalizarTipoSesion({ tipo: "partido" })).toBe("partido");
+    expect(normalizarTipoSesion({ tipo: "fisico" })).toBe("fisico");
     expect(normalizarTipoSesion({ tipo: "entreno" })).toBe("entreno");
     expect(normalizarTipoSesion({})).toBe("entreno");
   });
@@ -162,6 +185,12 @@ describe("sugerirFechaLibre", () => {
     const hoy = new Date(2026, 7, 17);
     expect(sugerirFechaLibre([], hoy)).toBe("2026-08-17");
     expect(sugerirFechaLibre([{ fecha: "2026-08-17" }], hoy)).toBe("2026-08-18");
+  });
+
+  it("permite físico el mismo día que un entreno", () => {
+    const hoy = new Date(2026, 7, 17);
+    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "entreno" }], "fisico", hoy)).toBe("2026-08-17");
+    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "fisico" }], "fisico", hoy)).toBe("2026-08-18");
   });
 });
 

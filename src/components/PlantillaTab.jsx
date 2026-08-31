@@ -13,6 +13,7 @@ export function PlantillaTab({
   jugadoras,
   onOpenFicha,
   plantillaRowProps,
+  readOnly = false,
 }) {
   return (
     <div
@@ -35,7 +36,13 @@ export function PlantillaTab({
         <IconUsers size={22} color={accent} />
         {equipoLabels.plantillaTitulo}
       </h2>
-      <PlantillaForm {...plantillaFormProps} />
+      {readOnly ? (
+        <p style={{ color: textMuted, fontSize: 14, textAlign: "center", margin: 0 }}>
+          Solo lectura: puedes consultar la plantilla, pero no modificarla.
+        </p>
+      ) : (
+        <PlantillaForm {...plantillaFormProps} />
+      )}
       <div
         className="content-medium"
         style={{
@@ -83,6 +90,7 @@ export function PlantillaTab({
                 textSecondary={plantillaRowProps.textSecondary}
                 error={plantillaRowProps.error}
                 labels={plantillaRowProps.labels}
+                readOnly={readOnly || plantillaRowProps.readOnly}
               />
             ))}
             {onOpenFicha ? (

@@ -32,11 +32,23 @@ export function UsuarioClubRow({
   })();
 
   const [clubId, setClubId] = useState(usuario.clubId || "");
-  const [rol, setRol] = useState(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
+  const [rol, setRol] = useState(
+    usuario.rol === "coordinador"
+      ? "coordinador"
+      : usuario.rol === "preparador_fisico"
+        ? "preparador_fisico"
+        : "entrenador"
+  );
 
   useEffect(() => {
     setClubId(usuario.clubId || "");
-    setRol(usuario.rol === "coordinador" ? "coordinador" : "entrenador");
+    setRol(
+      usuario.rol === "coordinador"
+        ? "coordinador"
+        : usuario.rol === "preparador_fisico"
+          ? "preparador_fisico"
+          : "entrenador"
+    );
   }, [usuario.clubId, usuario.rol, usuario.id]);
 
   const effectiveClubId = clubId || usuario.clubId || "";
@@ -92,12 +104,13 @@ export function UsuarioClubRow({
           disabled={!effectiveClubId}
         >
           <option value="entrenador">Entrenador</option>
+          <option value="preparador_fisico">Preparador físico</option>
           <option value="coordinador">Coordinador</option>
         </select>
         <button
           type="button"
           onClick={() => onGuardar(usuario, clubId, rol)}
-          disabled={saving || (rol === "coordinador" && !effectiveClubId)}
+          disabled={saving || ((rol === "coordinador" || rol === "preparador_fisico") && !effectiveClubId)}
           style={{
             background: accent,
             color: "#fff",

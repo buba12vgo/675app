@@ -35,6 +35,7 @@ export function AsistenciaValoracionPanel({
   onAddJugadoraExterna,
   onRemoveJugadoraExterna,
   inputBg,
+  readOnly = false,
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
@@ -48,6 +49,7 @@ export function AsistenciaValoracionPanel({
       : playerLabels.sinJugadoresPlantilla);
 
   const marcarTodasPresentes = () => {
+    if (readOnly) return;
     setAsistencias(prev => {
       const nuevo = { ...prev };
       jugadoras.forEach(j => { nuevo[j.id] = true; });
@@ -68,6 +70,7 @@ export function AsistenciaValoracionPanel({
   };
 
   const marcarTodasAusentes = () => {
+    if (readOnly) return;
     setAsistencias(prev => {
       const nuevo = { ...prev };
       jugadoras.forEach(j => { nuevo[j.id] = false; });
@@ -82,6 +85,7 @@ export function AsistenciaValoracionPanel({
   };
 
   const marcarPresente = (jugadoraId) => {
+    if (readOnly) return;
     setAsistencias(prev => ({ ...prev, [jugadoraId]: true }));
     setValoraciones(prev => ({
       ...prev,
@@ -95,6 +99,7 @@ export function AsistenciaValoracionPanel({
   };
 
   const iniciarAusencia = (jugadoraId) => {
+    if (readOnly) return;
     setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
     setValoraciones(prev => {
       const nuevo = { ...prev };
@@ -109,6 +114,7 @@ export function AsistenciaValoracionPanel({
   };
 
   const marcarAusente = (jugadoraId, motivo) => {
+    if (readOnly) return;
     setAsistencias(prev => ({ ...prev, [jugadoraId]: false }));
     setValoraciones(prev => {
       const nuevo = { ...prev };
@@ -170,7 +176,7 @@ export function AsistenciaValoracionPanel({
             )}
           </div>
         </div>
-        {totalJugadoras > 0 && (
+        {totalJugadoras > 0 && !readOnly && (
           <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
             <button
               type="button"

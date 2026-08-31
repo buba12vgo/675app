@@ -9,6 +9,7 @@ import {
 import {
   formatDateYYYYMMDD,
   isCoordinador,
+  isPreparadorFisico,
   formatTipoCanasta,
   formatGeneroEquipo,
   getDevicePreviewFromWidth,
@@ -251,6 +252,10 @@ function App() {
     sesionGuardadaNotice,
     programarDesdeInicio,
     resetSesionPanel,
+    sesionesDiaActual,
+    seleccionarSesion,
+    cerrarSesionFormulario,
+    abrirSesionEnCalendario,
   } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
 
   const clubIdSesion = equipoActivo?.clubId || userData?.clubId || null;
@@ -383,6 +388,10 @@ function App() {
     colorPartidoLight,
     colorPartidoSoft,
     colorPartidoBorder,
+    colorFisico,
+    colorFisicoLight,
+    colorFisicoSoft,
+    colorFisicoBorder,
     onAccent,
   } = theme;
 
@@ -447,6 +456,11 @@ function App() {
       sesionCargando={sesionCargando}
       guardandoSesion={guardandoSesion}
       handleCrearSesion={handleCrearSesion}
+      sesionesDiaActual={sesionesDiaActual}
+      seleccionarSesion={seleccionarSesion}
+      cerrarSesionFormulario={cerrarSesionFormulario}
+      abrirSesionEnCalendario={abrirSesionEnCalendario}
+      userRol={userData?.rol}
       sesionVista={sesionVista}
       setSesionVista={setSesionVista}
       rivalPartido={rivalPartido}
@@ -514,6 +528,10 @@ function App() {
         colorPartidoLight,
         colorPartidoSoft,
         colorPartidoBorder,
+        colorFisico,
+        colorFisicoLight,
+        colorFisicoSoft,
+        colorFisicoBorder,
         text,
         textMuted,
         textSecondary,
@@ -857,6 +875,7 @@ function App() {
                     textMuted,
                     accent,
                     equiposFavoritos: userData?.equiposFavoritos,
+                    forzarTodos: isPreparadorFisico(userData?.rol),
                   }}
                   solicitarClubProps={{
                     accent,

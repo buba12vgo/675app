@@ -25,6 +25,11 @@
   --color-partido-soft: rgba(109, 40, 217, 0.12);
   --color-partido-border: rgba(91, 33, 182, 0.35);
   --color-partido-shadow: rgba(109, 40, 217, 0.28);
+  --color-fisico: #0F766E;
+  --color-fisico-light: #0D9488;
+  --color-fisico-soft: rgba(15, 118, 110, 0.12);
+  --color-fisico-border: rgba(13, 148, 136, 0.35);
+  --color-fisico-shadow: rgba(15, 118, 110, 0.28);
   --color-glass: rgba(255, 255, 255, 0.82);
   --color-panel-muted: rgba(241, 245, 249, 0.85);
   --color-row-present: rgba(16, 185, 129, 0.12);
@@ -63,6 +68,11 @@ html.dark {
   --color-partido-soft: rgba(139, 92, 246, 0.18);
   --color-partido-border: rgba(139, 92, 246, 0.45);
   --color-partido-shadow: rgba(139, 92, 246, 0.35);
+  --color-fisico: #2DD4BF;
+  --color-fisico-light: #5EEAD4;
+  --color-fisico-soft: rgba(45, 212, 191, 0.18);
+  --color-fisico-border: rgba(45, 212, 191, 0.45);
+  --color-fisico-shadow: rgba(45, 212, 191, 0.35);
   --color-text: #F6F1EA;
   --color-text-secondary: #C9B8A6;
   --color-text-muted: #9A8A78;
@@ -1518,6 +1528,11 @@ textarea:focus-visible {
   box-shadow: 0 4px 14px var(--color-partido-shadow);
 }
 
+.btn-primary--fisico {
+  background: var(--color-fisico);
+  box-shadow: 0 4px 14px var(--color-fisico-shadow);
+}
+
 .btn-primary--block {
   width: 100%;
 }
@@ -2462,15 +2477,22 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   filter: brightness(1.06);
 }
 
-.calendar-day__dot {
+.calendar-day__dots {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 3px;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.calendar-day__dot {
+  width: 7px;
+  height: 7px;
   border-radius: 99px;
   display: block;
+  flex-shrink: 0;
 }
 
 .calendar-day__today-mark {
@@ -3246,6 +3268,11 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 .session-save-btn--partido {
   background: var(--color-partido);
   box-shadow: 0 4px 16px var(--color-partido-shadow);
+}
+
+.session-save-btn--fisico {
+  background: var(--color-fisico);
+  box-shadow: 0 4px 16px var(--color-fisico-shadow);
 }
 
 .session-form-actions {

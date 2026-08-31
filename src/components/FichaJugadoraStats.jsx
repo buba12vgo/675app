@@ -77,6 +77,7 @@ export function FichaJugadoraStats({
   jugadora,
   entrenos,
   partidos,
+  fisicos,
   rango,
   onBack,
   labels,
@@ -84,6 +85,8 @@ export function FichaJugadoraStats({
   accentLight,
   colorPartido,
   colorPartidoLight,
+  colorFisico,
+  colorFisicoLight,
   text,
   textMuted,
   textSecondary,
@@ -92,7 +95,7 @@ export function FichaJugadoraStats({
   inputBorder,
   cardBgElevated,
 }) {
-  const total = combinarStatsJugadora(entrenos, partidos);
+  const total = combinarStatsJugadora(entrenos, partidos, fisicos);
   const periodo = rango?.inicio && rango?.fin
     ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")}`
     : "Todas las sesiones";
@@ -162,6 +165,21 @@ export function FichaJugadoraStats({
         stats={partidos}
         labelPresentes="Convocatorias"
         labelAusencias="No convocada"
+        text={text}
+        textMuted={textMuted}
+        textSecondary={textSecondary}
+        success={success}
+        error={error}
+        inputBorder={inputBorder}
+        cardBgElevated={cardBgElevated}
+      />
+      <BloqueTipo
+        titulo="Físicos"
+        color={colorFisico || accent}
+        colorLight={colorFisicoLight || accentLight}
+        stats={fisicos || {}}
+        labelPresentes="Asistencias"
+        labelAusencias="Ausencias"
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}

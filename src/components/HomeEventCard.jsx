@@ -18,6 +18,10 @@ export function HomeEventCard({
   colorPartidoLight,
   colorPartidoSoft,
   colorPartidoBorder,
+  colorFisico,
+  colorFisicoLight,
+  colorFisicoSoft,
+  colorFisicoBorder,
   text,
   textMuted,
   textSecondary,
@@ -27,11 +31,16 @@ export function HomeEventCard({
   scheduling = false,
 }) {
   const esPartido = tipo === "partido";
-  const color = esPartido ? colorPartido : accent;
-  const colorLight = esPartido ? colorPartidoLight : accentLight;
-  const colorSoft = esPartido ? colorPartidoSoft : accentSoft;
-  const colorBorder = esPartido ? colorPartidoBorder : accentBorder;
-  const titulo = esPartido ? "Próximo partido" : "Próximo entreno";
+  const esFisico = tipo === "fisico";
+  const color = esPartido ? colorPartido : esFisico ? colorFisico : accent;
+  const colorLight = esPartido ? colorPartidoLight : esFisico ? colorFisicoLight : accentLight;
+  const colorSoft = esPartido ? colorPartidoSoft : esFisico ? colorFisicoSoft : accentSoft;
+  const colorBorder = esPartido ? colorPartidoBorder : esFisico ? colorFisicoBorder : accentBorder;
+  const titulo = esPartido
+    ? "Próximo partido"
+    : esFisico
+      ? "Próximo físico"
+      : "Próximo entreno";
   const metricas = sesion ? getMetricasEvento(sesion) : null;
   const metricaLabel = esPartido ? "Convocadas" : "Confirmadas";
   const metricaTexto = metricas?.total
@@ -60,7 +69,7 @@ export function HomeEventCard({
             <h3 className="home-event-card__headline" style={{ color: text }}>
               {esPartido
                 ? `vs ${sesion.rival?.trim() || "Rival por confirmar"}`
-                : (sesion.tematica?.trim() || "Entrenamiento")}
+                : (sesion.tematica?.trim() || (esFisico ? "Entrenamiento físico" : "Entrenamiento"))}
             </h3>
             <p className="home-event-card__meta" style={{ color: textMuted }}>
               {formatearFechaCorta(sesion.fecha)}
@@ -93,7 +102,11 @@ export function HomeEventCard({
       ) : (
         <div className="home-event-card__empty-wrap">
           <p className="home-event-card__empty" style={{ color: textMuted }}>
-            {esPartido ? "No hay partidos programados." : "No hay entreno programado para hoy ni para mañana."}
+            {esPartido
+              ? "No hay partidos programados."
+              : esFisico
+                ? "No hay entrenamiento físico próximo."
+                : "No hay entreno programado para hoy ni para mañana."}
           </p>
           {onSchedule && (
             <button
@@ -111,7 +124,11 @@ export function HomeEventCard({
             >
               {scheduling
                 ? "Programando…"
-                : (esPartido ? "+ Programar partido" : "+ Programar entrenamiento")}
+                : esPartido
+                  ? "+ Programar partido"
+                  : esFisico
+                    ? "+ Programar físico"
+                    : "+ Programar entrenamiento"}
             </button>
           )}
         </div>

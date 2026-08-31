@@ -29,6 +29,10 @@ export const THEMES = {
     colorPartidoLight: "#C4B5FD",
     colorPartidoSoft: "rgba(139, 92, 246, 0.18)",
     colorPartidoBorder: "rgba(139, 92, 246, 0.45)",
+    colorFisico: "#2DD4BF",
+    colorFisicoLight: "#5EEAD4",
+    colorFisicoSoft: "rgba(45, 212, 191, 0.18)",
+    colorFisicoBorder: "rgba(45, 212, 191, 0.45)",
     onAccent: "#FFFFFF",
   },
   light: {
@@ -59,6 +63,10 @@ export const THEMES = {
     colorPartidoLight: "#5B21B6",
     colorPartidoSoft: "rgba(124, 58, 237, 0.12)",
     colorPartidoBorder: "rgba(91, 33, 182, 0.35)",
+    colorFisico: "#0F766E",
+    colorFisicoLight: "#0D9488",
+    colorFisicoSoft: "rgba(15, 118, 110, 0.12)",
+    colorFisicoBorder: "rgba(13, 148, 136, 0.35)",
     onAccent: "#FFFFFF",
   },
 };

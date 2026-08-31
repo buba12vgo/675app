@@ -105,10 +105,16 @@ export function useUsuariosAdmin({
     }
 
     const clubId = (clubIdFromForm || usuario.clubId || "").trim() || null;
-    const rolFinal = clubId && rolSeleccionado === "coordinador" ? "coordinador" : "entrenador";
+    let rolFinal = "entrenador";
+    if (clubId && rolSeleccionado === "coordinador") rolFinal = "coordinador";
+    else if (clubId && rolSeleccionado === "preparador_fisico") rolFinal = "preparador_fisico";
 
-    if (rolSeleccionado === "coordinador" && !clubId) {
-      setErrorMsg("El coordinador debe tener un club asignado. Elige un club en el desplegable.");
+    if ((rolSeleccionado === "coordinador" || rolSeleccionado === "preparador_fisico") && !clubId) {
+      setErrorMsg(
+        rolSeleccionado === "coordinador"
+          ? "El coordinador debe tener un club asignado. Elige un club en el desplegable."
+          : "El preparador físico debe tener un club asignado. Elige un club en el desplegable."
+      );
       return;
     }
 

@@ -10,16 +10,19 @@ export function EstadisticasTablaTipo({
 }) {
   const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
   const esPartido = tipo === "partido";
+  const esFisico = tipo === "fisico";
   const {
     accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary,
     error, success, inputBorder, cardBgElevated,
   } = theme;
-  const color = esPartido ? colorPartido : accent;
-  const colorLight = esPartido ? colorPartidoLight : accentLight;
-  const titulo = esPartido ? "Partidos" : "Entrenos";
-  const statsKey = esPartido ? "partidos" : "entrenos";
+  const color = esPartido || esFisico ? colorPartido : accent;
+  const colorLight = esPartido || esFisico ? colorPartidoLight : accentLight;
+  const titulo = esPartido ? "Partidos" : esFisico ? "Físicos" : "Entrenos";
+  const statsKey = esPartido ? "partidos" : esFisico ? "fisicos" : "entrenos";
   const labelPresentes = esPartido ? "Conv." : "Asist.";
   const labelAusencias = esPartido ? "No conv." : "Aus.";
+  const nombrePlural = esPartido ? "partidos" : esFisico ? "físicos" : "entrenos";
+  const nombreSingular = esPartido ? "partido" : esFisico ? "físico" : "entreno";
 
   if (totalSesiones === 0) {
     return (
@@ -30,7 +33,7 @@ export function EstadisticasTablaTipo({
           <span style={{ color: textMuted, fontSize: 13 }}>0 en el periodo</span>
         </div>
         <div className="empty-state-text" style={{ padding: "8px 4px" }}>
-          No hay {esPartido ? "partidos" : "entrenos"} en el periodo seleccionado.
+          No hay {nombrePlural} en el periodo seleccionado.
         </div>
       </div>
     );
@@ -42,7 +45,7 @@ export function EstadisticasTablaTipo({
         <span className="stats-section-dot" style={{ background: color }} />
         <span style={{ color: text, fontWeight: 700, fontSize: 15 }}>{titulo}</span>
         <span style={{ color: textSecondary, fontSize: 13, fontWeight: 600 }}>
-          {totalSesiones} {esPartido ? (totalSesiones === 1 ? "partido" : "partidos") : (totalSesiones === 1 ? "entreno" : "entrenos")} en el periodo
+          {totalSesiones} {totalSesiones === 1 ? nombreSingular : nombrePlural} en el periodo
         </span>
       </div>
       <div className="stats-table stats-table--tipo" style={{ display: "flex", flexDirection: "column", gap: 8 }}>

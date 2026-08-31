@@ -22,7 +22,15 @@ service cloud.firestore {
       return isSignedIn() && userData().rol == 'entrenador';
     }
 
+    function isPreparadorFisico() {
+      return isSignedIn() && userData().rol == 'preparador_fisico';
+    }
+
     function isClubStaff() {
+      return isCoordinador() || isEntrenador() || isPreparadorFisico();
+    }
+
+    function isCoachStaff() {
       return isCoordinador() || isEntrenador();
     }
 
@@ -44,6 +52,22 @@ service cloud.firestore {
 
     function canManageEquipoClub(clubId) {
       return isSuperadmin() || (isCoordinador() && userClubId() == clubId);
+    }
+
+    function canManagePlantillaEquipo(equipoId) {
+      return isSuperadmin() || (isCoachStaff() && canAccessEquipo(equipoId));
+    }
+
+    function sesionTipo(data) {
+      return data.tipo == 'partido' ? 'partido'
+        : (data.tipo == 'fisico' ? 'fisico' : 'entreno');
+    }
+
+    function canWriteSesionTipo(tipo) {
+      return isSuperadmin()
+        || isCoordinador()
+        || isEntrenador()
+        || (isPreparadorFisico() && tipo == 'fisico');
     }
 
     function validLogoPayload(logoId) {
@@ -135,7 +159,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         request.auth.uid == userId
         || isSuperadmin()
-        || (isClubStaff() && resource.data.clubId == userClubId())
+        || (isCoachStaff() && resource.data.clubId == userClubId())
       );
       allow create: if isSignedIn() && request.auth.uid == userId && validUserCreate();
       allow update: if isSuperadmin() || (
@@ -180,32 +204,45 @@ service cloud.firestore {
       allow create: if isSignedIn() && (
         isSuperadmin() || (
           belongsToClub(request.resource.data.clubId)
-          && canAccessEquipo(request.resource.data.equipoId)
+          && canManagePlantillaEquipo(request.resource.data.equipoId)
         )
       );
       allow update: if isSignedIn() && (
         isSuperadmin() || (
           belongsToClub(resource.data.clubId)
-          && canAccessEquipo(resource.data.equipoId)
+          && canManagePlantillaEquipo(resource.data.equipoId)
           && request.resource.data.clubId == resource.data.clubId
-          && canAccessEquipo(request.resource.data.equipoId)
+          && canManagePlantillaEquipo(request.resource.data.equipoId)
         )
       );
       allow delete: if isSignedIn() && (
         isSuperadmin() || (
           belongsToClub(resource.data.clubId)
-          && canAccessEquipo(resource.data.equipoId)
+          && canManagePlantillaEquipo(resource.data.equipoId)
         )
       );
     }
 
     match /Sesiones/{sesionId} {
       allow read: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
-      allow create: if isSignedIn() && canAccessEquipo(request.resource.data.equipoId);
+      allow create: if isSignedIn()
+        && canAccessEquipo(request.resource.data.equipoId)
+        && canWriteSesionTipo(sesionTipo(request.resource.data));
       allow update: if isSignedIn()
         && canAccessEquipo(resource.data.equipoId)
-        && canAccessEquipo(request.resource.data.equipoId);
-      allow delete: if isSignedIn() && canAccessEquipo(resource.data.equipoId);
+        && canAccessEquipo(request.resource.data.equipoId)
+        && canWriteSesionTipo(sesionTipo(resource.data))
+        && canWriteSesionTipo(sesionTipo(request.resource.data))
+        && (
+          !isPreparadorFisico()
+          || (
+            sesionTipo(resource.data) == 'fisico'
+            && sesionTipo(request.resource.data) == 'fisico'
+          )
+        );
+      allow delete: if isSignedIn()
+        && canAccessEquipo(resource.data.equipoId)
+        && canWriteSesionTipo(sesionTipo(resource.data));
     }
 
     match /Logos/{logoId} {

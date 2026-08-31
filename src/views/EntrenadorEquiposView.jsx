@@ -13,18 +13,19 @@ export function EntrenadorEquiposView({
   textMuted,
   accent,
   equiposFavoritos,
+  forzarTodos = false,
 }) {
   const [verTodos, setVerTodos] = useState(false);
-  const favoritosIds = normalizeEquiposFavoritos(equiposFavoritos);
+  const favoritosIds = forzarTodos ? [] : normalizeEquiposFavoritos(equiposFavoritos);
   const hayFavoritos = favoritosIds.length > 0;
-  const mostrarTodos = verTodos || !hayFavoritos;
+  const mostrarTodos = forzarTodos || verTodos || !hayFavoritos;
   const equiposFiltrados = filterEquiposPorFavoritos(equiposListaProps.equipos, favoritosIds, {
     mostrarTodos,
   });
 
   return (
     <div style={{ width: "100%" }}>
-      {hayFavoritos ? (
+      {!forzarTodos && hayFavoritos ? (
         <div
           style={{
             display: "flex",
@@ -50,7 +51,7 @@ export function EntrenadorEquiposView({
             {verTodos ? "Ver solo favoritos" : "Ver todos los equipos del club"}
           </button>
         </div>
-      ) : (
+      ) : !forzarTodos ? (
         <p
           style={{
             color: textMuted,
@@ -63,22 +64,34 @@ export function EntrenadorEquiposView({
           Marca la estrella en hasta {MAX_EQUIPOS_FAVORITOS} equipos para verlos al entrar. El resto sigue en «todos
           los equipos».
         </p>
+      ) : (
+        <p
+          style={{
+            color: textMuted,
+            textAlign: "center",
+            fontSize: 13,
+            margin: "0 16px 8px",
+            lineHeight: 1.45,
+          }}
+        >
+          Como preparador físico tienes acceso a todos los equipos del club.
+        </p>
       )}
       <EquiposListaContainer
         {...equiposListaProps}
         equipos={equiposFiltrados}
         titulo={
           <>
-            {hayFavoritos && !verTodos ? "Tus equipos" : "Equipos del Club:"}{" "}
+            {hayFavoritos && !verTodos && !forzarTodos ? "Tus equipos" : "Equipos del Club:"}{" "}
             <span style={{ color: text }}>{clubNombre}</span>
           </>
         }
         mostrarClub={false}
         permitirCrear={false}
-        canFavorite
+        canFavorite={!forzarTodos}
         favoritosIds={favoritosIds}
       />
-      {hayFavoritos && !verTodos && equiposFiltrados.length === 0 ? (
+      {hayFavoritos && !verTodos && !forzarTodos && equiposFiltrados.length === 0 ? (
         <p style={{ color: textMuted, textAlign: "center", fontSize: 14 }}>
           Ninguno de tus favoritos está ya en el club. Pulsa «Ver todos los equipos del club».
         </p>
