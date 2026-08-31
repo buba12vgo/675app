@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconX } from "./icons.jsx";
 import {
   parseEjerciciosLista,
   serializeEjerciciosLista,
   moverEjercicio,
 } from "../lib/ejerciciosLista.js";
+
+function autoResize(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${Math.max(el.scrollHeight, 40)}px`;
+}
 
 export function EjerciciosListaEditor({
   value,
@@ -25,12 +31,19 @@ export function EjerciciosListaEditor({
   const [draftIndex, setDraftIndex] = useState(null);
   const [draftValue, setDraftValue] = useState("");
   const locked = readOnly || disabled;
+  const addRef = useRef(null);
+  const itemRefs = useRef([]);
+
+  const displayItems = items.map((item, index) => (index === draftIndex ? draftValue : item));
+
+  useEffect(() => {
+    itemRefs.current.forEach((el) => autoResize(el));
+    autoResize(addRef.current);
+  }, [displayItems, nuevo, readOnly]);
 
   const commit = (nextItems) => {
     onChange(serializeEjerciciosLista(nextItems));
   };
-
-  const displayItems = items.map((item, index) => (index === draftIndex ? draftValue : item));
 
   const addItem = () => {
     const trimmed = nuevo.trim();
@@ -64,74 +77,74 @@ export function EjerciciosListaEditor({
               className="ejercicios-lista__item"
               style={{ borderColor: inputBorder, background: cardBgElevated }}
             >
-              <span className="ejercicios-lista__num" style={{ color: accent }}>
-                {index + 1}
-              </span>
-              {readOnly ? (
-                <span className="ejercicios-lista__text" style={{ color: text }}>{item}</span>
-              ) : (
-                <input
-                  type="text"
-                  className="ejercicios-lista__input"
-                  value={item}
-                  disabled={locked}
-                  onFocus={() => {
-                    setDraftIndex(index);
-                    setDraftValue(items[index] || "");
-                  }}
-                  onChange={(e) => setDraftValue(e.target.value)}
-                  onBlur={finishDraft}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  style={{
-                    color: text,
-                    borderColor: inputBorder,
-                    background: inputBg,
-                  }}
-                  aria-label={`Ejercicio ${index + 1}`}
-                />
-              )}
+              <div className="ejercicios-lista__main">
+                <span className="ejercicios-lista__num" style={{ color: accent }}>
+                  {index + 1}
+                </span>
+                {readOnly ? (
+                  <p className="ejercicios-lista__text" style={{ color: text }}>{item}</p>
+                ) : (
+                  <textarea
+                    ref={(el) => {
+                      itemRefs.current[index] = el;
+                    }}
+                    className="ejercicios-lista__input"
+                    value={item}
+                    disabled={locked}
+                    rows={1}
+                    onFocus={() => {
+                      setDraftIndex(index);
+                      setDraftValue(items[index] || "");
+                    }}
+                    onChange={(e) => {
+                      setDraftValue(e.target.value);
+                      autoResize(e.target);
+                    }}
+                    onBlur={finishDraft}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    style={{
+                      color: text,
+                      borderColor: inputBorder,
+                      background: inputBg,
+                    }}
+                    aria-label={`Ejercicio ${index + 1}`}
+                  />
+                )}
+              </div>
               {!readOnly && (
                 <div className="ejercicios-lista__actions">
                   <button
                     type="button"
-                    className="ejercicios-lista__icon-btn"
+                    className="ejercicios-lista__text-btn"
                     disabled={locked || index === 0}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => commit(moverEjercicio(items, index, index - 1))}
-                    aria-label="Subir ejercicio"
-                    title="Subir"
-                    style={{ color: textMuted, borderColor: inputBorder }}
                   >
-                    ↑
+                    Subir
                   </button>
                   <button
                     type="button"
-                    className="ejercicios-lista__icon-btn"
+                    className="ejercicios-lista__text-btn"
                     disabled={locked || index === items.length - 1}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => commit(moverEjercicio(items, index, index + 1))}
-                    aria-label="Bajar ejercicio"
-                    title="Bajar"
-                    style={{ color: textMuted, borderColor: inputBorder }}
                   >
-                    ↓
+                    Bajar
                   </button>
                   <button
                     type="button"
-                    className="ejercicios-lista__icon-btn ejercicios-lista__icon-btn--delete"
+                    className="ejercicios-lista__text-btn ejercicios-lista__text-btn--delete"
                     disabled={locked}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => commit(items.filter((_, i) => i !== index))}
-                    aria-label="Quitar ejercicio"
-                    title="Quitar"
-                    style={{ color: "var(--color-error, #DC2626)", borderColor: inputBorder }}
                   >
-                    <IconX size={14} />
+                    <IconX size={13} />
+                    Quitar
                   </button>
                 </div>
               )}
@@ -142,15 +155,19 @@ export function EjerciciosListaEditor({
 
       {!readOnly && (
         <div className="ejercicios-lista__add">
-          <input
-            type="text"
+          <textarea
+            ref={addRef}
             className="ejercicios-lista__input ejercicios-lista__input--add"
             placeholder={placeholder}
             value={nuevo}
             disabled={locked}
-            onChange={(e) => setNuevo(e.target.value)}
+            rows={2}
+            onChange={(e) => {
+              setNuevo(e.target.value);
+              autoResize(e.target);
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 addItem();
               }
@@ -169,7 +186,7 @@ export function EjerciciosListaEditor({
             disabled={locked || !nuevo.trim()}
             style={{ background: accent }}
           >
-            + Añadir
+            + Añadir ejercicio
           </button>
         </div>
       )}
