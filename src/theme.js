@@ -1,4 +1,5 @@
 export const STORAGE_THEME_KEY = "theme";
+export const DEFAULT_THEME = "light";
 
 export const THEMES = {
   dark: {
@@ -70,7 +71,7 @@ export function getStoredTheme() {
   } catch {
     /* ignore */
   }
-  return "light";
+  return DEFAULT_THEME;
 }
 
 export function applyThemeToDocument(theme) {
