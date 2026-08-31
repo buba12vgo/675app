@@ -36,6 +36,7 @@ export function EquiposListaContainer({
   favoritosIds,
   onToggleFavorite,
   savingFavoritos,
+  maxFavoritos,
 }) {
   const equiposVisibles = esSuperadmin
     ? equipos
@@ -77,6 +78,7 @@ export function EquiposListaContainer({
       favoritosIds={favoritosIds}
       onToggleFavorite={onToggleFavorite}
       savingFavoritos={savingFavoritos}
+      maxFavoritos={maxFavoritos}
     />
   );
 }

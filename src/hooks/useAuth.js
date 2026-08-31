@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getAuthErrorMessage } from "../lib/authErrors.js";
-import { toggleEquipoFavorito, equiposFavoritosLlenos, isEquipoFavorito, MAX_EQUIPOS_FAVORITOS } from "../lib/equiposFavoritos.js";
+import { toggleEquipoFavorito, equiposFavoritosLlenos, isEquipoFavorito, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
 
 export function useAuth(setErrorMsg) {
   const [user, setUser] = useState(null);
@@ -119,12 +119,14 @@ export function useAuth(setErrorMsg) {
   };
 
   const handleToggleEquipoFavorito = async (equipoId) => {
-    if (!user || !equipoId || userData?.rol !== "entrenador") return;
-    if (!isEquipoFavorito(userData?.equiposFavoritos, equipoId) && equiposFavoritosLlenos(userData?.equiposFavoritos)) {
-      setErrorMsg(`Solo puedes marcar ${MAX_EQUIPOS_FAVORITOS} equipos como favoritos. Quita uno para cambiarlo.`);
+    const rol = userData?.rol;
+    if (!user || !equipoId || (rol !== "entrenador" && rol !== "preparador_fisico")) return;
+    const max = maxEquiposFavoritosParaRol(rol);
+    if (!isEquipoFavorito(userData?.equiposFavoritos, equipoId, max) && equiposFavoritosLlenos(userData?.equiposFavoritos, max)) {
+      setErrorMsg(`Solo puedes marcar ${max} equipos como favoritos. Quita uno para cambiarlo.`);
       return;
     }
-    const next = toggleEquipoFavorito(userData?.equiposFavoritos, equipoId);
+    const next = toggleEquipoFavorito(userData?.equiposFavoritos, equipoId, max);
     setSavingFavoritos(true);
     setErrorMsg("");
     try {

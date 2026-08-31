@@ -106,14 +106,25 @@ service cloud.firestore {
         && favs[i].size() <= 80;
     }
 
+    function maxFavoritosAllowed() {
+      return request.resource.data.rol == 'preparador_fisico' ? 10 : 4;
+    }
+
     function validFavoritosValue() {
       let favs = request.resource.data.equiposFavoritos;
+      let max = maxFavoritosAllowed();
       return favs is list
-        && favs.size() <= 4
+        && favs.size() <= max
         && (favs.size() == 0 || validFavoritoId(favs, 0))
-        && (favs.size() < 2 || (validFavoritoId(favs, 1) && favs[0] != favs[1]))
-        && (favs.size() < 3 || (validFavoritoId(favs, 2) && favs[0] != favs[2] && favs[1] != favs[2]))
-        && (favs.size() < 4 || (validFavoritoId(favs, 3) && favs[0] != favs[3] && favs[1] != favs[3] && favs[2] != favs[3]));
+        && (favs.size() < 2 || validFavoritoId(favs, 1))
+        && (favs.size() < 3 || validFavoritoId(favs, 2))
+        && (favs.size() < 4 || validFavoritoId(favs, 3))
+        && (favs.size() < 5 || validFavoritoId(favs, 4))
+        && (favs.size() < 6 || validFavoritoId(favs, 5))
+        && (favs.size() < 7 || validFavoritoId(favs, 6))
+        && (favs.size() < 8 || validFavoritoId(favs, 7))
+        && (favs.size() < 9 || validFavoritoId(favs, 8))
+        && (favs.size() < 10 || validFavoritoId(favs, 9));
     }
 
     function validEquiposFavoritosUpdate() {

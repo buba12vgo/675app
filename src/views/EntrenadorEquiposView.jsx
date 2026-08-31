@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { EquiposListaContainer } from "../components/EquiposListaContainer.jsx";
 import {
-  MAX_EQUIPOS_FAVORITOS,
+  maxEquiposFavoritosParaRol,
   normalizeEquiposFavoritos,
   filterEquiposPorFavoritos,
 } from "../lib/equiposFavoritos.js";
@@ -13,19 +13,22 @@ export function EntrenadorEquiposView({
   textMuted,
   accent,
   equiposFavoritos,
-  forzarTodos = false,
+  userRol = "entrenador",
 }) {
   const [verTodos, setVerTodos] = useState(false);
-  const favoritosIds = forzarTodos ? [] : normalizeEquiposFavoritos(equiposFavoritos);
+  const maxFavoritos = maxEquiposFavoritosParaRol(userRol);
+  const esPreparador = userRol === "preparador_fisico";
+  const favoritosIds = normalizeEquiposFavoritos(equiposFavoritos, maxFavoritos);
   const hayFavoritos = favoritosIds.length > 0;
-  const mostrarTodos = forzarTodos || verTodos || !hayFavoritos;
+  const mostrarTodos = verTodos || !hayFavoritos;
   const equiposFiltrados = filterEquiposPorFavoritos(equiposListaProps.equipos, favoritosIds, {
     mostrarTodos,
+    max: maxFavoritos,
   });
 
   return (
     <div style={{ width: "100%" }}>
-      {!forzarTodos && hayFavoritos ? (
+      {hayFavoritos ? (
         <div
           style={{
             display: "flex",
@@ -51,19 +54,6 @@ export function EntrenadorEquiposView({
             {verTodos ? "Ver solo favoritos" : "Ver todos los equipos del club"}
           </button>
         </div>
-      ) : !forzarTodos ? (
-        <p
-          style={{
-            color: textMuted,
-            textAlign: "center",
-            fontSize: 13,
-            margin: "0 16px 8px",
-            lineHeight: 1.45,
-          }}
-        >
-          Marca la estrella en hasta {MAX_EQUIPOS_FAVORITOS} equipos para verlos al entrar. El resto sigue en «todos
-          los equipos».
-        </p>
       ) : (
         <p
           style={{
@@ -74,7 +64,9 @@ export function EntrenadorEquiposView({
             lineHeight: 1.45,
           }}
         >
-          Como preparador físico tienes acceso a todos los equipos del club.
+          {esPreparador
+            ? `Marca la estrella en hasta ${maxFavoritos} equipos para verlos al entrar. El resto sigue en «todos los equipos».`
+            : `Marca la estrella en hasta ${maxFavoritos} equipos para verlos al entrar. El resto sigue en «todos los equipos».`}
         </p>
       )}
       <EquiposListaContainer
@@ -82,16 +74,17 @@ export function EntrenadorEquiposView({
         equipos={equiposFiltrados}
         titulo={
           <>
-            {hayFavoritos && !verTodos && !forzarTodos ? "Tus equipos" : "Equipos del Club:"}{" "}
+            {hayFavoritos && !verTodos ? "Tus equipos" : "Equipos del Club:"}{" "}
             <span style={{ color: text }}>{clubNombre}</span>
           </>
         }
         mostrarClub={false}
         permitirCrear={false}
-        canFavorite={!forzarTodos}
+        canFavorite
         favoritosIds={favoritosIds}
+        maxFavoritos={maxFavoritos}
       />
-      {hayFavoritos && !verTodos && !forzarTodos && equiposFiltrados.length === 0 ? (
+      {hayFavoritos && !verTodos && equiposFiltrados.length === 0 ? (
         <p style={{ color: textMuted, textAlign: "center", fontSize: 14 }}>
           Ninguno de tus favoritos está ya en el club. Pulsa «Ver todos los equipos del club».
         </p>

@@ -147,12 +147,13 @@ export function UsuarioClubRow({
           </button>
         )}
       </div>
-      {rol === "entrenador" && effectiveClubId && equiposDelClub?.length > 0 ? (
+      {(rol === "entrenador" || rol === "preparador_fisico") && effectiveClubId && equiposDelClub?.length > 0 ? (
         <FavoritosEquipoFields
           equipos={equiposDelClub}
           value={usuario.equiposFavoritos}
           onChange={(ids) => onGuardarFavoritos?.(usuario, ids)}
           disabled={saving}
+          max={rol === "preparador_fisico" ? 10 : 4}
           text={text}
           textMuted={textMuted}
           inputBorder={inputBorder}

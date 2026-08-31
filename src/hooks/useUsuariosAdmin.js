@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { formatRolLabel, isCoordinador } from "../lib/appUtils.js";
-import { normalizeEquiposFavoritos } from "../lib/equiposFavoritos.js";
+import { normalizeEquiposFavoritos, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
 
 export function useUsuariosAdmin({
   userData,
@@ -144,7 +144,10 @@ export function useUsuariosAdmin({
         rol: rolFinal,
         solicitudClubId: null,
         solicitudClubNombre: null,
-        equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
+        equiposFavoritos:
+          clubId === usuario.clubId
+            ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
+            : [],
       });
 
       await batch.commit();
@@ -159,7 +162,10 @@ export function useUsuariosAdmin({
               rol: rolFinal,
               solicitudClubId: null,
               solicitudClubNombre: null,
-              equiposFavoritos: clubId === usuario.clubId ? (usuario.equiposFavoritos || []) : [],
+              equiposFavoritos:
+                clubId === usuario.clubId
+                  ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
+                  : [],
             };
           }
           if (clubId && rolFinal === "coordinador" && u.clubId === clubId && u.rol === "coordinador") {
@@ -213,7 +219,10 @@ export function useUsuariosAdmin({
     }
     if (usuario.rol === "superadmin") return;
 
-    const equiposFavoritos = normalizeEquiposFavoritos(ids);
+    const equiposFavoritos = normalizeEquiposFavoritos(
+      ids,
+      maxEquiposFavoritosParaRol(usuario.rol)
+    );
     setSavingUsuarioId(usuario.id);
     setErrorMsg("");
     try {

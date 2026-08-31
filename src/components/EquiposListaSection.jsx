@@ -40,6 +40,7 @@ export function EquiposListaSection({
   favoritosIds,
   onToggleFavorite,
   savingFavoritos,
+  maxFavoritos = MAX_EQUIPOS_FAVORITOS,
 }) {
   const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
   const puedeCrear = permitirCrear && permitirCrearForm;
@@ -142,11 +143,12 @@ export function EquiposListaSection({
                   || (
                     canFavorite
                     && Array.isArray(favoritosIds)
-                    && favoritosIds.length >= MAX_EQUIPOS_FAVORITOS
+                    && favoritosIds.length >= maxFavoritos
                     && !favoritosIds.includes(equipo.id)
                   )
                 }
                 onToggleFavorite={onToggleFavorite}
+                maxFavoritos={maxFavoritos}
               />
             ))}
             {puedeCrear && (

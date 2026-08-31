@@ -9,7 +9,6 @@ import {
 import {
   formatDateYYYYMMDD,
   isCoordinador,
-  isPreparadorFisico,
   formatTipoCanasta,
   formatGeneroEquipo,
   getDevicePreviewFromWidth,
@@ -875,7 +874,7 @@ function App() {
                     textMuted,
                     accent,
                     equiposFavoritos: userData?.equiposFavoritos,
-                    forzarTodos: isPreparadorFisico(userData?.rol),
+                    userRol: userData?.rol,
                   }}
                   solicitarClubProps={{
                     accent,
