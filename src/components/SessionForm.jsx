@@ -7,6 +7,7 @@ import {
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
+import { EjerciciosListaEditor } from "./EjerciciosListaEditor.jsx";
 
 export function SessionForm({
   tipoSesion,
@@ -234,27 +235,31 @@ export function SessionForm({
                   marginBottom: 12,
                 }}
               />
-              <textarea
-                placeholder={esFisico ? "Ejercicios / bloques físicos" : "Ejercicios de la sesión"}
-                value={ejercicios}
-                onChange={(e) => onEjerciciosChange(e.target.value)}
-                rows={5}
-                disabled={disabledFields}
-                readOnly={readOnly}
+              <div
                 style={{
-                  width: "100%",
-                  padding: "11px 13px",
-                  fontSize: 16.2,
-                  border: `1px solid ${inputBorder}`,
-                  borderRadius: 9,
-                  background: cardBgElevated,
-                  color: text,
-                  outline: "none",
-                  fontWeight: 500,
-                  resize: "vertical",
-                  minHeight: 120,
-                  maxHeight: 220,
+                  color: textSecondary,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
                 }}
+              >
+                Ejercicios
+              </div>
+              <EjerciciosListaEditor
+                value={ejercicios}
+                onChange={onEjerciciosChange}
+                readOnly={readOnly}
+                disabled={guardandoSesion}
+                placeholder={esFisico ? "Bloque o ejercicio físico" : "Ejercicio de la sesión"}
+                emptyHint={esFisico ? "Añade bloques o ejercicios físicos, uno por uno." : "Añade ejercicios, uno por uno. Enter para meter el siguiente."}
+                accent={colorSesion}
+                inputBorder={inputBorder}
+                inputBg={inputBg}
+                cardBgElevated={cardBgElevated}
+                text={text}
+                textMuted={textMuted}
               />
             </>
           )}

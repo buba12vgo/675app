@@ -3,6 +3,7 @@ import {
   etiquetaDiaRelativo,
   getMetricasEvento,
 } from "../lib/appUtils.js";
+import { parseEjerciciosLista } from "../lib/ejerciciosLista.js";
 import { IconCalendar } from "./icons.jsx";
 
 export function HomeEventCard({
@@ -75,7 +76,11 @@ export function HomeEventCard({
               {formatearFechaCorta(sesion.fecha)}
               {esPartido
                 ? (sesion.local === "fuera" ? " · Fuera" : " · En casa")
-                : (sesion.ejercicios?.trim() ? ` · ${sesion.ejercicios.trim().slice(0, 48)}${sesion.ejercicios.trim().length > 48 ? "…" : ""}` : "")}
+                : (() => {
+                    const primero = parseEjerciciosLista(sesion.ejercicios)[0];
+                    if (!primero) return "";
+                    return ` · ${primero.slice(0, 48)}${primero.length > 48 ? "…" : ""}`;
+                  })()}
             </p>
           </div>
           <div className="home-event-card__footer">
