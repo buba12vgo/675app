@@ -21,13 +21,24 @@ export function UserOptionsPanel({
   clubes,
   onSolicitarClub,
   esEntrenador,
+  onOpenTutorial,
 }) {
   return (
     <div className="user-options-panel content-medium" style={{ width: "96%", margin: "0 auto", padding: "8px 0 24px" }}>
       <h2 style={{ color: accent, fontWeight: 800, fontSize: 26, textAlign: "center", marginBottom: 8 }}>Opciones</h2>
-      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 24, fontSize: 14 }}>
+      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 16, fontSize: 14 }}>
         Personaliza tu perfil en la app.
       </p>
+      {onOpenTutorial ? (
+        <button
+          type="button"
+          className="login-tutorial-link"
+          onClick={onOpenTutorial}
+          style={{ marginBottom: 20 }}
+        >
+          Cómo funciona la app
+        </button>
+      ) : null}
       <form
         onSubmit={onSubmit}
         className="user-options-form"

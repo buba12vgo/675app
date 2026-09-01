@@ -35,6 +35,7 @@ import { UserOptionsOverlay } from "./views/UserOptionsOverlay.jsx";
 import { ClubMemberContent } from "./views/ClubMemberContent.jsx";
 import { SuperadminShell } from "./views/SuperadminShell.jsx";
 import { TeamTabContent } from "./views/TeamTabContent.jsx";
+import { TutorialView } from "./views/TutorialView.jsx";
 import { LoginScreen } from "./components/LoginScreen.jsx";
 import { db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -177,6 +178,7 @@ function App() {
   );
   const showDevicePreview = import.meta.env.DEV;
   const [colorMode, setColorMode] = useState(() => getStoredTheme());
+  const [showTutorial, setShowTutorial] = useState(false);
   const [statsPeriodo, setStatsPeriodo] = useState("mensual");
   const [statsVista, setStatsVista] = useState("todo");
   const [statsDesde, setStatsDesde] = useState(() => {
@@ -292,6 +294,7 @@ function App() {
       tabIdentityRef.current = next;
       setTab("home");
       setShowOpcionesPanel(false);
+      setShowTutorial(false);
     }
   }, [userData?.clubId, userData?.rol, setShowOpcionesPanel]);
 
@@ -403,11 +406,13 @@ function App() {
 
   const handleGoHome = () => {
     setShowOpcionesPanel(false);
+    setShowTutorial(false);
     if (equipoActivo) setTab("home");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleLogout = async () => {
+    setShowTutorial(false);
     clearSessionContext();
     sessionRestoredRef.current = false;
     tabIdentityRef.current = null;
@@ -417,6 +422,19 @@ function App() {
   };
 
   if (!user) {
+    if (showTutorial) {
+      return (
+        <div className="tutorial-page">
+          <BlurredBackground isDark={isDarkMode} />
+          <TutorialView
+            onBack={() => setShowTutorial(false)}
+            textMuted={textMuted}
+            inputBorder={inputBorder}
+            cardBgElevated={cardBgElevated}
+          />
+        </div>
+      );
+    }
     return (
       <LoginScreen
         isDarkMode={isDarkMode}
@@ -431,6 +449,7 @@ function App() {
         onEmailLogin={handleEmailLogin}
         onGoogleLogin={handleGoogleLogin}
         errorMsg={errorMsg}
+        onOpenTutorial={() => setShowTutorial(true)}
       />
     );
   }
@@ -793,7 +812,18 @@ function App() {
                     clubes,
                     onSolicitarClub: handleSolicitarClub,
                     esEntrenador: userData?.rol === "entrenador",
+                    onOpenTutorial: () => {
+                      setShowOpcionesPanel(false);
+                      setShowTutorial(true);
+                    },
                   }}
+                />
+              ) : showTutorial ? (
+                <TutorialView
+                  onBack={() => setShowTutorial(false)}
+                  textMuted={textMuted}
+                  inputBorder={inputBorder}
+                  cardBgElevated={cardBgElevated}
                 />
               ) : esSuperadmin ? (
                 <SuperadminShell

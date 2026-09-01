@@ -15,6 +15,7 @@ export function LoginScreen({
   onEmailLogin,
   onGoogleLogin,
   errorMsg,
+  onOpenTutorial,
 }) {
   return (
     <div className="login-page">
@@ -77,6 +78,11 @@ export function LoginScreen({
             {errorMsg}
           </div>
         )}
+        {onOpenTutorial ? (
+          <button type="button" className="login-tutorial-link" onClick={onOpenTutorial}>
+            Cómo funciona la app
+          </button>
+        ) : null}
       </div>
     </div>
   );
