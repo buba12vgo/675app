@@ -3474,44 +3474,56 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   border-radius: 12px;
   padding: 10px 12px 8px;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ejercicios-lista__main {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   min-width: 0;
+  width: 100%;
 }
 
 .ejercicios-lista__num {
-  flex: 0 0 22px;
+  flex: none;
   font-weight: 800;
   font-size: 15px;
   font-variant-numeric: tabular-nums;
-  text-align: center;
-  line-height: 1.4;
-  padding-top: 8px;
+  text-align: left;
+  line-height: 1.3;
+  padding-top: 0;
 }
 
 .ejercicios-lista__text {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  width: 100%;
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
-  padding-top: 8px;
+  padding: 0;
+}
+
+.ejercicios-lista__text--editable {
+  cursor: text;
+  border-radius: 8px;
 }
 
 .ejercicios-lista__input {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 8px 10px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   font-family: inherit;
   line-height: 1.45;
@@ -3519,33 +3531,41 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   border-radius: 8px;
   outline: none;
   resize: none;
-  overflow: hidden;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   white-space: pre-wrap;
+  field-sizing: content;
+  min-height: 4.4em;
 }
 
 .ejercicios-lista__input--add {
   border: 1px solid var(--color-border);
-  min-height: 64px;
+  min-height: 72px;
 }
 
 .ejercicios-lista__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  padding-left: 32px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-left: 0;
+  width: 100%;
 }
 
 .ejercicios-lista__text-btn {
-  border: none;
-  background: transparent;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
   color: var(--color-text-muted);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 4px 2px;
+  padding: 8px 6px;
+  min-height: 40px;
+  border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
 }
 
@@ -3580,6 +3600,46 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 .ejercicios-lista__add-btn:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+@media (min-width: 768px) {
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__main {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__num {
+    flex: 0 0 22px;
+    text-align: center;
+    padding-top: 8px;
+  }
+
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__text {
+    font-size: 15px;
+    padding-top: 8px;
+  }
+
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__input {
+    font-size: 15px;
+    min-height: 2.6em;
+  }
+
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding-left: 32px;
+  }
+
+  .app-shell:not([data-device-preview="mobile"]) .ejercicios-lista__text-btn {
+    border: none;
+    background: transparent;
+    min-height: 0;
+    padding: 4px 2px;
+    font-size: 12.5px;
+    justify-content: flex-start;
+  }
 }
 
 .session-delete-btn {
