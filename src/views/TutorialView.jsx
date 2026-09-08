@@ -163,7 +163,8 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         />
         <p>
           En <strong>Asistencia</strong> marcas quién está, valoras del 1 al 5 y, si falta, el motivo
-          (justificada, no justificada o salud). Puedes convocar a una jugadora de otro equipo del club.
+          (justificada, no justificada, salud o doblaje). El doblaje no cuenta como ausencia en las estadísticas.
+          Puedes convocar a una jugadora de otro equipo del club.
         </p>
         <Figure
           src="/tutorial/06_asistencia.jpg"

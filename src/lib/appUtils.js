@@ -1,4 +1,9 @@
-import { MOTIVO_JUSTIFICADA, MOTIVO_SALUD, MOTIVO_AUSENCIA_DEFAULT } from "./motivosAusencia.js";
+import {
+  MOTIVO_JUSTIFICADA,
+  MOTIVO_SALUD,
+  MOTIVO_DOBLAJE,
+  MOTIVO_AUSENCIA_DEFAULT,
+} from "./motivosAusencia.js";
 
 const ROL_LABELS = {
   superadmin: "Superadmin",
@@ -347,14 +352,19 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
   let justificada = 0;
   let noJustificada = 0;
   let salud = 0;
+  let doblaje = 0;
   let sumaNotas = 0;
   let countNotas = 0;
   sesiones.forEach((s) => {
     const asist = s.asistencias || {};
     if (typeof asist[jugadoraId] === "undefined") return;
     if (asist[jugadoraId] === false) {
-      ausencias += 1;
       const motivo = (s.motivosAusencia || {})[jugadoraId] || MOTIVO_AUSENCIA_DEFAULT;
+      if (motivo === MOTIVO_DOBLAJE) {
+        doblaje += 1;
+        return;
+      }
+      ausencias += 1;
       if (motivo === MOTIVO_JUSTIFICADA) justificada += 1;
       else if (motivo === MOTIVO_SALUD) salud += 1;
       else noJustificada += 1;
@@ -374,6 +384,7 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     justificada,
     noJustificada,
     salud,
+    doblaje,
     notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
     notasCount: countNotas,
   };
@@ -389,6 +400,7 @@ export function combinarStatsJugadora(...listas) {
       justificada: 0,
       noJustificada: 0,
       salud: 0,
+      doblaje: 0,
       notaMedia: null,
       notasCount: 0,
     };
@@ -405,6 +417,7 @@ export function combinarStatsJugadora(...listas) {
     justificada: partes.reduce((acc, p) => acc + (p.justificada || 0), 0),
     noJustificada: partes.reduce((acc, p) => acc + (p.noJustificada || 0), 0),
     salud: partes.reduce((acc, p) => acc + (p.salud || 0), 0),
+    doblaje: partes.reduce((acc, p) => acc + (p.doblaje || 0), 0),
     notaMedia: notasCount > 0 ? sumaNotas / notasCount : null,
     notasCount,
   };

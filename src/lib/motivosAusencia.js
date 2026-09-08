@@ -1,12 +1,14 @@
 export const MOTIVO_JUSTIFICADA = "justificada";
 export const MOTIVO_NO_JUSTIFICADA = "no_justificada";
 export const MOTIVO_SALUD = "salud";
+export const MOTIVO_DOBLAJE = "doblaje";
 export const MOTIVO_AUSENCIA_DEFAULT = MOTIVO_NO_JUSTIFICADA;
 
 export const MOTIVOS_AUSENCIA = [
   { id: MOTIVO_JUSTIFICADA, label: "Justificada", short: "Just." },
   { id: MOTIVO_NO_JUSTIFICADA, label: "No justificada", short: "No just." },
   { id: MOTIVO_SALUD, label: "Salud", short: "Salud" },
+  { id: MOTIVO_DOBLAJE, label: "Doblaje", short: "Dobl." },
 ];
 
 const MOTIVO_IDS = new Set(MOTIVOS_AUSENCIA.map((m) => m.id));

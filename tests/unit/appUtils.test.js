@@ -252,15 +252,31 @@ describe("calcularEstadisticasJugadoras", () => {
     expect(stats[0].entrenos.noJustificada).toBe(1);
   });
 
+  it("no cuenta el doblaje como ausencia ni en el porcentaje", () => {
+    const jugadoras = [{ id: "j1", nombre: "Ana", dorsal: 1 }];
+    const sesiones = [
+      { tipo: "entreno", fecha: "2026-08-01", asistencias: { j1: true }, valoraciones: { j1: 4 } },
+      { tipo: "entreno", fecha: "2026-08-02", asistencias: { j1: false }, motivosAusencia: { j1: "doblaje" } },
+      { tipo: "entreno", fecha: "2026-08-03", asistencias: { j1: false }, motivosAusencia: { j1: "salud" } },
+    ];
+    const stats = calcularEstadisticasJugadoras(jugadoras, sesiones);
+    expect(stats[0].entrenos.presentes).toBe(1);
+    expect(stats[0].entrenos.ausencias).toBe(1);
+    expect(stats[0].entrenos.doblaje).toBe(1);
+    expect(stats[0].entrenos.salud).toBe(1);
+    expect(porcentajeAsistencia(stats[0].entrenos)).toBe(50);
+  });
+
   it("combina entrenos y partidos y desglosa ausencias", () => {
     const combinadas = combinarStatsJugadora(
-      { total: 2, presentes: 1, ausencias: 1, justificada: 1, noJustificada: 0, salud: 0, notaMedia: 4, notasCount: 1 },
-      { total: 1, presentes: 0, ausencias: 1, justificada: 0, noJustificada: 0, salud: 1, notaMedia: 5, notasCount: 1 },
+      { total: 2, presentes: 1, ausencias: 1, justificada: 1, noJustificada: 0, salud: 0, doblaje: 1, notaMedia: 4, notasCount: 1 },
+      { total: 1, presentes: 0, ausencias: 1, justificada: 0, noJustificada: 0, salud: 1, doblaje: 0, notaMedia: 5, notasCount: 1 },
     );
     expect(combinadas.total).toBe(3);
     expect(combinadas.ausencias).toBe(2);
     expect(combinadas.justificada).toBe(1);
     expect(combinadas.salud).toBe(1);
+    expect(combinadas.doblaje).toBe(1);
     expect(combinadas.notaMedia).toBe(4.5);
     expect(porcentajeAsistencia(combinadas)).toBe(33);
   });

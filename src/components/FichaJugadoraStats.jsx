@@ -59,11 +59,18 @@ function BloqueTipo({
               justificada: stats.justificada || 0,
               no_justificada: stats.noJustificada || 0,
               salud: stats.salud || 0,
+              doblaje: stats.doblaje || 0,
             }[motivo.id] || 0;
+            const esDoblaje = motivo.id === "doblaje";
             return (
               <div key={motivo.id} className="stats-ficha-ausencia" style={{ borderColor: inputBorder }}>
                 <span className="stats-ficha-ausencia__label" style={{ color: textMuted }}>{motivo.label}</span>
-                <span className="stats-ficha-ausencia__value" style={{ color: value ? error : textMuted }}>{value}</span>
+                <span
+                  className="stats-ficha-ausencia__value"
+                  style={{ color: value ? (esDoblaje ? textSecondary : error) : textMuted }}
+                >
+                  {value}
+                </span>
               </div>
             );
           })}
