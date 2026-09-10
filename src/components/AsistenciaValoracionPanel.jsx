@@ -58,7 +58,7 @@ export function AsistenciaValoracionPanel({
     setValoraciones(prev => {
       const nuevo = { ...prev };
       jugadoras.forEach(j => {
-        if (typeof nuevo[j.id] !== "number") nuevo[j.id] = 3;
+        if (typeof nuevo[j.id] !== "number") nuevo[j.id] = 0;
       });
       return nuevo;
     });
@@ -89,7 +89,7 @@ export function AsistenciaValoracionPanel({
     setAsistencias(prev => ({ ...prev, [jugadoraId]: true }));
     setValoraciones(prev => ({
       ...prev,
-      [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 3,
+      [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 0,
     }));
     setMotivosAusencia?.(prev => {
       const nuevo = { ...prev };

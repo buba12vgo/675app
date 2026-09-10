@@ -253,7 +253,7 @@ export function SessionForm({
                 readOnly={readOnly}
                 disabled={guardandoSesion}
                 placeholder={esFisico ? "Bloque o ejercicio físico" : "Ejercicio de la sesión"}
-                emptyHint={esFisico ? "Añade bloques o ejercicios físicos, uno por uno." : "Añade ejercicios, uno por uno. Enter para meter el siguiente."}
+                emptyHint={esFisico ? "Añade bloques o ejercicios físicos. Enter hace una nueva línea; usa el botón para añadir otro." : "Añade ejercicios. Enter hace una nueva línea; usa el botón para añadir otro."}
                 accent={colorSesion}
                 inputBorder={inputBorder}
                 inputBg={inputBg}

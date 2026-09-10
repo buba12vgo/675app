@@ -1,16 +1,28 @@
+/**
+ * Formato:
+ * - Nuevo: ejercicios separados por línea en blanco (\n\n). Así un ejercicio puede tener varias líneas.
+ * - Antiguo: una línea = un ejercicio (sin líneas en blanco).
+ */
 export function parseEjerciciosLista(texto) {
   if (typeof texto !== "string" || !texto.trim()) return [];
-  return texto
-    .split(/\r?\n/)
+  const normalized = texto.replace(/\r\n/g, "\n");
+  if (/\n\s*\n/.test(normalized)) {
+    return normalized
+      .split(/\n\s*\n/)
+      .map((bloque) => bloque.replace(/^\s+|\s+$/g, ""))
+      .filter(Boolean);
+  }
+  return normalized
+    .split("\n")
     .map((linea) => linea.replace(/^\s*\d+[.)]\s*/, "").trim())
     .filter(Boolean);
 }
 
 export function serializeEjerciciosLista(items) {
-  const lineas = (Array.isArray(items) ? items : [])
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
+  const list = (Array.isArray(items) ? items : [])
+    .map((item) => (typeof item === "string" ? item.replace(/^\s+|\s+$/g, "") : ""))
     .filter(Boolean);
-  return lineas.join("\n");
+  return list.join("\n\n");
 }
 
 export function moverEjercicio(items, fromIndex, toIndex) {

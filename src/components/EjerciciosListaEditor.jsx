@@ -101,12 +101,6 @@ export function EjerciciosListaEditor({
                       autoResize(e.target);
                     }}
                     onBlur={finishDraft}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                    }}
                     style={{
                       color: text,
                       borderColor: inputBorder,
@@ -165,12 +159,6 @@ export function EjerciciosListaEditor({
             onChange={(e) => {
               setNuevo(e.target.value);
               autoResize(e.target);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                addItem();
-              }
             }}
             style={{
               color: text,

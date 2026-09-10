@@ -79,7 +79,8 @@ export function HomeEventCard({
                 : (() => {
                     const primero = parseEjerciciosLista(sesion.ejercicios)[0];
                     if (!primero) return "";
-                    return ` · ${primero.slice(0, 48)}${primero.length > 48 ? "…" : ""}`;
+                    const preview = primero.replace(/\s+/g, " ");
+                    return ` · ${preview.slice(0, 48)}${preview.length > 48 ? "…" : ""}`;
                   })()}
             </p>
           </div>

@@ -220,7 +220,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       const nuevo = {};
       idsSesion.forEach((id) => {
         const val = prevVal[id];
-        if (typeof val === "number" && val >= 1 && val <= 5) {
+        if (typeof val === "number" && val >= 0 && val <= 5) {
           nuevo[id] = val;
         }
       });
@@ -248,7 +248,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       setValoraciones(() => {
         const nuevo = {};
         jugadoras.forEach((j) => {
-          nuevo[j.id] = 3;
+          nuevo[j.id] = 0;
         });
         return nuevo;
       });
@@ -308,7 +308,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       const vals = {};
       jugadoras.forEach((j) => {
         asist[j.id] = true;
-        vals[j.id] = 3;
+        vals[j.id] = 0;
       });
       const docId = buildSesionDocId(equipoActivo.id, fecha, tipoNorm);
       const sesionDocRef = doc(db, "Sesiones", docId);
@@ -427,7 +427,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setAsistencias((prev) => ({ ...prev, [jugadoraId]: true }));
     setValoraciones((prev) => ({
       ...prev,
-      [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 3,
+      [jugadoraId]: typeof prev[jugadoraId] === "number" ? prev[jugadoraId] : 0,
     }));
     setMotivosAusencia((prev) => {
       const next = { ...prev };

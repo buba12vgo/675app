@@ -152,9 +152,9 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-entreno">
         <h2>6. Entreno (o físico)</h2>
         <p>
-          En <strong>Datos de sesión</strong> pones la temática y los ejercicios, uno por uno.
-          Enter añade el siguiente. Subir / Bajar / Quitar reordenan o borran.
-          En el móvil el texto del ejercicio se ve entero, en varias líneas.
+          En <strong>Datos de sesión</strong> pones la temática y los ejercicios.
+          Enter hace una nueva línea dentro del mismo ejercicio; el botón añade el siguiente.
+          Subir / Bajar / Quitar reordenan o borran.
         </p>
         <Figure
           src="/tutorial/05_entreno.jpg"
