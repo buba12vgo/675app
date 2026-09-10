@@ -1,10 +1,23 @@
 /**
- * Formato:
- * - Nuevo: ejercicios separados por línea en blanco (\n\n). Así un ejercicio puede tener varias líneas.
- * - Antiguo: una línea = un ejercicio (sin líneas en blanco).
+ * Formato guardado:
+ * - Nuevo: JSON array de strings (permite varias líneas por ejercicio).
+ * - Antiguo: una línea = un ejercicio, o bloques separados por línea en blanco.
  */
 export function parseEjerciciosLista(texto) {
   if (typeof texto !== "string" || !texto.trim()) return [];
+  const trimmed = texto.trim();
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => (typeof item === "string" ? item.replace(/^\s+|\s+$/g, "") : ""))
+          .filter(Boolean);
+      }
+    } catch {
+      /* formato antiguo */
+    }
+  }
   const normalized = texto.replace(/\r\n/g, "\n");
   if (/\n\s*\n/.test(normalized)) {
     return normalized
@@ -22,7 +35,11 @@ export function serializeEjerciciosLista(items) {
   const list = (Array.isArray(items) ? items : [])
     .map((item) => (typeof item === "string" ? item.replace(/^\s+|\s+$/g, "") : ""))
     .filter(Boolean);
-  return list.join("\n\n");
+  if (!list.length) return "";
+  if (list.some((item) => item.includes("\n"))) {
+    return JSON.stringify(list);
+  }
+  return list.join("\n");
 }
 
 export function moverEjercicio(items, fromIndex, toIndex) {

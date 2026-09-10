@@ -15,21 +15,32 @@ describe("ejerciciosLista", () => {
     expect(parseEjerciciosLista("")).toEqual([]);
   });
 
-  it("permite varias líneas en un mismo ejercicio (separador en blanco)", () => {
-    expect(parseEjerciciosLista("Calentamiento\nTrote suave\n\nTiro\nDesde esquina")).toEqual([
+  it("permite varias líneas en un mismo ejercicio", () => {
+    const serialized = serializeEjerciciosLista([
+      "Calentamiento\nTrote suave",
+      "Tiro\nDesde esquina",
+    ]);
+    expect(serialized.startsWith("[")).toBe(true);
+    expect(parseEjerciciosLista(serialized)).toEqual([
       "Calentamiento\nTrote suave",
       "Tiro\nDesde esquina",
     ]);
   });
 
-  it("serializa con línea en blanco entre ejercicios", () => {
-    expect(serializeEjerciciosLista(["Fondo", " Tiro ", ""])).toBe("Fondo\n\nTiro");
-    expect(serializeEjerciciosLista(["Línea 1\nLínea 2", "Otro"])).toBe("Línea 1\nLínea 2\n\nOtro");
+  it("serializa listas de una línea como texto simple", () => {
+    expect(serializeEjerciciosLista(["Fondo", " Tiro ", ""])).toBe("Fondo\nTiro");
   });
 
-  it("round-trip conserva multilínea", () => {
-    const items = ["Calentamiento\nMovilidad", "5x5"];
+  it("round-trip conserva un único ejercicio multilínea", () => {
+    const items = ["Línea uno\nLínea dos"];
     expect(parseEjerciciosLista(serializeEjerciciosLista(items))).toEqual(items);
+  });
+
+  it("lee bloques separados por línea en blanco", () => {
+    expect(parseEjerciciosLista("Calentamiento\nTrote\n\nTiro")).toEqual([
+      "Calentamiento\nTrote",
+      "Tiro",
+    ]);
   });
 
   it("reordena sin perder ítems", () => {
