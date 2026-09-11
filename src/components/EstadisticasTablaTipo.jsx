@@ -1,4 +1,15 @@
+import { useMemo, useState } from "react";
 import { getEquipoLabels, GENERO_FEMENINO } from "../lib/appUtils.js";
+import { ordenarFilasEstadisticas } from "../lib/ordenarEstadisticas.js";
+
+const SORT_COLUMNS = [
+  { key: "dorsal", label: "#", title: "Dorsal", align: "start", defaultDir: "asc" },
+  { key: "nombre", align: "start", defaultDir: "asc" },
+  { key: "total", label: "Ses.", title: "Sesiones en el periodo", align: "center", defaultDir: "desc" },
+  { key: "presentes", align: "center", defaultDir: "desc" },
+  { key: "ausencias", align: "center", defaultDir: "desc" },
+  { key: "notaMedia", label: "Nota", title: "Nota media", align: "center", defaultDir: "desc" },
+];
 
 export function EstadisticasTablaTipo({
   tipo,
@@ -23,6 +34,42 @@ export function EstadisticasTablaTipo({
   const labelAusencias = esPartido ? "No conv." : "Aus.";
   const nombrePlural = esPartido ? "partidos" : esFisico ? "físicos" : "entrenos";
   const nombreSingular = esPartido ? "partido" : esFisico ? "físico" : "entreno";
+
+  const [sortKey, setSortKey] = useState("dorsal");
+  const [sortDir, setSortDir] = useState("asc");
+
+  const filas = useMemo(
+    () => ordenarFilasEstadisticas(estadisticas, { sortKey, sortDir, statsKey }),
+    [estadisticas, sortKey, sortDir, statsKey]
+  );
+
+  const toggleSort = (col) => {
+    if (sortKey === col.key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(col.key);
+    setSortDir(col.defaultDir);
+  };
+
+  const columnMeta = (col) => {
+    if (col.key === "nombre") {
+      return { label: playerLabels.statsColumnaJugador, title: playerLabels.statsColumnaJugador };
+    }
+    if (col.key === "presentes") {
+      return {
+        label: labelPresentes,
+        title: esPartido ? "Convocadas" : "Asistencias",
+      };
+    }
+    if (col.key === "ausencias") {
+      return {
+        label: labelAusencias,
+        title: esPartido ? "No convocadas" : "Ausencias",
+      };
+    }
+    return { label: col.label, title: col.title };
+  };
 
   if (totalSesiones === 0) {
     return (
@@ -49,15 +96,29 @@ export function EstadisticasTablaTipo({
         </span>
       </div>
       <div className="stats-table stats-table--tipo" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="stats-table-header stats-table-header--tipo">
-          <span>#</span>
-          <span>{playerLabels.statsColumnaJugador}</span>
-          <span title="Sesiones en el periodo">Ses.</span>
-          <span title={esPartido ? "Convocadas" : "Asistencias"}>{labelPresentes}</span>
-          <span title={esPartido ? "No convocadas" : "Ausencias"}>{labelAusencias}</span>
-          <span title="Nota media">Nota</span>
+        <div className="stats-table-header stats-table-header--tipo" role="row">
+          {SORT_COLUMNS.map((col) => {
+            const meta = columnMeta(col);
+            const activo = sortKey === col.key;
+            const ariaSort = !activo ? "none" : sortDir === "asc" ? "ascending" : "descending";
+            return (
+              <button
+                key={col.key}
+                type="button"
+                className={`stats-table-sort${activo ? " stats-table-sort--active" : ""}${col.align === "center" ? " stats-table-sort--center" : ""}`}
+                title={`${meta.title} — pulsa para ordenar`}
+                aria-sort={ariaSort}
+                onClick={() => toggleSort(col)}
+              >
+                <span className="stats-table-sort__label">{meta.label}</span>
+                <span className="stats-table-sort__icon" aria-hidden="true">
+                  {activo ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                </span>
+              </button>
+            );
+          })}
         </div>
-        {estadisticas.map(({ jugadora: j, [statsKey]: stats }) => (
+        {filas.map(({ jugadora: j, [statsKey]: stats }) => (
           <button
             key={j.id}
             type="button"
