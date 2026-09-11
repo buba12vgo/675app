@@ -24,6 +24,10 @@ import {
   canCreateTipoSesion,
   canManagePlantilla,
   buildSesionDocId,
+  createSesionDocId,
+  diaTieneEntreno,
+  diaTieneTipo,
+  sesionesDelDia,
   getDevicePreviewFromWidth,
   dorsalEstaOcupado,
 } from "../../src/lib/appUtils.js";
@@ -79,6 +83,30 @@ describe("permisos preparador físico", () => {
 
   it("genera id de sesión con tipo", () => {
     expect(buildSesionDocId("eq1", "2026-08-17", "fisico")).toBe("eq1_2026-08-17_fisico");
+  });
+
+  it("genera ids distintos para varios partidos el mismo día", () => {
+    const a = createSesionDocId("eq1", "2026-08-17", "partido");
+    const b = createSesionDocId("eq1", "2026-08-17", "partido");
+    expect(a).toMatch(/^eq1_2026-08-17_partido_/);
+    expect(b).toMatch(/^eq1_2026-08-17_partido_/);
+    expect(a).not.toBe(b);
+    expect(createSesionDocId("eq1", "2026-08-17", "entreno")).toBe("eq1_2026-08-17_entreno");
+  });
+});
+
+describe("diaTieneEntreno y partidos múltiples", () => {
+  const sesiones = [
+    { id: "1", fecha: "2026-08-17", tipo: "partido", rival: "A" },
+    { id: "2", fecha: "2026-08-17", tipo: "partido", rival: "B" },
+    { id: "3", fecha: "2026-08-18", tipo: "entreno" },
+  ];
+
+  it("detecta entreno y permite varios partidos el mismo día", () => {
+    expect(diaTieneEntreno(sesiones, "2026-08-17")).toBe(false);
+    expect(diaTieneTipo(sesiones, "2026-08-17", "partido")).toBe(true);
+    expect(sesionesDelDia(sesiones, "2026-08-17").filter((s) => s.tipo === "partido")).toHaveLength(2);
+    expect(diaTieneEntreno(sesiones, "2026-08-18")).toBe(true);
   });
 });
 
@@ -187,10 +215,10 @@ describe("sugerirFechaLibre", () => {
     expect(sugerirFechaLibre([{ fecha: "2026-08-17" }], hoy)).toBe("2026-08-18");
   });
 
-  it("permite físico el mismo día que un entreno", () => {
+  it("permite partido el mismo día que otro partido, pero no con entreno", () => {
     const hoy = new Date(2026, 7, 17);
-    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "entreno" }], "fisico", hoy)).toBe("2026-08-17");
-    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "fisico" }], "fisico", hoy)).toBe("2026-08-18");
+    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "partido" }], "partido", hoy)).toBe("2026-08-17");
+    expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "entreno" }], "partido", hoy)).toBe("2026-08-18");
   });
 });
 

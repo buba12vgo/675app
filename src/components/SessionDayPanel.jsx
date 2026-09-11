@@ -1,6 +1,5 @@
 import {
   canCreateTipoSesion,
-  diaTieneSesionTactica,
   diaTieneTipo,
   etiquetaTipoSesion,
   normalizarTipoSesion,
@@ -60,10 +59,11 @@ export function SessionDayPanel({
   readOnly = false,
 }) {
   const colors = { accentSoft, accentLight, colorPartido, colorFisico };
-  const tieneTactica = diaTieneSesionTactica(sesionesDelDia, fechaSesionSeleccionada);
+  const tieneEntreno = diaTieneTipo(sesionesDelDia, fechaSesionSeleccionada, TIPO_SESION_ENTRENO);
+  const tienePartido = diaTieneTipo(sesionesDelDia, fechaSesionSeleccionada, TIPO_SESION_PARTIDO);
   const tieneFisico = diaTieneTipo(sesionesDelDia, fechaSesionSeleccionada, TIPO_SESION_FISICO);
-  const puedeEntreno = canCreateTipoSesion(userRol, TIPO_SESION_ENTRENO) && !tieneTactica;
-  const puedePartido = canCreateTipoSesion(userRol, TIPO_SESION_PARTIDO) && !tieneTactica;
+  const puedeEntreno = canCreateTipoSesion(userRol, TIPO_SESION_ENTRENO) && !tieneEntreno && !tienePartido;
+  const puedePartido = canCreateTipoSesion(userRol, TIPO_SESION_PARTIDO) && !tieneEntreno;
   const puedeFisico = canCreateTipoSesion(userRol, TIPO_SESION_FISICO) && !tieneFisico;
   const mostrarCrear = !sesionDoc && (puedeEntreno || puedePartido || puedeFisico);
 
@@ -205,7 +205,7 @@ export function SessionDayPanel({
                       onClick={onCrearPartido}
                       disabled={guardandoSesion}
                     >
-                      + Crear Partido
+                      {tienePartido ? "+ Crear otro partido" : "+ Crear Partido"}
                     </button>
                   )}
                   {puedeFisico && (

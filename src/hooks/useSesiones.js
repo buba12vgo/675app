@@ -13,9 +13,9 @@ import {
   where,
 } from "firebase/firestore";
 import {
-  buildSesionDocId,
+  createSesionDocId,
   canCreateTipoSesion,
-  diaTieneSesionTactica,
+  diaTieneEntreno,
   diaTieneTipo,
   normalizarTipoSesion,
   sesionesDelDia as filtrarSesionesDelDia,
@@ -169,7 +169,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
           setPendingSelectTipo(null);
           let elegido = null;
           if (preferTipo) {
-            elegido = docs.find((d) => normalizarTipoSesion(d) === preferTipo) || null;
+            const matches = docs.filter((d) => normalizarTipoSesion(d) === preferTipo);
+            elegido = matches.length === 1 ? matches[0] : null;
           } else if (docs.length === 1) {
             elegido = docs[0];
           }
@@ -296,9 +297,20 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         setErrorMsg("Ya hay un entrenamiento físico este día.");
         return;
       }
-    } else if (diaTieneSesionTactica(sesionesEquipo, fecha)) {
-      setErrorMsg("Ya hay un entreno o partido este día.");
-      return;
+    } else if (tipoNorm === TIPO_SESION_ENTRENO) {
+      if (diaTieneEntreno(sesionesEquipo, fecha)) {
+        setErrorMsg("Ya hay un entreno este día.");
+        return;
+      }
+      if (diaTieneTipo(sesionesEquipo, fecha, TIPO_SESION_PARTIDO)) {
+        setErrorMsg("Ya hay un partido este día. No se puede añadir un entreno.");
+        return;
+      }
+    } else if (tipoNorm === TIPO_SESION_PARTIDO) {
+      if (diaTieneEntreno(sesionesEquipo, fecha)) {
+        setErrorMsg("Ya hay un entreno este día. No se puede añadir un partido.");
+        return;
+      }
     }
 
     setGuardandoSesion(true);
@@ -310,7 +322,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         asist[j.id] = true;
         vals[j.id] = 0;
       });
-      const docId = buildSesionDocId(equipoActivo.id, fecha, tipoNorm);
+      const docId = createSesionDocId(equipoActivo.id, fecha, tipoNorm);
       const sesionDocRef = doc(db, "Sesiones", docId);
       await setDoc(sesionDocRef, {
         equipoId: equipoActivo.id,
@@ -476,7 +488,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     const [y, m] = fecha.split("-").map(Number);
     setAnioActual(y);
     setMesActual(m - 1);
-    setPendingSelectTipo(tipoNorm);
+    // La creación abre la sesión nueva; no auto-seleccionar otra del mismo tipo.
+    setPendingSelectTipo(null);
     setFechaSesionSeleccionada(fecha);
     setTab("sesiones");
     await handleCrearSesion(tipoNorm, fecha);

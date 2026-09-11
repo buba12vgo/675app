@@ -105,8 +105,8 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
           </table>
         </div>
         <p>
-          El mismo día puede haber un <strong>entreno o partido</strong> y un <strong>físico</strong>.
-          No puede haber entreno y partido el mismo día.
+          El mismo día puede haber <strong>varios partidos</strong> y un <strong>físico</strong>.
+          No puede haber entreno y partido el mismo día (el entreno sigue siendo uno por día).
         </p>
       </section>
 

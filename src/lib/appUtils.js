@@ -63,8 +63,22 @@ export function etiquetaTipoSesion(tipo) {
   return "Entreno";
 }
 
-export function buildSesionDocId(equipoId, fecha, tipo) {
-  return `${equipoId}_${fecha}_${normalizarTipoSesion({ tipo })}`;
+export function buildSesionDocId(equipoId, fecha, tipo, uniqueKey = null) {
+  const base = `${equipoId}_${fecha}_${normalizarTipoSesion({ tipo })}`;
+  return uniqueKey ? `${base}_${uniqueKey}` : base;
+}
+
+/** Partidos pueden repetirse el mismo día → ID único. Entreno/físico siguen siendo 1/día. */
+export function createSesionDocId(equipoId, fecha, tipo) {
+  const t = normalizarTipoSesion({ tipo });
+  if (t === TIPO_SESION_PARTIDO) {
+    const unique =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID().replace(/-/g, "").slice(0, 10)
+        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    return buildSesionDocId(equipoId, fecha, t, unique);
+  }
+  return buildSesionDocId(equipoId, fecha, t);
 }
 
 export function sesionesDelDia(sesiones, fecha) {
@@ -83,6 +97,10 @@ export function diaTieneSesionTactica(sesiones, fecha) {
     const t = normalizarTipoSesion(s);
     return t === TIPO_SESION_ENTRENO || t === TIPO_SESION_PARTIDO;
   });
+}
+
+export function diaTieneEntreno(sesiones, fecha) {
+  return diaTieneTipo(sesiones, fecha, TIPO_SESION_ENTRENO);
 }
 
 export function getDevicePreviewFromWidth(width) {
@@ -306,6 +324,11 @@ export function sugerirFechaLibre(sesiones, segundo = null, tercero = undefined,
     }
     if (tipo === TIPO_SESION_FISICO) {
       if (!diaTieneTipo(sesiones, ymd, TIPO_SESION_FISICO)) return ymd;
+      continue;
+    }
+    if (tipo === TIPO_SESION_PARTIDO) {
+      // Varios partidos el mismo día están permitidos; solo se evita chocar con un entreno.
+      if (!diaTieneTipo(sesiones, ymd, TIPO_SESION_ENTRENO)) return ymd;
       continue;
     }
     if (!diaTieneSesionTactica(sesiones, ymd)) return ymd;
