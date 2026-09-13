@@ -52,6 +52,7 @@ export function SessionForm({
   equiposClub,
   jugadorasClubLoading,
   equipoActivoId,
+  generoEquipo,
   tipoCanasta,
   nombreEquipo,
   onAddJugadoraExterna,
@@ -277,6 +278,8 @@ export function SessionForm({
             setValoraciones={readOnly ? () => {} : setValoraciones}
             motivosAusencia={motivosAusencia}
             setMotivosAusencia={readOnly ? () => {} : setMotivosAusencia}
+            tipoSesion={tipoSesion}
+            generoEquipo={generoEquipo}
             accent={colorSesion}
             inputBorder={inputBorder}
             textMuted={textMuted}

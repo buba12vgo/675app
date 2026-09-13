@@ -371,7 +371,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
           valoracionesFiltradas[id] = valoraciones[id];
         }
       });
-      const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion);
+      const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion, tipoNorm);
       const idsConvocadas = idsSesion.filter((id) => asistenciasLimpias[id]);
       const planificacionLimpia = planificacionParaGuardar(planificacionSextos, idsConvocadas);
       const sesionDocRef = doc(db, "Sesiones", sesionId);

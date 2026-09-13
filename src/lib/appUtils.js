@@ -2,8 +2,11 @@ import {
   MOTIVO_JUSTIFICADA,
   MOTIVO_SALUD,
   MOTIVO_DOBLAJE,
+  MOTIVO_NO_CONVOCADO,
+  MOTIVO_LESIONADO,
   MOTIVO_AUSENCIA_DEFAULT,
 } from "./motivosAusencia.js";
+
 
 const ROL_LABELS = {
   superadmin: "Superadmin",
@@ -376,6 +379,8 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
   let noJustificada = 0;
   let salud = 0;
   let doblaje = 0;
+  let noConvocado = 0;
+  let lesionado = 0;
   let sumaNotas = 0;
   let countNotas = 0;
   sesiones.forEach((s) => {
@@ -383,6 +388,16 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     if (typeof asist[jugadoraId] === "undefined") return;
     if (asist[jugadoraId] === false) {
       const motivo = (s.motivosAusencia || {})[jugadoraId] || MOTIVO_AUSENCIA_DEFAULT;
+      const esPartido = normalizarTipoSesion(s) === TIPO_SESION_PARTIDO;
+
+      // En partidos: solo no convocado / lesionado (legacy se remapea).
+      if (esPartido) {
+        ausencias += 1;
+        if (motivo === MOTIVO_LESIONADO || motivo === MOTIVO_SALUD) lesionado += 1;
+        else noConvocado += 1;
+        return;
+      }
+
       if (motivo === MOTIVO_DOBLAJE) {
         doblaje += 1;
         return;
@@ -390,6 +405,8 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
       ausencias += 1;
       if (motivo === MOTIVO_JUSTIFICADA) justificada += 1;
       else if (motivo === MOTIVO_SALUD) salud += 1;
+      else if (motivo === MOTIVO_LESIONADO) lesionado += 1;
+      else if (motivo === MOTIVO_NO_CONVOCADO) noConvocado += 1;
       else noJustificada += 1;
       return;
     }
@@ -408,6 +425,8 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     noJustificada,
     salud,
     doblaje,
+    noConvocado,
+    lesionado,
     notaMedia: countNotas > 0 ? sumaNotas / countNotas : null,
     notasCount: countNotas,
   };
@@ -424,6 +443,8 @@ export function combinarStatsJugadora(...listas) {
       noJustificada: 0,
       salud: 0,
       doblaje: 0,
+      noConvocado: 0,
+      lesionado: 0,
       notaMedia: null,
       notasCount: 0,
     };
@@ -441,6 +462,8 @@ export function combinarStatsJugadora(...listas) {
     noJustificada: partes.reduce((acc, p) => acc + (p.noJustificada || 0), 0),
     salud: partes.reduce((acc, p) => acc + (p.salud || 0), 0),
     doblaje: partes.reduce((acc, p) => acc + (p.doblaje || 0), 0),
+    noConvocado: partes.reduce((acc, p) => acc + (p.noConvocado || 0), 0),
+    lesionado: partes.reduce((acc, p) => acc + (p.lesionado || 0), 0),
     notaMedia: notasCount > 0 ? sumaNotas / notasCount : null,
     notasCount,
   };

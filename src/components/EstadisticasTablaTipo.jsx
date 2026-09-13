@@ -140,11 +140,15 @@ export function EstadisticasTablaTipo({
             <span
               style={{ textAlign: "center", color: stats.ausencias > 0 ? error : textMuted, fontWeight: 700, fontSize: 13 }}
               title={
-                stats.ausencias > 0
-                  ? `Justificada ${stats.justificada || 0} · No justificada ${stats.noJustificada || 0} · Salud ${stats.salud || 0}${(stats.doblaje || 0) > 0 ? ` · Doblaje ${stats.doblaje}` : ""}`
-                  : ((stats.doblaje || 0) > 0
-                    ? `Doblaje ${stats.doblaje} (no cuenta como ausencia)`
-                    : (esPartido ? "No convocadas" : "Ausencias"))
+                esPartido
+                  ? (stats.ausencias > 0 || (stats.lesionado || 0) > 0 || (stats.noConvocado || 0) > 0
+                    ? `No convocado/a ${stats.noConvocado || 0} · Lesionado/a ${stats.lesionado || 0}`
+                    : "No convocadas")
+                  : (stats.ausencias > 0
+                    ? `Justificada ${stats.justificada || 0} · No justificada ${stats.noJustificada || 0} · Salud ${stats.salud || 0}${(stats.doblaje || 0) > 0 ? ` · Doblaje ${stats.doblaje}` : ""}`
+                    : ((stats.doblaje || 0) > 0
+                      ? `Doblaje ${stats.doblaje} (no cuenta como ausencia)`
+                      : "Ausencias"))
               }
             >
               {stats.ausencias}

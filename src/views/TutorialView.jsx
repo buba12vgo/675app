@@ -177,7 +177,9 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         <h2>7. Partido</h2>
         <p>
           En un partido rellenas rival y si es en casa o fuera. La convocatoria es la asistencia del partido:
-          convocada o no, y nota si juega. En canasta grande aparece también <strong>Planificación</strong> (sextos).
+          convocada o no, y nota si juega. Si no convoca, el motivo es <strong>No convocada</strong> o{" "}
+          <strong>Lesionada</strong> (en equipos masculinos: No convocado / Lesionado).
+          En canasta grande aparece también <strong>Planificación</strong> (sextos).
         </p>
         <Figure
           src="/tutorial/07_partido.jpg"

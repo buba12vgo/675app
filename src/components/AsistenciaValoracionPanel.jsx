@@ -1,8 +1,8 @@
 import { getEquipoLabels, GENERO_FEMENINO } from "../lib/appUtils.js";
 import { BuscadorJugadorasClub } from "./BuscadorJugadorasClub.jsx";
 import {
-  MOTIVOS_AUSENCIA,
-  MOTIVO_AUSENCIA_DEFAULT,
+  motivosAusenciaParaTipo,
+  motivoAusenciaDefaultParaTipo,
 } from "../lib/motivosAusencia.js";
 
 export function AsistenciaValoracionPanel({
@@ -14,6 +14,8 @@ export function AsistenciaValoracionPanel({
   setValoraciones,
   motivosAusencia = {},
   setMotivosAusencia,
+  tipoSesion = "entreno",
+  generoEquipo = GENERO_FEMENINO,
   accent,
   inputBorder,
   textMuted,
@@ -37,7 +39,9 @@ export function AsistenciaValoracionPanel({
   inputBg,
   readOnly = false,
 }) {
-  const playerLabels = labels || getEquipoLabels(GENERO_FEMENINO);
+  const playerLabels = labels || getEquipoLabels(generoEquipo);
+  const motivosDisponibles = motivosAusenciaParaTipo(tipoSesion, generoEquipo);
+  const motivoDefault = motivoAusenciaDefaultParaTipo(tipoSesion);
   const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
   const totalJugadoras = jugadoras.length;
   const verdePresente = success;
@@ -79,7 +83,7 @@ export function AsistenciaValoracionPanel({
     setValoraciones({});
     setMotivosAusencia?.(() => {
       const nuevo = {};
-      jugadoras.forEach(j => { nuevo[j.id] = MOTIVO_AUSENCIA_DEFAULT; });
+      jugadoras.forEach(j => { nuevo[j.id] = motivoDefault; });
       return nuevo;
     });
   };
@@ -304,7 +308,7 @@ export function AsistenciaValoracionPanel({
                     </div>
                   ) : (
                     <div className="asistencia-motivo-group" role="group" aria-label="Motivo de ausencia">
-                      {MOTIVOS_AUSENCIA.map((motivo) => {
+                      {motivosDisponibles.map((motivo) => {
                         const activo = motivoActual === motivo.id;
                         return (
                           <button

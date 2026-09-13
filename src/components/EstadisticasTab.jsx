@@ -233,6 +233,7 @@ export function EstadisticasTab({
           rango={rango}
           onBack={() => onFichaIdChange(null)}
           labels={equipoLabels}
+          generoEquipo={equipoActivo.genero}
           accent={accent}
           accentLight={accentLight}
           colorPartido={colorPartido}

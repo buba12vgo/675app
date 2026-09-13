@@ -295,15 +295,32 @@ describe("calcularEstadisticasJugadoras", () => {
     expect(porcentajeAsistencia(stats[0].entrenos)).toBe(50);
   });
 
+  it("en partidos solo cuenta no convocado y lesionado", () => {
+    const jugadoras = [{ id: "j1", nombre: "Ana", dorsal: 1 }];
+    const sesiones = [
+      { tipo: "partido", fecha: "2026-08-01", asistencias: { j1: true }, valoraciones: { j1: 4 } },
+      { tipo: "partido", fecha: "2026-08-02", asistencias: { j1: false }, motivosAusencia: { j1: "no_convocado" } },
+      { tipo: "partido", fecha: "2026-08-03", asistencias: { j1: false }, motivosAusencia: { j1: "lesionado" } },
+      { tipo: "partido", fecha: "2026-08-04", asistencias: { j1: false }, motivosAusencia: { j1: "salud" } },
+    ];
+    const stats = calcularEstadisticasJugadoras(jugadoras, sesiones);
+    expect(stats[0].partidos.presentes).toBe(1);
+    expect(stats[0].partidos.ausencias).toBe(3);
+    expect(stats[0].partidos.noConvocado).toBe(1);
+    expect(stats[0].partidos.lesionado).toBe(2); // lesionado + salud legacy
+    expect(stats[0].partidos.justificada).toBe(0);
+    expect(stats[0].partidos.salud).toBe(0);
+  });
+
   it("combina entrenos y partidos y desglosa ausencias", () => {
     const combinadas = combinarStatsJugadora(
-      { total: 2, presentes: 1, ausencias: 1, justificada: 1, noJustificada: 0, salud: 0, doblaje: 1, notaMedia: 4, notasCount: 1 },
-      { total: 1, presentes: 0, ausencias: 1, justificada: 0, noJustificada: 0, salud: 1, doblaje: 0, notaMedia: 5, notasCount: 1 },
+      { total: 2, presentes: 1, ausencias: 1, justificada: 1, noJustificada: 0, salud: 0, doblaje: 1, noConvocado: 0, lesionado: 0, notaMedia: 4, notasCount: 1 },
+      { total: 1, presentes: 0, ausencias: 1, justificada: 0, noJustificada: 0, salud: 0, doblaje: 0, noConvocado: 1, lesionado: 0, notaMedia: 5, notasCount: 1 },
     );
     expect(combinadas.total).toBe(3);
     expect(combinadas.ausencias).toBe(2);
     expect(combinadas.justificada).toBe(1);
-    expect(combinadas.salud).toBe(1);
+    expect(combinadas.noConvocado).toBe(1);
     expect(combinadas.doblaje).toBe(1);
     expect(combinadas.notaMedia).toBe(4.5);
     expect(porcentajeAsistencia(combinadas)).toBe(33);

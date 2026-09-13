@@ -1,5 +1,8 @@
 import { IconChevronLeft } from "./icons.jsx";
-import { MOTIVOS_AUSENCIA } from "../lib/motivosAusencia.js";
+import {
+  MOTIVOS_AUSENCIA_ENTRENO,
+  motivosAusenciaParaTipo,
+} from "../lib/motivosAusencia.js";
 import { combinarStatsJugadora, porcentajeAsistencia } from "../lib/appUtils.js";
 
 function Metric({ label, value, color, muted }) {
@@ -11,6 +14,17 @@ function Metric({ label, value, color, muted }) {
   );
 }
 
+function valorMotivo(stats, motivoId) {
+  return {
+    justificada: stats.justificada || 0,
+    no_justificada: stats.noJustificada || 0,
+    salud: stats.salud || 0,
+    doblaje: stats.doblaje || 0,
+    no_convocado: stats.noConvocado || 0,
+    lesionado: stats.lesionado || 0,
+  }[motivoId] || 0;
+}
+
 function BloqueTipo({
   titulo,
   color,
@@ -18,6 +32,7 @@ function BloqueTipo({
   stats,
   labelPresentes,
   labelAusencias,
+  motivos,
   text,
   textMuted,
   textSecondary,
@@ -54,13 +69,8 @@ function BloqueTipo({
           Tipo de ausencia
         </div>
         <div className="stats-ficha-ausencias__grid">
-          {MOTIVOS_AUSENCIA.map((motivo) => {
-            const value = {
-              justificada: stats.justificada || 0,
-              no_justificada: stats.noJustificada || 0,
-              salud: stats.salud || 0,
-              doblaje: stats.doblaje || 0,
-            }[motivo.id] || 0;
+          {motivos.map((motivo) => {
+            const value = valorMotivo(stats, motivo.id);
             const esDoblaje = motivo.id === "doblaje";
             return (
               <div key={motivo.id} className="stats-ficha-ausencia" style={{ borderColor: inputBorder }}>
@@ -88,6 +98,7 @@ export function FichaJugadoraStats({
   rango,
   onBack,
   labels,
+  generoEquipo = "femenino",
   accent,
   accentLight,
   colorPartido,
@@ -106,6 +117,10 @@ export function FichaJugadoraStats({
   const periodo = rango?.inicio && rango?.fin
     ? `${rango.inicio.split("-").reverse().join("/")} — ${rango.fin.split("-").reverse().join("/")}`
     : "Todas las sesiones";
+  const motivosEntreno = MOTIVOS_AUSENCIA_ENTRENO;
+  const motivosPartido = motivosAusenciaParaTipo("partido", generoEquipo);
+  const motivosResumen = [...motivosEntreno, ...motivosPartido];
+  const labelNoConvocado = generoEquipo === "masculino" ? "No convocado" : "No convocada";
 
   return (
     <div className="stats-ficha">
@@ -142,6 +157,7 @@ export function FichaJugadoraStats({
         stats={total}
         labelPresentes="Asist. / Conv."
         labelAusencias="Ausencias"
+        motivos={motivosResumen}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -157,6 +173,7 @@ export function FichaJugadoraStats({
         stats={entrenos}
         labelPresentes="Asistencias"
         labelAusencias="Ausencias"
+        motivos={motivosEntreno}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -171,7 +188,8 @@ export function FichaJugadoraStats({
         colorLight={colorPartidoLight}
         stats={partidos}
         labelPresentes="Convocatorias"
-        labelAusencias="No convocada"
+        labelAusencias={labelNoConvocado}
+        motivos={motivosPartido}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -187,6 +205,7 @@ export function FichaJugadoraStats({
         stats={fisicos || {}}
         labelPresentes="Asistencias"
         labelAusencias="Ausencias"
+        motivos={motivosEntreno}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}

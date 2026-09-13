@@ -2,16 +2,65 @@ export const MOTIVO_JUSTIFICADA = "justificada";
 export const MOTIVO_NO_JUSTIFICADA = "no_justificada";
 export const MOTIVO_SALUD = "salud";
 export const MOTIVO_DOBLAJE = "doblaje";
-export const MOTIVO_AUSENCIA_DEFAULT = MOTIVO_NO_JUSTIFICADA;
+export const MOTIVO_NO_CONVOCADO = "no_convocado";
+export const MOTIVO_LESIONADO = "lesionado";
 
-export const MOTIVOS_AUSENCIA = [
+export const MOTIVO_AUSENCIA_DEFAULT = MOTIVO_NO_JUSTIFICADA;
+export const MOTIVO_PARTIDO_DEFAULT = MOTIVO_NO_CONVOCADO;
+
+/** Motivos de entreno / físico */
+export const MOTIVOS_AUSENCIA_ENTRENO = [
   { id: MOTIVO_JUSTIFICADA, label: "Justificada", short: "Just." },
   { id: MOTIVO_NO_JUSTIFICADA, label: "No justificada", short: "No just." },
   { id: MOTIVO_SALUD, label: "Salud", short: "Salud" },
   { id: MOTIVO_DOBLAJE, label: "Doblaje", short: "Dobl." },
 ];
 
-const MOTIVO_IDS = new Set(MOTIVOS_AUSENCIA.map((m) => m.id));
+/** Motivos de partido (labels por género) */
+export const MOTIVOS_AUSENCIA_PARTIDO = [
+  {
+    id: MOTIVO_NO_CONVOCADO,
+    labelF: "No convocada",
+    labelM: "No convocado",
+    shortF: "No conv.",
+    shortM: "No conv.",
+  },
+  {
+    id: MOTIVO_LESIONADO,
+    labelF: "Lesionada",
+    labelM: "Lesionado",
+    shortF: "Lesion.",
+    shortM: "Lesion.",
+  },
+];
+
+/** Lista legacy / entreno (compat) */
+export const MOTIVOS_AUSENCIA = MOTIVOS_AUSENCIA_ENTRENO;
+
+const MOTIVO_IDS = new Set([
+  ...MOTIVOS_AUSENCIA_ENTRENO.map((m) => m.id),
+  ...MOTIVOS_AUSENCIA_PARTIDO.map((m) => m.id),
+]);
+
+export function esTipoPartido(tipo) {
+  return tipo === "partido";
+}
+
+export function motivoAusenciaDefaultParaTipo(tipo) {
+  return esTipoPartido(tipo) ? MOTIVO_PARTIDO_DEFAULT : MOTIVO_AUSENCIA_DEFAULT;
+}
+
+export function motivosAusenciaParaTipo(tipo, genero = "femenino") {
+  if (esTipoPartido(tipo)) {
+    const esMasc = genero === "masculino";
+    return MOTIVOS_AUSENCIA_PARTIDO.map((m) => ({
+      id: m.id,
+      label: esMasc ? m.labelM : m.labelF,
+      short: esMasc ? m.shortM : m.shortF,
+    }));
+  }
+  return MOTIVOS_AUSENCIA_ENTRENO;
+}
 
 export function normalizeMotivoAusencia(value) {
   return MOTIVO_IDS.has(value) ? value : null;
@@ -27,11 +76,12 @@ export function normalizeMotivosAusenciaMap(value) {
   return next;
 }
 
-export function motivoAusenciaParaGuardar(asistencias, motivos, ids) {
+export function motivoAusenciaParaGuardar(asistencias, motivos, ids, tipoSesion = null) {
+  const fallback = motivoAusenciaDefaultParaTipo(tipoSesion);
   const mapa = {};
   ids.forEach((id) => {
     if (asistencias[id]) return;
-    mapa[id] = normalizeMotivoAusencia(motivos[id]) || MOTIVO_AUSENCIA_DEFAULT;
+    mapa[id] = normalizeMotivoAusencia(motivos[id]) || fallback;
   });
   return mapa;
 }
