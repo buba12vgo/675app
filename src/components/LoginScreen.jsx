@@ -2,7 +2,9 @@ import { useState } from "react";
 import { BlurredBackground } from "./BlurredBackground.jsx";
 import { CourtWatermark } from "./CourtWatermark.jsx";
 import { ThemeToggleButton } from "./ThemeToggleButton.jsx";
-import { IconBasketball, IconEye, IconEyeOff, IconHelp } from "./icons.jsx";
+import { IconEye, IconEyeOff, IconHelp } from "./icons.jsx";
+
+const LOGO_SRC = "/logo-675.png";
 
 export function LoginScreen({
   isDarkMode,
@@ -27,7 +29,7 @@ export function LoginScreen({
       <CourtWatermark className="login-court" />
       <header className="login-topbar">
         <div className="login-topbar__brand">
-          <IconBasketball size={22} />
+          <img className="login-topbar__logo" src={LOGO_SRC} alt="" width={28} height={28} decoding="async" />
           <span>675app</span>
         </div>
         <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
@@ -35,8 +37,7 @@ export function LoginScreen({
       <main className="login-main">
         <div className="login-card">
           <div className="login-card__emblem" aria-hidden="true">
-            <span className="login-card__emblem-ring" />
-            <IconBasketball size={28} />
+            <img className="login-card__logo" src={LOGO_SRC} alt="" width={72} height={72} decoding="async" />
           </div>
           <p className="login-card__wordmark">
             675<span>app</span>
