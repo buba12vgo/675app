@@ -5,6 +5,16 @@ import { Stitch, StitchToolClient } from "@google/stitch-sdk";
 
 export const STITCH_HOST = "https://stitch.googleapis.com/mcp";
 
+const PROJECTS_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../projects.json",
+);
+
+export function loadStitchProjects() {
+  if (!existsSync(PROJECTS_PATH)) return {};
+  return JSON.parse(readFileSync(PROJECTS_PATH, "utf8"));
+}
+
 function findEnvFile() {
   const fromSkill = resolve(
     dirname(fileURLToPath(import.meta.url)),
@@ -46,7 +56,7 @@ export function getStitchApiKey() {
   const key = process.env.STITCH_API_KEY?.trim();
   if (!key) {
     throw new Error(
-      "Falta STITCH_API_KEY. Cópiala en `.env` (ver `.env.example`).",
+      "Falta STITCH_API_KEY. En local cópiala en `.env`; en Cloud Agents añádela como secreto del entorno.",
     );
   }
   return key;
@@ -77,12 +87,25 @@ export async function pingStitch() {
   try {
     const { tools } = await client.listTools();
     const projects = await client.callTool("list_projects", {});
+    const projectItems =
+      projects?.projects ??
+      projects?.data?.projects ??
+      (Array.isArray(projects) ? projects : []);
     return {
       ok: true,
       host: process.env.STITCH_HOST || STITCH_HOST,
       toolCount: tools.length,
       toolNames: tools.map((tool) => tool.name),
-      projects,
+      knownProjects: loadStitchProjects(),
+      projects: Array.isArray(projectItems)
+        ? projectItems.map((project) => ({
+            id: String(project.name || project.projectId || "").replace(
+              /^projects\//,
+              "",
+            ),
+            title: project.title || null,
+          }))
+        : [],
     };
   } finally {
     await client.close();
@@ -97,10 +120,6 @@ function isMain() {
 
 if (isMain()) {
   const result = await pingStitch();
-  const projectItems =
-    result.projects?.projects ??
-    result.projects?.data?.projects ??
-    (Array.isArray(result.projects) ? result.projects : []);
   console.log(
     JSON.stringify(
       {
@@ -108,7 +127,9 @@ if (isMain()) {
         host: result.host,
         toolCount: result.toolCount,
         toolNames: result.toolNames,
-        projectCount: Array.isArray(projectItems) ? projectItems.length : null,
+        projectCount: result.projects.length,
+        projects: result.projects,
+        knownProjects: result.knownProjects,
       },
       null,
       2,

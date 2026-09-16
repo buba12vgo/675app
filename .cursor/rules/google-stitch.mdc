@@ -1,0 +1,14 @@
+---
+description: Google Stitch para diseñar UI en 675app y en Cloud Agents
+alwaysApply: true
+---
+
+# Google Stitch
+
+Si diseñas o rediseñas UI, lee `.cursor/skills/google-stitch/SKILL.md` y usa
+`.cursor/skills/google-stitch/scripts/connect.mjs`.
+
+- Clave: `STITCH_API_KEY` en `.env` (local) o secreto del entorno Cloud Agent.
+- Proyecto Stitch de este repo: `17811707176371225399` (675app).
+- El otro repo (`cuadrapp`) usa `604240272257492994`.
+- No subas la clave a git ni la escribas en PRs o logs.
