@@ -176,15 +176,15 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-partido">
         <h2>7. Partido</h2>
         <p>
-          En un partido rellenas rival y si es en casa o fuera. La convocatoria es la asistencia del partido:
-          convocada o no, y nota si juega. Si no convoca, el motivo es <strong>No convocada</strong> o{" "}
-          <strong>Lesionada</strong> (en equipos masculinos: No convocado / Lesionado).
+          En un partido rellenas rival, si es en casa o fuera, y el resultado (puntos a favor y en contra).
+          La convocatoria es la asistencia del partido: convocada o no, y nota si juega. Si no convoca, el motivo es{" "}
+          <strong>No convocada</strong> o <strong>Lesionada</strong> (en equipos masculinos: No convocado / Lesionado).
           En canasta grande aparece también <strong>Planificación</strong> (sextos).
         </p>
         <Figure
           src="/tutorial/07_partido.jpg"
-          alt="Datos de un partido: rival y local o visitante"
-          caption="Datos del partido: rival y condición."
+          alt="Datos de un partido: rival, local o visitante y resultado"
+          caption="Datos del partido: rival, condición y resultado."
         />
         <Figure
           src="/tutorial/08_convocatoria.jpg"

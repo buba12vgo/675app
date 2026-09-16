@@ -4,6 +4,7 @@ import {
   getMetricasEvento,
 } from "../lib/appUtils.js";
 import { parseEjerciciosLista } from "../lib/ejerciciosLista.js";
+import { etiquetaResultadoPartido } from "../lib/partidoResultado.js";
 import { IconCalendar } from "./icons.jsx";
 
 export function HomeEventCard({
@@ -75,7 +76,11 @@ export function HomeEventCard({
             <p className="home-event-card__meta" style={{ color: textMuted }}>
               {formatearFechaCorta(sesion.fecha)}
               {esPartido
-                ? (sesion.local === "fuera" ? " · Fuera" : " · En casa")
+                ? (() => {
+                    const condicion = sesion.local === "fuera" ? " · Fuera" : " · En casa";
+                    const resultado = etiquetaResultadoPartido(sesion.puntosFavor, sesion.puntosContra);
+                    return `${condicion}${resultado ? ` · ${resultado}` : ""}`;
+                  })()
                 : (() => {
                     const primero = parseEjerciciosLista(sesion.ejercicios)[0];
                     if (!primero) return "";

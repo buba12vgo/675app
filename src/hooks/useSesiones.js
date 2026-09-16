@@ -32,6 +32,12 @@ import {
   planificacionParaGuardar,
   toggleSexto,
 } from "../lib/planificacionSextos.js";
+import { normalizePuntosPartido } from "../lib/partidoResultado.js";
+
+function puntosPartidoDesdeDoc(value) {
+  const n = normalizePuntosPartido(value);
+  return n === null ? "" : String(n);
+}
 
 function aplicarSesionAlEstado(data, id, setters) {
   const {
@@ -47,6 +53,8 @@ function aplicarSesionAlEstado(data, id, setters) {
     setJugadorasExternasIds,
     setMotivosAusencia,
     setPlanificacionSextos,
+    setPuntosFavorPartido,
+    setPuntosContraPartido,
   } = setters;
   setSesionDoc(data);
   setSesionId(id);
@@ -60,6 +68,8 @@ function aplicarSesionAlEstado(data, id, setters) {
   setJugadorasExternasIds(normalizeExternasIds(data.jugadorasExternas));
   setMotivosAusencia(normalizeMotivosAusenciaMap(data.motivosAusencia));
   setPlanificacionSextos(normalizePlanificacionSextos(data.planificacionSextos));
+  setPuntosFavorPartido?.(puntosPartidoDesdeDoc(data.puntosFavor));
+  setPuntosContraPartido?.(puntosPartidoDesdeDoc(data.puntosContra));
 }
 
 export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab }) {
@@ -74,6 +84,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [tipoSesion, setTipoSesion] = useState(TIPO_SESION_ENTRENO);
   const [rivalPartido, setRivalPartido] = useState("");
   const [localPartido, setLocalPartido] = useState("casa");
+  const [puntosFavorPartido, setPuntosFavorPartido] = useState("");
+  const [puntosContraPartido, setPuntosContraPartido] = useState("");
   const [sesionVista, setSesionVista] = useState("datos");
   const [sesionesEquipo, setSesionesEquipo] = useState([]);
   const [sesionesLoading, setSesionesLoading] = useState(false);
@@ -94,6 +106,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setTipoSesion,
     setRivalPartido,
     setLocalPartido,
+    setPuntosFavorPartido,
+    setPuntosContraPartido,
     setSesionVista,
     setJugadorasExternasIds,
     setMotivosAusencia,
@@ -332,6 +346,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         ejercicios: "",
         rival: "",
         local: "casa",
+        puntosFavor: null,
+        puntosContra: null,
         asistencias: asist,
         valoraciones: vals,
         jugadorasExternas: [],
@@ -388,6 +404,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       if (tipoNorm === TIPO_SESION_PARTIDO) {
         payload.rival = rivalPartido.trim();
         payload.local = localPartido;
+        payload.puntosFavor = normalizePuntosPartido(puntosFavorPartido);
+        payload.puntosContra = normalizePuntosPartido(puntosContraPartido);
         payload.tematica = "";
         payload.ejercicios = "";
         payload.planificacionSextos = planificacionLimpia;
@@ -396,6 +414,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         payload.ejercicios = ejercicios;
         payload.rival = "";
         payload.local = "casa";
+        payload.puntosFavor = null;
+        payload.puntosContra = null;
         if (tipoNorm === TIPO_SESION_FISICO) {
           payload.planificacionSextos = {};
         }
@@ -526,6 +546,10 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setRivalPartido,
     localPartido,
     setLocalPartido,
+    puntosFavorPartido,
+    setPuntosFavorPartido,
+    puntosContraPartido,
+    setPuntosContraPartido,
     sesionVista,
     setSesionVista,
     sesionesEquipo,

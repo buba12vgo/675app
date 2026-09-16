@@ -232,6 +232,10 @@ function App() {
     setRivalPartido,
     localPartido,
     setLocalPartido,
+    puntosFavorPartido,
+    setPuntosFavorPartido,
+    puntosContraPartido,
+    setPuntosContraPartido,
     sesionVista,
     setSesionVista,
     sesionesEquipo,
@@ -485,6 +489,10 @@ function App() {
       setRivalPartido={setRivalPartido}
       localPartido={localPartido}
       setLocalPartido={setLocalPartido}
+      puntosFavorPartido={puntosFavorPartido}
+      setPuntosFavorPartido={setPuntosFavorPartido}
+      puntosContraPartido={puntosContraPartido}
+      setPuntosContraPartido={setPuntosContraPartido}
       tematica={tematica}
       setTematica={setTematica}
       ejercicios={ejercicios}

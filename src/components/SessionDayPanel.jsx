@@ -8,6 +8,7 @@ import {
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
 import { SessionForm } from "./SessionForm.jsx";
+import { formatearResultadoPartido } from "../lib/partidoResultado.js";
 
 function badgeColors(tipo, colors) {
   const t = normalizarTipoSesion({ tipo });
@@ -157,7 +158,11 @@ export function SessionDayPanel({
                         <span style={{ fontWeight: 700 }}>{etiquetaTipoSesion(s.tipo)}</span>
                         <span style={{ color: textMuted, fontSize: 13 }}>
                           {normalizarTipoSesion(s) === TIPO_SESION_PARTIDO
-                            ? (s.rival?.trim() || "Rival por confirmar")
+                            ? (() => {
+                                const rival = s.rival?.trim() || "Rival por confirmar";
+                                const marcador = formatearResultadoPartido(s.puntosFavor, s.puntosContra);
+                                return marcador ? `${rival} · ${marcador}` : rival;
+                              })()
                             : (s.tematica?.trim() || "Sin temática")}
                         </span>
                       </button>

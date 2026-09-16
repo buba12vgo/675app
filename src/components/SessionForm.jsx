@@ -8,6 +8,7 @@ import {
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
 import { EjerciciosListaEditor } from "./EjerciciosListaEditor.jsx";
+import { etiquetaResultadoPartido } from "../lib/partidoResultado.js";
 
 export function SessionForm({
   tipoSesion,
@@ -17,6 +18,10 @@ export function SessionForm({
   onRivalPartidoChange,
   localPartido,
   onLocalPartidoChange,
+  puntosFavorPartido = "",
+  onPuntosFavorPartidoChange = () => {},
+  puntosContraPartido = "",
+  onPuntosContraPartidoChange = () => {},
   tematica,
   onTematicaChange,
   ejercicios,
@@ -72,6 +77,19 @@ export function SessionForm({
     !mostrarPlanificacion && sesionVista === "planificacion" ? "datos" : sesionVista;
   const colorSesion = esPartido ? colorPartido : esFisico ? colorFisico || accent : accent;
   const disabledFields = readOnly || guardandoSesion;
+  const resultadoEtiqueta = esPartido
+    ? etiquetaResultadoPartido(puntosFavorPartido, puntosContraPartido)
+    : null;
+
+  const onPuntosChange = (setter) => (e) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      setter("");
+      return;
+    }
+    if (!/^\d{0,3}$/.test(raw)) return;
+    setter(raw);
+  };
 
   return (
     <form
@@ -200,6 +218,81 @@ export function SessionForm({
                     {op === "casa" ? "En casa" : "Fuera"}
                   </button>
                 ))}
+              </div>
+              <label
+                style={{
+                  display: "block",
+                  color: textSecondary,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginTop: 14,
+                  marginBottom: 8,
+                }}
+              >
+                Resultado
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="A favor"
+                  aria-label="Puntos a favor"
+                  value={puntosFavorPartido}
+                  onChange={onPuntosChange(onPuntosFavorPartidoChange)}
+                  disabled={disabledFields}
+                  readOnly={readOnly}
+                  style={{
+                    flex: 1,
+                    padding: "11px 13px",
+                    fontSize: 16,
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: 9,
+                    background: cardBgElevated,
+                    color: text,
+                    outline: "none",
+                    fontWeight: 600,
+                    textAlign: "center",
+                  }}
+                />
+                <span style={{ color: textMuted, fontWeight: 700, fontSize: 16 }} aria-hidden="true">
+                  —
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="En contra"
+                  aria-label="Puntos en contra"
+                  value={puntosContraPartido}
+                  onChange={onPuntosChange(onPuntosContraPartidoChange)}
+                  disabled={disabledFields}
+                  readOnly={readOnly}
+                  style={{
+                    flex: 1,
+                    padding: "11px 13px",
+                    fontSize: 16,
+                    border: `1px solid ${inputBorder}`,
+                    borderRadius: 9,
+                    background: cardBgElevated,
+                    color: text,
+                    outline: "none",
+                    fontWeight: 600,
+                    textAlign: "center",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  marginTop: 8,
+                  color: textMuted,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
+                {resultadoEtiqueta
+                  ? resultadoEtiqueta
+                  : "Opcional. Déjalo vacío si aún no se ha jugado."}
               </div>
             </div>
           ) : (
