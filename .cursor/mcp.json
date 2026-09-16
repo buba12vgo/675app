@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "stitch": {
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.cursor/skills/google-stitch/scripts/mcp-proxy.mjs"
+      ],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  }
+}

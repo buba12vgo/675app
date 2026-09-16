@@ -23,7 +23,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['playwright.config.js', 'scripts/**/*.{js,mjs}', 'tests/**/*.{js,mjs}'],
+    files: ['playwright.config.js', 'scripts/**/*.{js,mjs}', 'tests/**/*.{js,mjs}', '.cursor/skills/**/*.{js,mjs}'],
     languageOptions: {
       globals: globals.node,
     },
