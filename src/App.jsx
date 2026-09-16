@@ -30,6 +30,7 @@ import {
 } from "./components/icons.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
 import { BlurredBackground } from "./components/BlurredBackground.jsx";
+import { CourtWatermark } from "./components/CourtWatermark.jsx";
 import { AppErrorBanner } from "./components/AppErrorBanner.jsx";
 import { UserOptionsOverlay } from "./views/UserOptionsOverlay.jsx";
 import { ClubMemberContent } from "./views/ClubMemberContent.jsx";
@@ -382,7 +383,7 @@ function App() {
     tableHeaderAccent,
     cardBgElevated,
     surface,
-    cardShadow,
+    cardShadow: _cardShadow,
     inputBg,
     inputBorder,
     text,
@@ -430,6 +431,7 @@ function App() {
       return (
         <div className="tutorial-page">
           <BlurredBackground isDark={isDarkMode} />
+          <CourtWatermark className="court-watermark" />
           <TutorialView
             onBack={() => setShowTutorial(false)}
             textMuted={textMuted}
@@ -740,8 +742,8 @@ function App() {
   const headerBarStyle = {
     ...glassCardStyle,
     borderRadius: compactHeader ? 12 : 16,
-    boxShadow: cardShadow,
-    border: `1px solid ${inputBorder}`,
+    boxShadow: "inset 0 1px 0 rgba(246, 241, 234, 0.07), 0 12px 28px -10px rgba(0, 0, 0, 0.35)",
+    border: `1px solid ${accentBorder}`,
   };
 
   return (
@@ -753,6 +755,7 @@ function App() {
       style={{ fontFamily: "inherit" }}
     >
       <BlurredBackground isDark={isDarkMode} />
+      <CourtWatermark className="court-watermark" />
       <div className="device-preview-viewport">
         <div className="device-preview-frame">
           <AppHeader
@@ -782,8 +785,8 @@ function App() {
               className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`}
               style={{
                 ...glassCardStyle,
-                boxShadow: cardShadow,
-                border: `1px solid ${inputBorder}`,
+                boxShadow: "inset 0 1px 0 rgba(246, 241, 234, 0.07), 0 16px 36px -8px rgba(0, 0, 0, 0.35)",
+                border: `1px solid ${accentBorder}`,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "flex-start",
