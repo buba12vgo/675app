@@ -129,6 +129,35 @@ export function IconX({ size = 18, color = "currentColor" }) {
   );
 }
 
+export function IconHelp({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 3.1c-.7.4-1.1.8-1.1 1.7" />
+      <circle cx="12" cy="17" r="0.9" fill={color} stroke="none" />
+    </svg>
+  );
+}
+
+export function IconEye({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+export function IconEyeOff({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 3l18 18" />
+      <path d="M10.5 6.2A9.5 9.5 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-3.2 3.6" />
+      <path d="M6.7 8.4A16 16 0 0 0 2.5 12s3.5 7 9.5 7c1.3 0 2.5-.2 3.6-.6" />
+    </svg>
+  );
+}
+
 export function IconCoordination({ size = 20, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
