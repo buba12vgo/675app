@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+.agents/
+skills-lock.json
 test-results/
 playwright-report/
 blob-report/
