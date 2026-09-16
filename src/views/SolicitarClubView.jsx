@@ -1,11 +1,7 @@
 import { EmptyState } from "../components/EmptyState.jsx";
 
 export function SolicitarClubView({
-  accent,
   accentLight,
-  accentSoft,
-  accentBorder,
-  text,
   solicitudClubId,
   solicitudClubNombre,
   selectClubLoading,
@@ -13,27 +9,11 @@ export function SolicitarClubView({
   onSolicitarClub,
 }) {
   return (
-    <div className="section-heading" style={{ marginTop: 65, fontSize: 23, fontWeight: 800 }}>
-      <div>
-        Paso 1:
-        <br />
-        <span style={{ color: accent }}>Solicita unirte a tu Club</span>
-      </div>
+    <div className="section-heading tactical-page" style={{ marginTop: 24 }}>
+      <h2 className="tactical-title">Paso 1</h2>
+      <p className="tactical-lead">Solicita unirte a tu Club</p>
       {solicitudClubId && (
-        <div
-          style={{
-            marginTop: 20,
-            width: "98%",
-            padding: "14px 16px",
-            borderRadius: 12,
-            background: accentSoft,
-            border: `1px solid ${accentBorder}`,
-            color: text,
-            fontSize: 14,
-            lineHeight: 1.5,
-            fontWeight: 500,
-          }}
-        >
+        <div className="notice-banner" style={{ marginTop: 8, width: "98%" }}>
           Tu solicitud para{" "}
           <span style={{ color: accentLight, fontWeight: 700 }}>{solicitudClubNombre}</span> está pendiente
           de aprobación por el superadmin.

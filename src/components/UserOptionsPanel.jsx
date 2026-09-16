@@ -6,14 +6,11 @@ export function UserOptionsPanel({
   email,
   accent,
   accentLight,
-  accentSoft,
-  accentBorder,
   text,
   textSecondary,
   textMuted,
   inputBorder,
   inputBg,
-  cardBgElevated,
   clubNombre,
   clubId,
   solicitudClubNombre,
@@ -24,11 +21,9 @@ export function UserOptionsPanel({
   onOpenTutorial,
 }) {
   return (
-    <div className="user-options-panel content-medium" style={{ width: "96%", margin: "0 auto", padding: "8px 0 24px" }}>
-      <h2 style={{ color: accent, fontWeight: 800, fontSize: 26, textAlign: "center", marginBottom: 8 }}>Opciones</h2>
-      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 16, fontSize: 14 }}>
-        Personaliza tu perfil en la app.
-      </p>
+    <div className="user-options-panel content-medium tactical-page" style={{ width: "96%", margin: "0 auto" }}>
+      <h2 className="tactical-title">Opciones</h2>
+      <p className="tactical-lead">Personaliza tu perfil en la app.</p>
       {onOpenTutorial ? (
         <button
           type="button"
@@ -41,15 +36,9 @@ export function UserOptionsPanel({
       ) : null}
       <form
         onSubmit={onSubmit}
-        className="user-options-form"
-        style={{
-          background: cardBgElevated,
-          border: `1px solid ${inputBorder}`,
-          borderRadius: 16,
-          padding: "20px 18px",
-        }}
+        className="user-options-form tactical-card"
       >
-        <label htmlFor="user-nombre" style={{ display: "block", color: text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>
+        <label htmlFor="user-nombre" className="field-label">
           Tu nombre
         </label>
         <input
@@ -60,18 +49,6 @@ export function UserOptionsPanel({
           placeholder="Ej. Buba"
           maxLength={80}
           required
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            padding: "14px 16px",
-            fontSize: 16,
-            borderRadius: 12,
-            border: `1px solid ${inputBorder}`,
-            background: inputBg,
-            color: text,
-            outline: "none",
-            fontFamily: "inherit",
-          }}
         />
         {email && (
           <div style={{ marginTop: 14, fontSize: 13, color: textMuted }}>
@@ -89,34 +66,15 @@ export function UserOptionsPanel({
       </form>
 
       {esEntrenador && (
-        <div
-          style={{
-            marginTop: 20,
-            background: cardBgElevated,
-            border: `1px solid ${inputBorder}`,
-            borderRadius: 16,
-            padding: "20px 18px",
-          }}
-        >
-          <div style={{ color: text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>Tu club</div>
+        <div className="user-options-club tactical-card">
+          <div className="field-label">Tu club</div>
           {clubNombre ? (
             <div style={{ color: accentLight, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{clubNombre}</div>
           ) : (
             <div style={{ color: textMuted, fontSize: 14, marginBottom: 8 }}>Sin club asignado</div>
           )}
           {solicitudClubId && (
-            <div
-              style={{
-                marginBottom: 12,
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: accentSoft,
-                border: `1px solid ${accentBorder}`,
-                color: text,
-                fontSize: 13,
-                lineHeight: 1.5,
-              }}
-            >
+            <div className="notice-banner" style={{ marginBottom: 12 }}>
               {clubNombre
                 ? <>Cambio pendiente a <span style={{ color: accentLight, fontWeight: 700 }}>{solicitudClubNombre}</span>. El superadmin debe aprobarlo.</>
                 : <>Solicitud pendiente para <span style={{ color: accentLight, fontWeight: 700 }}>{solicitudClubNombre}</span>.</>}

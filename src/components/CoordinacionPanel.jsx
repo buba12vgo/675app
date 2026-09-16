@@ -50,17 +50,17 @@ export function CoordinacionPanel({
   const coordinador = usuarios.find((u) => u.rol === "coordinador");
 
   return (
-    <div className="content-medium" style={{ width: "97%", margin: "0 auto", padding: "8px 0 24px" }}>
-      <h2 style={{ color: accent, fontWeight: 800, fontSize: 26, textAlign: "center", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        <IconCoordination size={24} color={accent} />
+    <div className="content-medium tactical-page" style={{ width: "97%", margin: "0 auto" }}>
+      <h2 className="tactical-title">
+        <IconCoordination size={24} />
         Coordinación
       </h2>
-      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 24, fontSize: 14 }}>
-        Resumen del club <span style={{ color: accentLight, fontWeight: 700 }}>{clubNombre}</span>
+      <p className="tactical-lead">
+        Resumen del club <strong>{clubNombre}</strong>
       </p>
 
-      <div style={{ display: "grid", gap: 16 }}>
-        <div className="club-branding-card" style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
+      <div style={{ display: "grid", gap: 16, width: "100%" }}>
+        <div className="club-branding-card">
           <LogoUpload
             title="Escudo del club"
             subtitle={`Identidad visual de ${clubNombre}`}

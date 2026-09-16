@@ -23,7 +23,7 @@ export function EstadisticasTablaTipo({
   const esPartido = tipo === "partido";
   const esFisico = tipo === "fisico";
   const {
-    accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary,
+    accent, accentLight, colorPartido, colorPartidoLight, text, textMuted, textSecondary: _textSecondary,
     error, success, inputBorder, cardBgElevated,
   } = theme;
   const color = esPartido || esFisico ? colorPartido : accent;
@@ -73,11 +73,11 @@ export function EstadisticasTablaTipo({
 
   if (totalSesiones === 0) {
     return (
-      <div className="stats-section" style={{ width: "100%" }}>
+      <div className="stats-section tactical-card">
         <div className="stats-section-header" style={{ borderLeftColor: color }}>
           <span className="stats-section-dot" style={{ background: color }} />
-          <span style={{ color: text, fontWeight: 700, fontSize: 15 }}>{titulo}</span>
-          <span style={{ color: textMuted, fontSize: 13 }}>0 en el periodo</span>
+          <span className="stats-section-header__title">{titulo}</span>
+          <span className="stats-section-header__meta">0 en el periodo</span>
         </div>
         <div className="empty-state-text" style={{ padding: "8px 4px" }}>
           No hay {nombrePlural} en el periodo seleccionado.
@@ -87,11 +87,11 @@ export function EstadisticasTablaTipo({
   }
 
   return (
-    <div className="stats-section" style={{ width: "100%" }}>
+    <div className="stats-section tactical-card">
       <div className="stats-section-header" style={{ borderLeftColor: color }}>
         <span className="stats-section-dot" style={{ background: color }} />
-        <span style={{ color: text, fontWeight: 700, fontSize: 15 }}>{titulo}</span>
-        <span style={{ color: textSecondary, fontSize: 13, fontWeight: 600 }}>
+        <span className="stats-section-header__title">{titulo}</span>
+        <span className="stats-section-header__meta">
           {totalSesiones} {totalSesiones === 1 ? nombreSingular : nombrePlural} en el periodo
         </span>
       </div>

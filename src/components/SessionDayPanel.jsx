@@ -68,8 +68,16 @@ export function SessionDayPanel({
   const puedeFisico = canCreateTipoSesion(userRol, TIPO_SESION_FISICO) && !tieneFisico;
   const mostrarCrear = !sesionDoc && (puedeEntreno || puedePartido || puedeFisico);
 
+  const tipoNorm = normalizarTipoSesion({ tipo: tipoSesion });
+  const panelTipoClass =
+    tipoNorm === TIPO_SESION_PARTIDO
+      ? " session-day-panel--partido"
+      : tipoNorm === TIPO_SESION_FISICO
+        ? " session-day-panel--fisico"
+        : "";
+
   return (
-    <div className="session-day-panel">
+    <div className={`session-day-panel${panelTipoClass}`}>
       <button
         className="session-day-panel__back"
         tabIndex={0}
@@ -85,7 +93,7 @@ export function SessionDayPanel({
         {sesionDoc && sesionesDelDia.length ? "← Volver al día" : "← Volver al Calendario"}
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ color: text, fontWeight: 700, fontSize: 18.8 }}>
+        <div className="session-day-panel__date">
           {fechaSesionSeleccionada.split("-").reverse().join("/")}
         </div>
         {sesionDoc && (

@@ -10,13 +10,13 @@ export function EstadisticasTab({
   textMuted,
   accent,
   accentLight,
-  accentSoft,
+  accentSoft: _accentSoft,
   colorPartido,
   colorPartidoLight,
   colorFisico,
   colorFisicoLight,
   inputBorder,
-  inputBg,
+  inputBg: _inputBg,
   cardBgElevated,
   surface,
   error,
@@ -65,63 +65,20 @@ export function EstadisticasTab({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 18,
-        width: "100%",
-        alignItems: "center",
-        padding: "8px 0 20px 0",
-      }}
-    >
-      <div style={{ textAlign: "center", width: "100%" }}>
-        <h2
-          style={{
-            color: text,
-            fontWeight: 700,
-            fontSize: 22,
-            letterSpacing: "-0.02em",
-            margin: "0 0 6px 0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-          }}
-        >
-          <IconChart size={22} color={accent} />
+    <div className="tactical-page">
+      <div>
+        <h2 className="tactical-title">
+          <IconChart size={22} />
           Estadísticas
         </h2>
-        <div style={{ color: textSecondary, fontSize: 15, fontWeight: 500 }}>
-          Equipo <span style={{ color: accentLight }}>{equipoActivo.nombre}</span>
-        </div>
+        <p className="tactical-lead">
+          Equipo <strong>{equipoActivo.nombre}</strong>
+        </p>
       </div>
 
-      <div
-        className="stats-filters"
-        style={{
-          width: "100%",
-          background: cardBgElevated,
-          border: `1px solid ${inputBorder}`,
-          borderRadius: 14,
-          padding: "14px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-      >
-        <div
-          style={{
-            color: textSecondary,
-            fontSize: 12,
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Periodo
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="stats-filters tactical-card">
+        <div className="field-label">Periodo</div>
+        <div className="chip-row">
           {[
             { key: "todo", label: "Todo" },
             { key: "semanal", label: "Semanal" },
@@ -132,57 +89,32 @@ export function EstadisticasTab({
               key={key}
               type="button"
               onClick={() => onStatsPeriodoChange(key)}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 9,
-                border: `1px solid ${statsPeriodo === key ? accent : inputBorder}`,
-                background: statsPeriodo === key ? accentSoft : "transparent",
-                color: statsPeriodo === key ? accentLight : textMuted,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: "pointer",
-              }}
+              className={`chip${statsPeriodo === key ? " chip--active" : ""}`}
             >
               {label}
             </button>
           ))}
         </div>
         {statsPeriodo === "rango" && (
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <div className="chip-row" style={{ alignItems: "center" }}>
             <input
+              className="field-input"
               type="date"
               value={statsDesde}
               onChange={(e) => onStatsDesdeChange(e.target.value)}
-              style={{
-                flex: 1,
-                minWidth: 130,
-                padding: "9px 10px",
-                borderRadius: 9,
-                border: `1px solid ${inputBorder}`,
-                background: inputBg,
-                color: text,
-                fontSize: 14,
-              }}
+              style={{ flex: 1, minWidth: 130 }}
             />
-            <span style={{ color: textMuted }}>→</span>
+            <span style={{ color: "var(--color-text-muted)" }}>→</span>
             <input
+              className="field-input"
               type="date"
               value={statsHasta}
               onChange={(e) => onStatsHastaChange(e.target.value)}
-              style={{
-                flex: 1,
-                minWidth: 130,
-                padding: "9px 10px",
-                borderRadius: 9,
-                border: `1px solid ${inputBorder}`,
-                background: inputBg,
-                color: text,
-                fontSize: 14,
-              }}
+              style={{ flex: 1, minWidth: 130 }}
             />
           </div>
         )}
-        <div style={{ color: textMuted, fontSize: 13 }}>
+        <div className="tactical-lead" style={{ textAlign: "left" }}>
           {statsPeriodo === "todo"
             ? `Todas las sesiones · ${totalEntrenos} entreno${totalEntrenos === 1 ? "" : "s"} · ${totalPartidos} partido${totalPartidos === 1 ? "" : "s"} · ${totalFisicos} físico${totalFisicos === 1 ? "" : "s"}`
             : rango.inicio && rango.fin
@@ -192,38 +124,14 @@ export function EstadisticasTab({
       </div>
 
       {jugadorasLoading || sesionesLoading ? (
-        <div
-          style={{
-            color: textMuted,
-            fontSize: 16,
-            fontStyle: "italic",
-            padding: "12px 0",
-            fontWeight: 500,
-          }}
-        >
-          Cargando estadísticas...
-        </div>
+        <EmptyState title="Cargando estadísticas…" />
       ) : jugadoras.length === 0 ? (
-        <div style={{ color: textMuted, fontStyle: "italic", fontSize: 15.5, textAlign: "center" }}>
+        <p className="tactical-lead">
           {equipoLabels.noHayJugadoresPlantilla}{" "}
-          <button
-            type="button"
-            onClick={onGoToPlantilla}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: accent,
-              fontWeight: 700,
-              cursor: "pointer",
-              padding: 0,
-              fontFamily: "inherit",
-              textDecoration: "underline",
-              textUnderlineOffset: 3,
-            }}
-          >
+          <button type="button" className="link-accent" onClick={onGoToPlantilla}>
             Ir a Plantilla
           </button>
-        </div>
+        </p>
       ) : ficha ? (
         <FichaJugadoraStats
           jugadora={ficha.jugadora}
@@ -250,62 +158,30 @@ export function EstadisticasTab({
         />
       ) : sesionesFiltradas.length === 0 ? (
         <EmptyState
-          title={`No hay sesiones en el periodo seleccionado.`}
+          title="No hay sesiones en el periodo seleccionado."
           hint="Prueba otro rango o programa una sesión en el calendario."
         />
       ) : (
         <>
-          <div
-            className="stats-type-nav"
-            style={{
-              width: "100%",
-              display: "flex",
-              gap: 6,
-              padding: 4,
-              background: cardBgElevated,
-              borderRadius: 12,
-              border: `1px solid ${inputBorder}`,
-            }}
-          >
+          <div className="stats-type-nav">
             {[
-              { key: "entrenos", label: "Entrenos", color: accent },
-              { key: "partidos", label: "Partidos", color: colorPartido },
-              { key: "fisicos", label: "Físicos", color: colorFisico },
-              { key: "todo", label: "Todo", color: textSecondary },
-            ].map(({ key, label, color: tabColor }) => (
+              { key: "entrenos", label: "Entrenos" },
+              { key: "partidos", label: "Partidos" },
+              { key: "fisicos", label: "Físicos" },
+              { key: "todo", label: "Todo" },
+            ].map(({ key, label }) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => onStatsVistaChange(key)}
-                className={`stats-type-nav-btn${statsVista === key ? " stats-type-nav-btn--active" : ""}`}
-                style={{
-                  flex: 1,
-                  border:
-                    statsVista === key
-                      ? `1px solid ${key === "partidos" ? colorPartido : key === "entrenos" ? accent : key === "fisicos" ? colorFisico : inputBorder}`
-                      : "1px solid transparent",
-                  background:
-                    statsVista === key
-                      ? key === "partidos"
-                        ? "rgba(139,92,246,0.18)"
-                        : key === "entrenos"
-                          ? accentSoft
-                          : key === "fisicos"
-                            ? "var(--color-fisico-soft)"
-                            : "rgba(148,163,184,0.12)"
-                      : "transparent",
-                  color: statsVista === key ? (key === "todo" ? text : tabColor) : textMuted,
-                }}
+                className={`stats-type-nav-btn stats-type-nav-btn--${key}${statsVista === key ? " stats-type-nav-btn--active" : ""}`}
               >
                 {label}
               </button>
             ))}
           </div>
 
-          <div
-            className="stats-sections"
-            style={{ width: "100%", display: "flex", flexDirection: "column", gap: 20 }}
-          >
+          <div className="stats-sections">
             {(statsVista === "entrenos" || statsVista === "todo") && (
               <EstadisticasTablaTipo
                 tipo="entreno"
@@ -336,7 +212,7 @@ export function EstadisticasTab({
                 onSelectJugadora={onFichaIdChange}
               />
             )}
-            <p className="stats-ficha-hint" style={{ color: textMuted }}>
+            <p className="stats-ficha-hint">
               Pulsa una {equipoLabels.jugador.toLowerCase()} para ver su ficha.
             </p>
           </div>

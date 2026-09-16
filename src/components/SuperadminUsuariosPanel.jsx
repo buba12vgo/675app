@@ -194,15 +194,15 @@ export function SuperadminUsuariosPanel({
       : editables.filter((u) => u.clubId === filtroClub);
 
   return (
-    <div className="content-medium" style={{ width: "97%", margin: "0 auto" }}>
-      <h2 style={{ color: accent, fontWeight: 800, fontSize: 28, textAlign: "center", marginBottom: 8 }}>
+    <div className="content-medium tactical-page" style={{ width: "97%", margin: "0 auto" }}>
+      <h2 className="tactical-title">
         Usuarios por club
       </h2>
-      <p style={{ color: textSecondary, textAlign: "center", marginBottom: 20, fontSize: 14, lineHeight: 1.5 }}>
+      <p className="tactical-lead">
         Asigna club y rol a cada usuario. Solo puede haber un coordinador por club.
       </p>
       {notice && (
-        <div style={{ color: accentLight, background: accentSoft, border: `1px solid ${accent}55`, marginBottom: 16, fontSize: 14, padding: "12px 16px", borderRadius: 12, textAlign: "center", fontWeight: 600 }}>
+        <div className="notice-banner" style={{ marginBottom: 8, textAlign: "center", fontWeight: 600 }}>
           {notice}
         </div>
       )}

@@ -5,9 +5,7 @@ import { EmptyState } from "./EmptyState.jsx";
 
 export function PlantillaTab({
   equipoLabels,
-  text,
   textMuted,
-  accent,
   plantillaFormProps,
   jugadorasLoading,
   jugadoras,
@@ -16,45 +14,19 @@ export function PlantillaTab({
   readOnly = false,
 }) {
   return (
-    <div
-      className="plantilla-tab"
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 27, width: "100%" }}
-    >
-      <h2
-        style={{
-          color: text,
-          fontWeight: 700,
-          fontSize: 22,
-          letterSpacing: "-0.02em",
-          marginBottom: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-        }}
-      >
-        <IconUsers size={22} color={accent} />
+    <div className="plantilla-tab tactical-page">
+      <h2 className="tactical-title">
+        <IconUsers size={22} />
         {equipoLabels.plantillaTitulo}
       </h2>
       {readOnly ? (
-        <p style={{ color: textMuted, fontSize: 14, textAlign: "center", margin: 0 }}>
+        <p className="tactical-lead">
           Solo lectura: puedes consultar la plantilla, pero no modificarla.
         </p>
       ) : (
         <PlantillaForm {...plantillaFormProps} />
       )}
-      <div
-        className="content-medium"
-        style={{
-          width: "99%",
-          margin: "0 auto",
-          marginTop: 10,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 11,
-        }}
-      >
+      <div className="content-medium" style={{ width: "99%", margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 11 }}>
         {jugadorasLoading ? (
           <EmptyState title={equipoLabels.cargandoJugadores} />
         ) : jugadoras.length === 0 ? (

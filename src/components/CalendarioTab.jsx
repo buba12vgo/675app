@@ -3,11 +3,6 @@ import { SessionsCalendar } from "./SessionsCalendar.jsx";
 import { SessionDayPanel } from "./SessionDayPanel.jsx";
 
 export function CalendarioTab({
-  text,
-  textMuted,
-  accent,
-  colorPartido,
-  colorFisico,
   fechaSesionSeleccionada,
   anioActual,
   mesActual,
@@ -16,82 +11,28 @@ export function CalendarioTab({
   sesionesEquipo,
   onSelectDate,
   sessionDayPanelProps,
+  accent,
+  colorPartido,
+  colorFisico,
 }) {
   return (
-    <div
-      className="content-block"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 27,
-        width: "100%",
-        alignItems: "center",
-        padding: "13px 0 33px 0",
-      }}
-    >
-      <h2
-        style={{
-          color: text,
-          fontWeight: 700,
-          fontSize: 22,
-          letterSpacing: "-0.02em",
-          marginBottom: 2,
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-        }}
-      >
-        <IconCalendar size={22} color={accent} />
+    <div className="content-block tactical-page">
+      <h2 className="tactical-title">
+        <IconCalendar size={22} />
         Gestión de Calendario
       </h2>
       {!fechaSesionSeleccionada && (
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            fontSize: 12.5,
-            color: textMuted,
-            marginBottom: -8,
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 99,
-                background: accent,
-                display: "inline-block",
-              }}
-            />
+        <div className="tactical-legend">
+          <span className="tactical-legend__item">
+            <span className="tactical-legend__dot tactical-legend__dot--entreno" />
             Entreno
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 99,
-                background: colorPartido,
-                display: "inline-block",
-              }}
-            />
+          <span className="tactical-legend__item">
+            <span className="tactical-legend__dot tactical-legend__dot--partido" />
             Partido
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 99,
-                background: colorFisico,
-                display: "inline-block",
-              }}
-            />
+          <span className="tactical-legend__item">
+            <span className="tactical-legend__dot tactical-legend__dot--fisico" />
             Físico
           </span>
         </div>

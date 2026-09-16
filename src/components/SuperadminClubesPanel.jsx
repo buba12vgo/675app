@@ -44,29 +44,10 @@ export function SuperadminClubesPanel({
 }) {
   return (
     <>
-      <h2
-        style={{
-          color: accent,
-          fontWeight: "bold",
-          marginBottom: 16,
-          fontSize: 30,
-          letterSpacing: 0.7,
-          textAlign: "center",
-          textShadow: "0 4px 18px var(--color-accent-shadow)",
-        }}
-      >
+      <h2 className="tactical-title">
         Panel de Gestión de Clubes
       </h2>
-      <div
-        style={{
-          width: "97%",
-          marginBottom: 22,
-          padding: "14px 18px",
-          background: cardBgElevated,
-          borderRadius: 12,
-          border: `1px solid ${inputBorder}`,
-        }}
-      >
+      <div className="tactical-card tactical-card--padded" style={{ width: "97%", marginBottom: 22 }}>
         {userData?.clubId ? (
           <div
             style={{

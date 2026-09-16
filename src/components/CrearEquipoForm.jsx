@@ -24,7 +24,7 @@ export function CrearEquipoForm({
   textMuted,
   inputBorder,
   inputBg,
-  cardBgElevated,
+  cardBgElevated: _cardBgElevated,
 }) {
   return (
     <div className="content-medium crear-equipo-panel" style={{ width: "96%", margin: "8px auto 0" }}>
@@ -46,10 +46,6 @@ export function CrearEquipoForm({
       <form
         onSubmit={onSubmit}
         className="crear-equipo-panel__form"
-        style={{
-          background: cardBgElevated,
-          border: `1px solid ${inputBorder}`,
-        }}
       >
         <input
           type="text"
