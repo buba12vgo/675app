@@ -104,6 +104,7 @@ export function TeamTabContent({
   handleGuardarJugadora,
   handleEliminarJugadora,
   theme,
+  clubNombre = "",
 }) {
   const [fichaId, setFichaId] = useState(null);
 
@@ -313,6 +314,7 @@ export function TeamTabContent({
             generoEquipo: equipoActivo.genero,
             tipoCanasta: equipoActivo.tipoCanasta,
             nombreEquipo: equipoActivo.nombre,
+            clubNombre,
             onAddJugadoraExterna: handleAddJugadoraExterna,
             onRemoveJugadoraExterna: handleRemoveJugadoraExterna,
           },

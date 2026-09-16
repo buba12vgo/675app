@@ -8,7 +8,11 @@ import {
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
 import { EjerciciosListaEditor } from "./EjerciciosListaEditor.jsx";
-import { etiquetaResultadoPartido } from "../lib/partidoResultado.js";
+import {
+  etiquetaMarcadorLocal,
+  etiquetaMarcadorRival,
+  etiquetaResultadoPartido,
+} from "../lib/partidoResultado.js";
 
 export function SessionForm({
   tipoSesion,
@@ -60,6 +64,7 @@ export function SessionForm({
   generoEquipo,
   tipoCanasta,
   nombreEquipo,
+  clubNombre = "",
   onAddJugadoraExterna,
   onRemoveJugadoraExterna,
   readOnly = false,
@@ -80,6 +85,8 @@ export function SessionForm({
   const resultadoEtiqueta = esPartido
     ? etiquetaResultadoPartido(puntosFavorPartido, puntosContraPartido)
     : null;
+  const etiquetaFavor = etiquetaMarcadorLocal(clubNombre);
+  const etiquetaContra = etiquetaMarcadorRival(rivalPartido);
 
   const onPuntosChange = (setter) => (e) => {
     const raw = e.target.value;
@@ -213,8 +220,8 @@ export function SessionForm({
               </div>
               <div className="session-score">
                 <div className="session-score__field">
-                  <label className="session-score__label" htmlFor="puntos-favor">
-                    A favor
+                  <label className="session-score__label" htmlFor="puntos-favor" title={etiquetaFavor}>
+                    {etiquetaFavor}
                   </label>
                   <input
                     id="puntos-favor"
@@ -224,7 +231,7 @@ export function SessionForm({
                     pattern="[0-9]*"
                     maxLength={3}
                     placeholder="0"
-                    aria-label="Puntos a favor"
+                    aria-label={`Puntos de ${etiquetaFavor}`}
                     value={puntosFavorPartido}
                     onChange={onPuntosChange(onPuntosFavorPartidoChange)}
                     disabled={disabledFields}
@@ -235,8 +242,8 @@ export function SessionForm({
                   —
                 </span>
                 <div className="session-score__field">
-                  <label className="session-score__label" htmlFor="puntos-contra">
-                    En contra
+                  <label className="session-score__label" htmlFor="puntos-contra" title={etiquetaContra}>
+                    {etiquetaContra}
                   </label>
                   <input
                     id="puntos-contra"
@@ -246,7 +253,7 @@ export function SessionForm({
                     pattern="[0-9]*"
                     maxLength={3}
                     placeholder="0"
-                    aria-label="Puntos en contra"
+                    aria-label={`Puntos de ${etiquetaContra}`}
                     value={puntosContraPartido}
                     onChange={onPuntosChange(onPuntosContraPartidoChange)}
                     disabled={disabledFields}

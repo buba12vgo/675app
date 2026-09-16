@@ -31,3 +31,13 @@ export function etiquetaResultadoPartido(puntosFavor, puntosContra) {
   if (estado === "derrota") return `${marcador} · Derrota`;
   return `${marcador} · Empate`;
 }
+
+export function etiquetaMarcadorLocal(clubNombre) {
+  const nombre = String(clubNombre || "").trim();
+  return nombre || "A favor";
+}
+
+export function etiquetaMarcadorRival(rival) {
+  const nombre = String(rival || "").trim();
+  return nombre || "En contra";
+}

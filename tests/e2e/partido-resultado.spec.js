@@ -52,8 +52,16 @@ test.describe("Partido resultado", () => {
     }
 
     await expect(page.getByText("Información del partido")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByLabel("Puntos a favor")).toBeVisible();
-    await expect(page.getByLabel("Puntos en contra")).toBeVisible();
+    const puntosFavor = page.locator("#puntos-favor");
+    const puntosContra = page.locator("#puntos-contra");
+    const etiquetaFavor = page.locator('label[for="puntos-favor"]');
+    const etiquetaContra = page.locator('label[for="puntos-contra"]');
+    await expect(puntosFavor).toBeVisible();
+    await expect(puntosContra).toBeVisible();
+    const clubNombre = (await page.locator(".team-context-club").first().innerText().catch(() => "")).trim();
+    if (clubNombre) {
+      await expect(etiquetaFavor).toHaveText(clubNombre);
+    }
 
     await page.screenshot({
       path: "/opt/cursor/artifacts/partido_resultado_campos.png",
@@ -61,15 +69,16 @@ test.describe("Partido resultado", () => {
     });
 
     await page.getByPlaceholder("Nombre del equipo rival").fill("Rival E2E Resultado");
-    await page.getByLabel("Puntos a favor").fill("78");
-    await page.getByLabel("Puntos en contra").fill("65");
+    await expect(etiquetaContra).toHaveText("Rival E2E Resultado");
+    await puntosFavor.fill("78");
+    await puntosContra.fill("65");
     await expect(page.getByText("78-65 · Victoria")).toBeVisible();
 
     await page.getByRole("button", { name: "Guardar Partido" }).click();
     await expect(page.getByText("Guardado")).toBeVisible({ timeout: 15000 });
 
-    await expect(page.getByLabel("Puntos a favor")).toHaveValue("78");
-    await expect(page.getByLabel("Puntos en contra")).toHaveValue("65");
+    await expect(puntosFavor).toHaveValue("78");
+    await expect(puntosContra).toHaveValue("65");
 
     await page.screenshot({
       path: "/opt/cursor/artifacts/partido_resultado_guardado.png",

@@ -4,6 +4,8 @@ import {
   formatearResultadoPartido,
   resultadoPartidoEstado,
   etiquetaResultadoPartido,
+  etiquetaMarcadorLocal,
+  etiquetaMarcadorRival,
 } from "../../src/lib/partidoResultado.js";
 
 describe("partidoResultado", () => {
@@ -36,5 +38,14 @@ describe("partidoResultado", () => {
     expect(etiquetaResultadoPartido(60, 70)).toBe("60-70 · Derrota");
     expect(etiquetaResultadoPartido(70, 70)).toBe("70-70 · Empate");
     expect(etiquetaResultadoPartido("", "")).toBe(null);
+  });
+
+  it("usa el club y el rival en el marcador, con reserva si faltan", () => {
+    expect(etiquetaMarcadorLocal("Salesianos Vigo")).toBe("Salesianos Vigo");
+    expect(etiquetaMarcadorLocal("  ")).toBe("A favor");
+    expect(etiquetaMarcadorLocal(null)).toBe("A favor");
+    expect(etiquetaMarcadorRival("CB Rivas")).toBe("CB Rivas");
+    expect(etiquetaMarcadorRival("")).toBe("En contra");
+    expect(etiquetaMarcadorRival("  rival  ")).toBe("rival");
   });
 });

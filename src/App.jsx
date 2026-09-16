@@ -460,9 +460,21 @@ function App() {
     );
   }
 
+  const getNombreClubActivo = () => {
+    if (userData?.clubNombre && (!equipoActivo?.clubId || equipoActivo.clubId === userData.clubId)) {
+      return userData.clubNombre;
+    }
+    if (equipoActivo?.clubId) {
+      const nombre = getClubNombre(equipoActivo.clubId);
+      if (nombre !== "Club") return nombre;
+    }
+    return userData?.clubNombre || "Club";
+  };
+
   const tabContent = (
     <TeamTabContent
       equipoActivo={equipoActivo}
+      clubNombre={getNombreClubActivo()}
       tab={tab}
       setTab={setTab}
       sesionesEquipo={sesionesEquipo}
@@ -578,17 +590,6 @@ function App() {
   const showTeamNav = equipoActivo && (userData?.clubId || userData?.rol === "superadmin");
   const esSuperadmin = userData?.rol === "superadmin";
   const esCoordinador = isCoordinador(userData?.rol);
-
-  const getNombreClubActivo = () => {
-    if (userData?.clubNombre && (!equipoActivo?.clubId || equipoActivo.clubId === userData.clubId)) {
-      return userData.clubNombre;
-    }
-    if (equipoActivo?.clubId) {
-      const nombre = getClubNombre(equipoActivo.clubId);
-      if (nombre !== "Club") return nombre;
-    }
-    return userData?.clubNombre || "Club";
-  };
 
   const equiposListaProps = {
     esSuperadmin,
