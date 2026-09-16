@@ -5,7 +5,7 @@ import {
 } from "../lib/appUtils.js";
 import { parseEjerciciosLista } from "../lib/ejerciciosLista.js";
 import { etiquetaResultadoPartido } from "../lib/partidoResultado.js";
-import { IconCalendar } from "./icons.jsx";
+import { IconBasketball, IconFitness, IconScoreboard } from "./icons.jsx";
 
 export function HomeEventCard({
   tipo,
@@ -43,6 +43,7 @@ export function HomeEventCard({
     : esFisico
       ? "Próximo físico"
       : "Próximo entreno";
+  const TipoIcon = esPartido ? IconScoreboard : esFisico ? IconFitness : IconBasketball;
   const metricas = sesion ? getMetricasEvento(sesion) : null;
   const metricaLabel = esPartido ? "Convocadas" : "Confirmadas";
   const metricaTexto = metricas?.total
@@ -53,7 +54,10 @@ export function HomeEventCard({
     <article className={`home-event-card home-event-card--${tipo}`} style={{ borderLeftColor: color }}>
       <div className="home-event-card__top">
         <div className="home-event-card__title-wrap">
-          <IconCalendar size={17} color={colorLight} />
+          <span className="home-event-card__dot" style={{ background: color }} aria-hidden="true" />
+          <span className="home-event-card__type-icon" style={{ color: colorLight, background: colorSoft, borderColor: colorBorder }}>
+            <TipoIcon size={16} color={colorLight} />
+          </span>
           <span className="home-event-card__title" style={{ color: colorLight }}>{titulo}</span>
         </div>
         {sesion && (

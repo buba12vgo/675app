@@ -63,7 +63,7 @@ export function HomeTab({
           {formatTipoCanasta(equipoActivo.tipoCanasta)} · {formatGeneroEquipo(equipoActivo.genero)}
         </div>
         <div className="home-dashboard__lead">
-          Resumen del equipo
+          Resumen del equipo y agenda de entrenamientos
         </div>
       </div>
 

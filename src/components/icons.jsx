@@ -8,6 +8,23 @@ export function IconBasketball({ size = 18, color = "currentColor" }) {
   );
 }
 
+export function IconScoreboard({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M8 9v6M16 9v6M12 5v14" />
+    </svg>
+  );
+}
+
+export function IconFitness({ size = 18, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6.5 8.5v7M17.5 8.5v7M4 10.5v3M20 10.5v3M6.5 10.5h11M6.5 13.5h11" />
+    </svg>
+  );
+}
+
 export function IconHome({ size = 20, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -12,7 +12,6 @@ export function TeamContextHeader({
   accentSoft,
   accentBorder,
   text,
-  textSecondary,
   textMuted,
   variant = "sidebar",
 }) {
@@ -30,7 +29,7 @@ export function TeamContextHeader({
           accentBorder={accentBorder}
         />
         <div className="team-context-text">
-          <div className="team-context-club" style={{ color: textSecondary }}>{clubNombre}</div>
+          <div className="team-context-club">{clubNombre}</div>
           <div className="team-context-team" style={{ color: text }}>{equipoNombre}</div>
           {equipoMeta && (
             <div className="team-context-meta" style={{ color: textMuted, fontSize: 12, marginTop: 2 }}>

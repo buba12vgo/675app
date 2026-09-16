@@ -431,7 +431,7 @@ function App() {
       return (
         <div className="tutorial-page">
           <BlurredBackground isDark={isDarkMode} />
-          <CourtWatermark className="court-watermark" />
+          <CourtWatermark className="court-watermark" variant="landscape" />
           <TutorialView
             onBack={() => setShowTutorial(false)}
             textMuted={textMuted}
@@ -755,7 +755,7 @@ function App() {
       style={{ fontFamily: "inherit" }}
     >
       <BlurredBackground isDark={isDarkMode} />
-      <CourtWatermark className="court-watermark" />
+      <CourtWatermark className="court-watermark" variant="landscape" />
       <div className="device-preview-viewport">
         <div className="device-preview-frame">
           <AppHeader
@@ -785,6 +785,7 @@ function App() {
               className={`app-card${showTeamNav ? " app-card--with-nav" : ""}`}
               style={{
                 ...glassCardStyle,
+                background: isDarkMode ? "rgba(34, 28, 23, 0.52)" : "rgba(255, 252, 248, 0.55)",
                 boxShadow: "inset 0 1px 0 rgba(246, 241, 234, 0.07), 0 16px 36px -8px rgba(0, 0, 0, 0.35)",
                 border: `1px solid ${accentBorder}`,
                 display: "flex",
