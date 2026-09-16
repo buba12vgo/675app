@@ -132,27 +132,12 @@ export function SessionForm({
       <div className="session-panel-layout">
         <div className={`session-panel-datos${vistaActiva !== "datos" ? " session-panel-section--hidden-mobile" : ""}`}>
           {tipoSesion === "partido" ? (
-            <div
-              style={{
-                background: "rgba(139,92,246,0.08)",
-                border: "1px solid rgba(139,92,246,0.35)",
-                borderRadius: 12,
-                padding: "16px 14px",
-              }}
-            >
-              <div
-                style={{
-                  color: colorPartido,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  marginBottom: 12,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
+            <div className="session-partido-box">
+              <div className="session-partido-box__title">
                 Información del partido
               </div>
               <label
+                htmlFor="partido-rival"
                 style={{
                   display: "block",
                   color: textSecondary,
@@ -164,6 +149,7 @@ export function SessionForm({
                 Rival
               </label>
               <input
+                id="partido-rival"
                 type="text"
                 placeholder="Nombre del equipo rival"
                 value={rivalPartido}
@@ -172,6 +158,8 @@ export function SessionForm({
                 readOnly={readOnly}
                 style={{
                   width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
                   padding: "11px 13px",
                   fontSize: 16,
                   border: `1px solid ${inputBorder}`,
@@ -203,6 +191,7 @@ export function SessionForm({
                     disabled={disabledFields}
                     style={{
                       flex: 1,
+                      minWidth: 0,
                       padding: "10px 0",
                       borderRadius: 9,
                       border: `1.5px solid ${localPartido === op ? colorPartido : inputBorder}`,
@@ -219,77 +208,53 @@ export function SessionForm({
                   </button>
                 ))}
               </div>
-              <label
-                style={{
-                  display: "block",
-                  color: textSecondary,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  marginTop: 14,
-                  marginBottom: 8,
-                }}
-              >
+              <div className="field-label" style={{ marginTop: 14, marginBottom: 8 }}>
                 Resultado
-              </label>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="A favor"
-                  aria-label="Puntos a favor"
-                  value={puntosFavorPartido}
-                  onChange={onPuntosChange(onPuntosFavorPartidoChange)}
-                  disabled={disabledFields}
-                  readOnly={readOnly}
-                  style={{
-                    flex: 1,
-                    padding: "11px 13px",
-                    fontSize: 16,
-                    border: `1px solid ${inputBorder}`,
-                    borderRadius: 9,
-                    background: cardBgElevated,
-                    color: text,
-                    outline: "none",
-                    fontWeight: 600,
-                    textAlign: "center",
-                  }}
-                />
-                <span style={{ color: textMuted, fontWeight: 700, fontSize: 16 }} aria-hidden="true">
+              </div>
+              <div className="session-score">
+                <div className="session-score__field">
+                  <label className="session-score__label" htmlFor="puntos-favor">
+                    A favor
+                  </label>
+                  <input
+                    id="puntos-favor"
+                    className="session-score__input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={3}
+                    placeholder="0"
+                    aria-label="Puntos a favor"
+                    value={puntosFavorPartido}
+                    onChange={onPuntosChange(onPuntosFavorPartidoChange)}
+                    disabled={disabledFields}
+                    readOnly={readOnly}
+                  />
+                </div>
+                <span className="session-score__sep" aria-hidden="true">
                   —
                 </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="En contra"
-                  aria-label="Puntos en contra"
-                  value={puntosContraPartido}
-                  onChange={onPuntosChange(onPuntosContraPartidoChange)}
-                  disabled={disabledFields}
-                  readOnly={readOnly}
-                  style={{
-                    flex: 1,
-                    padding: "11px 13px",
-                    fontSize: 16,
-                    border: `1px solid ${inputBorder}`,
-                    borderRadius: 9,
-                    background: cardBgElevated,
-                    color: text,
-                    outline: "none",
-                    fontWeight: 600,
-                    textAlign: "center",
-                  }}
-                />
+                <div className="session-score__field">
+                  <label className="session-score__label" htmlFor="puntos-contra">
+                    En contra
+                  </label>
+                  <input
+                    id="puntos-contra"
+                    className="session-score__input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={3}
+                    placeholder="0"
+                    aria-label="Puntos en contra"
+                    value={puntosContraPartido}
+                    onChange={onPuntosChange(onPuntosContraPartidoChange)}
+                    disabled={disabledFields}
+                    readOnly={readOnly}
+                  />
+                </div>
               </div>
-              <div
-                style={{
-                  marginTop: 8,
-                  color: textMuted,
-                  fontSize: 12,
-                  fontWeight: 500,
-                }}
-              >
+              <div className="session-score__hint">
                 {resultadoEtiqueta
                   ? resultadoEtiqueta
                   : "Opcional. Déjalo vacío si aún no se ha jugado."}
