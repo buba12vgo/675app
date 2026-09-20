@@ -4,6 +4,7 @@ import {
   motivosAusenciaParaTipo,
 } from "../lib/motivosAusencia.js";
 import { combinarStatsJugadora, porcentajeAsistencia } from "../lib/appUtils.js";
+import { esStaffPlantilla, etiquetaRolPlantilla, marcaRolPlantilla } from "../lib/plantillaRoles.js";
 
 function Metric({ label, value, color, muted }) {
   return (
@@ -33,6 +34,7 @@ function BloqueTipo({
   labelPresentes,
   labelAusencias,
   motivos,
+  soloAusencias = false,
   text,
   textMuted,
   textSecondary,
@@ -54,15 +56,21 @@ function BloqueTipo({
       <h3 className="stats-ficha-bloque__title" style={{ color }}>{titulo}</h3>
       <div className="stats-ficha-metrics">
         <Metric label="Sesiones" value={stats.total} color={text} muted={textMuted} />
-        <Metric label={labelPresentes} value={stats.presentes} color={success} muted={textMuted} />
+        {soloAusencias ? null : (
+          <Metric label={labelPresentes} value={stats.presentes} color={success} muted={textMuted} />
+        )}
         <Metric label={labelAusencias} value={stats.ausencias} color={stats.ausencias ? error : textMuted} muted={textMuted} />
-        <Metric label="% asistencia" value={pct === null ? "—" : `${pct}%`} color={colorLight} muted={textMuted} />
-        <Metric
-          label="Nota media"
-          value={stats.notaMedia !== null ? stats.notaMedia.toFixed(1) : "—"}
-          color={stats.notaMedia !== null ? colorLight : textMuted}
-          muted={textMuted}
-        />
+        {soloAusencias ? null : (
+          <Metric label="% asistencia" value={pct === null ? "—" : `${pct}%`} color={colorLight} muted={textMuted} />
+        )}
+        {soloAusencias ? null : (
+          <Metric
+            label="Nota media"
+            value={stats.notaMedia !== null ? stats.notaMedia.toFixed(1) : "—"}
+            color={stats.notaMedia !== null ? colorLight : textMuted}
+            muted={textMuted}
+          />
+        )}
       </div>
       <div className="stats-ficha-ausencias">
         <div className="stats-ficha-ausencias__title" style={{ color: textSecondary }}>
@@ -121,6 +129,7 @@ export function FichaJugadoraStats({
   const motivosPartido = motivosAusenciaParaTipo("partido", generoEquipo);
   const motivosResumen = [...motivosEntreno, ...motivosPartido];
   const labelNoConvocado = generoEquipo === "masculino" ? "No convocado" : "No convocada";
+  const soloAusencias = esStaffPlantilla(jugadora);
 
   return (
     <div className="stats-ficha">
@@ -136,10 +145,12 @@ export function FichaJugadoraStats({
 
       <header className="stats-ficha-hero" style={{ borderColor: inputBorder, background: cardBgElevated }}>
         <div className="stats-ficha-dorsal" style={{ background: accent, color: "#fff" }}>
-          {jugadora.dorsal}
+          {soloAusencias ? marcaRolPlantilla(jugadora.rolPlantilla) : jugadora.dorsal}
         </div>
         <div className="stats-ficha-hero__info">
-          <div className="stats-ficha-hero__kicker" style={{ color: textMuted }}>{labels.fichaTitulo}</div>
+          <div className="stats-ficha-hero__kicker" style={{ color: textMuted }}>
+            {soloAusencias ? etiquetaRolPlantilla(jugadora.rolPlantilla) : labels.fichaTitulo}
+          </div>
           <h2 className="stats-ficha-hero__name" style={{ color: text }}>{jugadora.nombre}</h2>
           {jugadora.apodo?.trim() ? (
             <div className="stats-ficha-hero__apodo" style={{ color: textSecondary }}>"{jugadora.apodo}"</div>
@@ -158,6 +169,7 @@ export function FichaJugadoraStats({
         labelPresentes="Asist. / Conv."
         labelAusencias="Ausencias"
         motivos={motivosResumen}
+        soloAusencias={soloAusencias}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -174,6 +186,7 @@ export function FichaJugadoraStats({
         labelPresentes="Asistencias"
         labelAusencias="Ausencias"
         motivos={motivosEntreno}
+        soloAusencias={soloAusencias}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -190,6 +203,7 @@ export function FichaJugadoraStats({
         labelPresentes="Convocatorias"
         labelAusencias={labelNoConvocado}
         motivos={motivosPartido}
+        soloAusencias={soloAusencias}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}
@@ -206,6 +220,7 @@ export function FichaJugadoraStats({
         labelPresentes="Asistencias"
         labelAusencias="Ausencias"
         motivos={motivosEntreno}
+        soloAusencias={soloAusencias}
         text={text}
         textMuted={textMuted}
         textSecondary={textSecondary}

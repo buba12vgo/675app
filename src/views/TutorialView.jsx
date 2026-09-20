@@ -211,7 +211,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         <h2>9. Estadísticas</h2>
         <p>
           Filtra por periodo (todo, semanal, mensual o fechas) y por tipo (entrenos, partidos, físicos o todo).
-          Pulsa una jugadora para ver su ficha.
+          Pulsa una jugadora para ver su ficha. Los entrenadores y ayudantes de la plantilla entran solo en las ausencias.
         </p>
         <Figure
           src="/tutorial/09_estadisticas.jpg"

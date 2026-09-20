@@ -335,4 +335,17 @@ describe("calcularEstadisticasJugadoras", () => {
     expect(combinadas.notaMedia).toBe(4.5);
     expect(porcentajeAsistencia(combinadas)).toBe(33);
   });
+
+  it("cuenta ausencias de un entrenador de plantilla", () => {
+    const staff = [{ id: "e1", nombre: "Marta", rolPlantilla: "entrenador" }];
+    const sesiones = [
+      { tipo: "entreno", fecha: "2026-08-01", asistencias: { e1: true } },
+      { tipo: "entreno", fecha: "2026-08-02", asistencias: { e1: false }, motivosAusencia: { e1: "salud" } },
+    ];
+    const stats = calcularEstadisticasJugadoras(staff, sesiones);
+    expect(stats[0].entrenos.presentes).toBe(1);
+    expect(stats[0].entrenos.ausencias).toBe(1);
+    expect(stats[0].entrenos.salud).toBe(1);
+    expect(stats[0].entrenos.notaMedia).toBe(null);
+  });
 });

@@ -1,5 +1,6 @@
 import { IconChart } from "./icons.jsx";
 import { EstadisticasTablaTipo } from "./EstadisticasTablaTipo.jsx";
+import { EstadisticasTablaAusenciasStaff } from "./EstadisticasTablaAusenciasStaff.jsx";
 import { FichaJugadoraStats } from "./FichaJugadoraStats.jsx";
 import { EmptyState } from "./EmptyState.jsx";
 
@@ -40,12 +41,15 @@ export function EstadisticasTab({
   statsVista,
   onStatsVistaChange,
   estadisticas,
+  estadisticasStaff = [],
   equipoLabels,
   onGoToPlantilla,
   fichaId,
   onFichaIdChange,
 }) {
-  const ficha = fichaId ? (estadisticas || []).find((row) => row.jugadora.id === fichaId) : null;
+  const ficha = fichaId
+    ? [...(estadisticas || []), ...(estadisticasStaff || [])].find((row) => row.jugadora.id === fichaId)
+    : null;
 
   const statsTheme = {
     accent,
@@ -183,37 +187,64 @@ export function EstadisticasTab({
 
           <div className="stats-sections">
             {(statsVista === "entrenos" || statsVista === "todo") && (
-              <EstadisticasTablaTipo
-                tipo="entreno"
-                totalSesiones={totalEntrenos}
-                estadisticas={estadisticas}
-                theme={statsTheme}
-                labels={equipoLabels}
-                onSelectJugadora={onFichaIdChange}
-              />
+              <>
+                <EstadisticasTablaTipo
+                  tipo="entreno"
+                  totalSesiones={totalEntrenos}
+                  estadisticas={estadisticas}
+                  theme={statsTheme}
+                  labels={equipoLabels}
+                  onSelectJugadora={onFichaIdChange}
+                />
+                <EstadisticasTablaAusenciasStaff
+                  tipo="entreno"
+                  totalSesiones={totalEntrenos}
+                  estadisticas={estadisticasStaff}
+                  theme={statsTheme}
+                  onSelectJugadora={onFichaIdChange}
+                />
+              </>
             )}
             {(statsVista === "partidos" || statsVista === "todo") && (
-              <EstadisticasTablaTipo
-                tipo="partido"
-                totalSesiones={totalPartidos}
-                estadisticas={estadisticas}
-                theme={statsTheme}
-                labels={equipoLabels}
-                onSelectJugadora={onFichaIdChange}
-              />
+              <>
+                <EstadisticasTablaTipo
+                  tipo="partido"
+                  totalSesiones={totalPartidos}
+                  estadisticas={estadisticas}
+                  theme={statsTheme}
+                  labels={equipoLabels}
+                  onSelectJugadora={onFichaIdChange}
+                />
+                <EstadisticasTablaAusenciasStaff
+                  tipo="partido"
+                  totalSesiones={totalPartidos}
+                  estadisticas={estadisticasStaff}
+                  theme={statsTheme}
+                  onSelectJugadora={onFichaIdChange}
+                />
+              </>
             )}
             {(statsVista === "fisicos" || statsVista === "todo") && (
-              <EstadisticasTablaTipo
-                tipo="fisico"
-                totalSesiones={totalFisicos}
-                estadisticas={estadisticas}
-                theme={{ ...statsTheme, colorPartido: colorFisico, colorPartidoLight: colorFisicoLight }}
-                labels={equipoLabels}
-                onSelectJugadora={onFichaIdChange}
-              />
+              <>
+                <EstadisticasTablaTipo
+                  tipo="fisico"
+                  totalSesiones={totalFisicos}
+                  estadisticas={estadisticas}
+                  theme={{ ...statsTheme, colorPartido: colorFisico, colorPartidoLight: colorFisicoLight }}
+                  labels={equipoLabels}
+                  onSelectJugadora={onFichaIdChange}
+                />
+                <EstadisticasTablaAusenciasStaff
+                  tipo="fisico"
+                  totalSesiones={totalFisicos}
+                  estadisticas={estadisticasStaff}
+                  theme={{ ...statsTheme, colorPartido: colorFisico, colorPartidoLight: colorFisicoLight }}
+                  onSelectJugadora={onFichaIdChange}
+                />
+              </>
             )}
             <p className="stats-ficha-hint">
-              Pulsa una {equipoLabels.jugador.toLowerCase()} para ver su ficha.
+              Pulsa una {equipoLabels.jugador.toLowerCase()} o un entrenador para ver su ficha.
             </p>
           </div>
         </>

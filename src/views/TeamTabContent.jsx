@@ -18,7 +18,7 @@ import {
   TIPO_SESION_FISICO,
 } from "../lib/appUtils.js";
 import { combinarJugadorasSesion } from "../lib/jugadorasClub.js";
-import { esJugadorPlantilla } from "../lib/plantillaRoles.js";
+import { esJugadorPlantilla, esStaffPlantilla } from "../lib/plantillaRoles.js";
 
 export function TeamTabContent({
   equipoActivo,
@@ -353,6 +353,10 @@ export function TeamTabContent({
       jugadoras.filter(esJugadorPlantilla),
       sesionesFiltradas
     );
+    const estadisticasStaff = calcularEstadisticasJugadoras(
+      jugadoras.filter(esStaffPlantilla),
+      sesionesFiltradas
+    );
     const totalEntrenos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO).length;
     const totalPartidos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO).length;
     const totalFisicos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO).length;
@@ -394,6 +398,7 @@ export function TeamTabContent({
         statsVista={statsVista}
         onStatsVistaChange={setStatsVista}
         estadisticas={estadisticas}
+        estadisticasStaff={estadisticasStaff}
         equipoLabels={equipoLabels}
         onGoToPlantilla={() => setTab("plantilla")}
         fichaId={fichaId}

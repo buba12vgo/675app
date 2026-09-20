@@ -31,7 +31,7 @@ describe("jugadorasClub", () => {
     expect(lista[1].equipoNombre).toBe("Cadete");
   });
 
-  it("deja fuera de la sesión a entrenadores y ayudantes", () => {
+  it("incluye entrenadores de la plantilla y no trae staff de otros equipos", () => {
     const conStaff = [
       ...plantilla,
       { id: "e1", nombre: "Marta", rolPlantilla: "entrenador", equipoId: "eq-1" },
@@ -41,7 +41,7 @@ describe("jugadorasClub", () => {
       { id: "a1", nombre: "Luis", rolPlantilla: "ayudante", equipoId: "eq-2", dorsal: 99 },
     ];
     const lista = combinarJugadorasSesion(conStaff, clubConStaff, ["a1"], equipos);
-    expect(lista.map((j) => j.id)).toEqual(["j1"]);
+    expect(lista.map((j) => j.id)).toEqual(["e1", "j1"]);
     expect(filtrarJugadorasClub(clubConStaff, { equipoActivoId: "eq-1", idsYaEnSesion: [], busqueda: "luis", equipos }).map((j) => j.id)).toEqual([]);
   });
 

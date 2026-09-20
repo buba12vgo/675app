@@ -7,6 +7,7 @@ import {
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
+import { esJugadorPlantilla } from "../lib/plantillaRoles.js";
 import { EjerciciosListaEditor } from "./EjerciciosListaEditor.jsx";
 import {
   etiquetaMarcadorLocal,
@@ -76,7 +77,7 @@ export function SessionForm({
   const esFisico = tipoSesion === TIPO_SESION_FISICO;
   const esMinibasket = esEquipoMinibasket(tipoCanasta, nombreEquipo);
   const mostrarPlanificacion = esPartido && esMinibasket;
-  const jugadorasConvocadas = jugadorasSesion.filter((j) => asistencias[j.id]);
+  const jugadorasConvocadas = jugadorasSesion.filter((j) => asistencias[j.id] && esJugadorPlantilla(j));
   const etiqueta = etiquetaTipoSesion(tipoSesion).toLowerCase();
   const vistaActiva =
     !mostrarPlanificacion && sesionVista === "planificacion" ? "datos" : sesionVista;

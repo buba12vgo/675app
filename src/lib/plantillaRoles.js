@@ -19,6 +19,10 @@ export function esJugadorPlantilla(persona) {
   return normalizeRolPlantilla(persona?.rolPlantilla) === ROL_PLANTILLA_JUGADOR;
 }
 
+export function esStaffPlantilla(persona) {
+  return ROLES_STAFF.has(normalizeRolPlantilla(persona?.rolPlantilla));
+}
+
 export function etiquetaRolPlantilla(rol) {
   const value = normalizeRolPlantilla(rol);
   return ROLES_PLANTILLA.find((item) => item.value === value)?.label || "Jugador/a";

@@ -4,6 +4,7 @@ import {
   motivosAusenciaParaTipo,
   motivoAusenciaDefaultParaTipo,
 } from "../lib/motivosAusencia.js";
+import { esStaffPlantilla, marcaRolPlantilla } from "../lib/plantillaRoles.js";
 
 export function AsistenciaValoracionPanel({
   jugadoras,
@@ -268,13 +269,16 @@ export function AsistenciaValoracionPanel({
             const estaPresente = !!asistencias[j.id];
             const valoracionActual = valoraciones[j.id];
             const motivoActual = motivosAusencia[j.id];
+            const esStaff = esStaffPlantilla(j);
             return (
               <div
                 key={j.id}
                 className={`asistencia-row${estaPresente ? " asistencia-row--presente" : " asistencia-row--ausente"}`}
               >
                 <div className="asistencia-row__main">
-                  <span className="asistencia-row__dorsal" style={{ color: accent }}>{j.dorsal}</span>
+                  <span className="asistencia-row__dorsal" style={{ color: accent }}>
+                    {esStaff ? marcaRolPlantilla(j.rolPlantilla) : j.dorsal}
+                  </span>
                   <div className="asistencia-row__info">
                     <span className="asistencia-row__nombre">{j.nombre}</span>
                     {(j.apodo && j.apodo.trim() !== "") && (
@@ -287,6 +291,9 @@ export function AsistenciaValoracionPanel({
                 </div>
                 <div className="asistencia-row__controls">
                   {estaPresente ? (
+                    esStaff ? (
+                      <div className="asistencia-staff-presente" style={{ color: textMuted }}>Presente</div>
+                    ) : (
                     <div className="asistencia-rating-group" aria-label="Valoración del 1 al 5">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button
@@ -306,6 +313,7 @@ export function AsistenciaValoracionPanel({
                         </button>
                       ))}
                     </div>
+                    )
                   ) : (
                     <div className="asistencia-motivo-group" role="group" aria-label="Motivo de ausencia">
                       {motivosDisponibles.map((motivo) => {

@@ -1,4 +1,4 @@
-import { esJugadorPlantilla } from "./plantillaRoles.js";
+import { esJugadorPlantilla, esStaffPlantilla, ordenarPlantilla } from "./plantillaRoles.js";
 
 export function normalizeTextoBusqueda(texto) {
   return String(texto || "")
@@ -31,7 +31,7 @@ export function combinarJugadorasSesion(plantilla, jugadorasClub, externasIds, e
   const byId = new Map();
 
   plantillaLista.forEach((jugadora) => {
-    if (!esJugadorPlantilla(jugadora)) return;
+    if (!esJugadorPlantilla(jugadora) && !esStaffPlantilla(jugadora)) return;
     byId.set(jugadora.id, {
       ...jugadora,
       esExterna: false,
@@ -62,7 +62,7 @@ export function combinarJugadorasSesion(plantilla, jugadorasClub, externasIds, e
     });
   });
 
-  return [...byId.values()];
+  return ordenarPlantilla([...byId.values()]);
 }
 
 export function filtrarJugadorasClub(jugadorasClub, { equipoActivoId, idsYaEnSesion, busqueda, equipos, limite = 8 } = {}) {

@@ -5,6 +5,7 @@ import {
   ROL_PLANTILLA_AYUDANTE,
   normalizeRolPlantilla,
   esJugadorPlantilla,
+  esStaffPlantilla,
   etiquetaRolPlantilla,
   marcaRolPlantilla,
   dorsalParaGuardar,
@@ -16,6 +17,8 @@ describe("plantillaRoles", () => {
     expect(normalizeRolPlantilla(undefined)).toBe(ROL_PLANTILLA_JUGADOR);
     expect(esJugadorPlantilla({ dorsal: 4 })).toBe(true);
     expect(esJugadorPlantilla({ rolPlantilla: ROL_PLANTILLA_ENTRENADOR })).toBe(false);
+    expect(esStaffPlantilla({ rolPlantilla: ROL_PLANTILLA_ENTRENADOR })).toBe(true);
+    expect(esStaffPlantilla({ dorsal: 4 })).toBe(false);
   });
 
   it("etiqueta y marca los roles del roster", () => {

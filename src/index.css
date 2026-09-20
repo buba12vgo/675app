@@ -1321,10 +1321,16 @@ html:not(.dark) .app-header-logout {
 
 .asistencia-row__dorsal {
   font-weight: 700;
-  font-size: 17px;
-  width: 30px;
+  font-size: 14px;
+  min-width: 34px;
+  width: auto;
   text-align: center;
   flex-shrink: 0;
+}
+
+.asistencia-staff-presente {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .asistencia-row__info {
@@ -3261,6 +3267,17 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   gap: 4px 6px;
 }
 
+.app-shell[data-device-preview="mobile"] .stats-table-header--staff,
+.app-shell[data-device-preview="mobile"] .stats-table-row--staff {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(2.1rem, 1fr));
+}
+
+.app-shell[data-device-preview="mobile"] .stats-table-header--staff-partido,
+.app-shell[data-device-preview="mobile"] .stats-table-row--staff-partido {
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(2.1rem, 1fr));
+}
+
 @media (max-width: 479px) {
   .stats-table-header--tipo,
   .stats-table-row--tipo {
@@ -3743,8 +3760,32 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   text-overflow: ellipsis;
 }
 
-.stats-table-row--tipo > span {
+.stats-table-header--staff,
+.stats-table-row--staff {
+  grid-template-columns: minmax(6.5rem, 1.5fr) repeat(4, minmax(2.75rem, 1fr));
+  min-width: 18rem;
+}
+
+.stats-table-header--staff-partido,
+.stats-table-row--staff-partido {
+  grid-template-columns: minmax(6.5rem, 1.5fr) repeat(3, minmax(2.75rem, 1fr));
+}
+
+.stats-table-header--staff > *:nth-child(n + 2) {
   text-align: center;
+}
+
+@media (max-width: 479px) {
+  .stats-table-header--staff,
+  .stats-table-row--staff {
+    grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(2.1rem, 1fr));
+    min-width: 0;
+  }
+
+  .stats-table-header--staff-partido,
+  .stats-table-row--staff-partido {
+    grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(2.1rem, 1fr));
+  }
 }
 
 @media (min-width: 480px) {
@@ -3816,6 +3857,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 .stats-ficha-dorsal {
   flex: 0 0 auto;
   width: 52px;
+  min-width: 52px;
   height: 52px;
   border-radius: 14px;
   display: flex;
@@ -3823,7 +3865,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .stats-ficha-hero__kicker {
