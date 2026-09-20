@@ -1,3 +1,5 @@
+import { esJugadorPlantilla } from "./plantillaRoles.js";
+
 export function normalizeTextoBusqueda(texto) {
   return String(texto || "")
     .normalize("NFD")
@@ -29,6 +31,7 @@ export function combinarJugadorasSesion(plantilla, jugadorasClub, externasIds, e
   const byId = new Map();
 
   plantillaLista.forEach((jugadora) => {
+    if (!esJugadorPlantilla(jugadora)) return;
     byId.set(jugadora.id, {
       ...jugadora,
       esExterna: false,
@@ -39,6 +42,7 @@ export function combinarJugadorasSesion(plantilla, jugadorasClub, externasIds, e
   normalizeExternasIds(externasIds).forEach((id) => {
     if (byId.has(id)) return;
     const found = clubLista.find((jugadora) => jugadora.id === id);
+    if (found && !esJugadorPlantilla(found)) return;
     if (found) {
       byId.set(id, {
         ...found,
@@ -70,6 +74,7 @@ export function filtrarJugadorasClub(jugadorasClub, { equipoActivoId, idsYaEnSes
   return lista
     .filter((jugadora) => {
       if (!jugadora?.id || jugadora.equipoId === equipoActivoId || excluidos.has(jugadora.id)) return false;
+      if (!esJugadorPlantilla(jugadora)) return false;
       const equipoNombre = getEquipoNombre(equipos, jugadora.equipoId);
       const haystack = normalizeTextoBusqueda(
         `${jugadora.nombre || ""} ${jugadora.apodo || ""} ${jugadora.dorsal ?? ""} ${equipoNombre}`

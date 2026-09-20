@@ -17,6 +17,7 @@ import {
   TIPO_SESION_FISICO,
 } from "../lib/appUtils.js";
 import { combinarJugadorasSesion } from "../lib/jugadorasClub.js";
+import { esJugadorPlantilla } from "../lib/plantillaRoles.js";
 
 export function TeamTabContent({
   equipoActivo,
@@ -90,6 +91,8 @@ export function TeamTabContent({
   setJugadoraDorsal,
   jugadoraApodo,
   setJugadoraApodo,
+  jugadoraRol,
+  setJugadoraRol,
   addJugadoraLoading,
   jugadoraEditandoId,
   editJugadoraNombre,
@@ -98,6 +101,8 @@ export function TeamTabContent({
   setEditJugadoraDorsal,
   editJugadoraApodo,
   setEditJugadoraApodo,
+  editJugadoraRol,
+  setEditJugadoraRol,
   editJugadoraLoading,
   handleIniciarEditJugadora,
   handleCancelarEditJugadora,
@@ -326,7 +331,10 @@ export function TeamTabContent({
   if (tab === "players") {
     const sesionesFiltradas = filtrarSesionesPorPeriodo(sesionesEquipo, statsPeriodo, statsDesde, statsHasta);
     const rango = getRangoFechasEstadisticas(statsPeriodo, statsDesde, statsHasta);
-    const estadisticas = calcularEstadisticasJugadoras(jugadoras, sesionesFiltradas);
+    const estadisticas = calcularEstadisticasJugadoras(
+      jugadoras.filter(esJugadorPlantilla),
+      sesionesFiltradas
+    );
     const totalEntrenos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO).length;
     const totalPartidos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO).length;
     const totalFisicos = sesionesFiltradas.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO).length;
@@ -392,6 +400,8 @@ export function TeamTabContent({
           setJugadoraDorsal,
           jugadoraApodo,
           setJugadoraApodo,
+          jugadoraRol,
+          setJugadoraRol,
           addJugadoraLoading,
           accent,
           accentShadow,
@@ -416,6 +426,8 @@ export function TeamTabContent({
           setEditDorsal: setEditJugadoraDorsal,
           editApodo: editJugadoraApodo,
           setEditApodo: setEditJugadoraApodo,
+          editRol: editJugadoraRol,
+          setEditRol: setEditJugadoraRol,
           editLoading: editJugadoraLoading,
           onStartEdit: handleIniciarEditJugadora,
           onCancelEdit: handleCancelarEditJugadora,

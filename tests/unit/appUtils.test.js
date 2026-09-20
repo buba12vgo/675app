@@ -129,6 +129,16 @@ describe("dorsalEstaOcupado", () => {
     expect(dorsalEstaOcupado(plantilla, "4", "a")).toBe(false);
     expect(dorsalEstaOcupado(plantilla, 7)).toBe(false);
   });
+
+  it("ignora dorsales de entrenador y ayudante", () => {
+    const conStaff = [
+      ...plantilla,
+      { id: "c", dorsal: 10, rolPlantilla: "entrenador" },
+      { id: "d", dorsal: null, rolPlantilla: "ayudante" },
+    ];
+    expect(dorsalEstaOcupado(conStaff, 10)).toBe(true);
+    expect(dorsalEstaOcupado([{ id: "c", dorsal: 10, rolPlantilla: "entrenador" }], 10)).toBe(false);
+  });
 });
 
 describe("getAuthErrorMessage", () => {

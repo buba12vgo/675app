@@ -196,7 +196,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-plantilla">
         <h2>8. Plantilla</h2>
         <p>
-          Alta con nombre, dorsal y apodo. En cada ficha puedes editar o quitar.
+          Alta con rol (jugador/a, entrenador o ayudante), nombre y apodo. El dorsal solo va en jugador/a y no se puede repetir.
           El preparador físico la ve pero no la modifica.
         </p>
         <Figure

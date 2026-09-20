@@ -324,6 +324,8 @@ select {
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
 .chip--active,
@@ -343,6 +345,11 @@ select {
   border-color: var(--color-fisico-border);
   background: var(--color-fisico-soft);
   color: var(--color-fisico-light);
+}
+
+.chip:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .link-accent {
@@ -3302,6 +3309,17 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   flex-wrap: wrap;
 }
 
+.plantilla-roles {
+  width: 100%;
+}
+
+.plantilla-roles .chip {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+}
+
 .plantilla-jugadora-row {
   border-radius: var(--radius-card);
   display: flex;
@@ -3363,6 +3381,24 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   text-align: center;
   flex-shrink: 0;
   color: var(--color-accent-light);
+}
+
+.plantilla-jugadora-row__dorsal--rol {
+  width: auto;
+  min-width: 36px;
+  padding: 4px 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.plantilla-jugadora-row__meta {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .plantilla-jugadora-row__name-block {

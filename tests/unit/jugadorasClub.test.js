@@ -31,6 +31,20 @@ describe("jugadorasClub", () => {
     expect(lista[1].equipoNombre).toBe("Cadete");
   });
 
+  it("deja fuera de la sesión a entrenadores y ayudantes", () => {
+    const conStaff = [
+      ...plantilla,
+      { id: "e1", nombre: "Marta", rolPlantilla: "entrenador", equipoId: "eq-1" },
+    ];
+    const clubConStaff = [
+      ...club,
+      { id: "a1", nombre: "Luis", rolPlantilla: "ayudante", equipoId: "eq-2", dorsal: 99 },
+    ];
+    const lista = combinarJugadorasSesion(conStaff, clubConStaff, ["a1"], equipos);
+    expect(lista.map((j) => j.id)).toEqual(["j1"]);
+    expect(filtrarJugadorasClub(clubConStaff, { equipoActivoId: "eq-1", idsYaEnSesion: [], busqueda: "luis", equipos }).map((j) => j.id)).toEqual([]);
+  });
+
   it("filtra otras plantillas por nombre, apodo, dorsal o equipo", () => {
     expect(filtrarJugadorasClub(club, { equipoActivoId: "eq-1", idsYaEnSesion: [], busqueda: "lu", equipos }).map((j) => j.id)).toEqual(["j2"]);
     expect(filtrarJugadorasClub(club, { equipoActivoId: "eq-1", idsYaEnSesion: [], busqueda: "11", equipos }).map((j) => j.id)).toEqual(["j3"]);

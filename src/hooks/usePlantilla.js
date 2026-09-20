@@ -12,6 +12,13 @@ import {
 } from "firebase/firestore";
 import { getEquipoLabels, dorsalEstaOcupado } from "../lib/appUtils.js";
 import { useConfirm } from "../components/ConfirmProvider.jsx";
+import {
+  ROL_PLANTILLA_JUGADOR,
+  dorsalParaGuardar,
+  esJugadorPlantilla,
+  normalizeRolPlantilla,
+  ordenarPlantilla,
+} from "../lib/plantillaRoles.js";
 
 export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
   const confirm = useConfirm();
@@ -20,11 +27,13 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
   const [jugadoraNombre, setJugadoraNombre] = useState("");
   const [jugadoraDorsal, setJugadoraDorsal] = useState("");
   const [jugadoraApodo, setJugadoraApodo] = useState("");
+  const [jugadoraRol, setJugadoraRol] = useState(ROL_PLANTILLA_JUGADOR);
   const [addJugadoraLoading, setAddJugadoraLoading] = useState(false);
   const [jugadoraEditandoId, setJugadoraEditandoId] = useState(null);
   const [editJugadoraNombre, setEditJugadoraNombre] = useState("");
   const [editJugadoraDorsal, setEditJugadoraDorsal] = useState("");
   const [editJugadoraApodo, setEditJugadoraApodo] = useState("");
+  const [editJugadoraRol, setEditJugadoraRol] = useState(ROL_PLANTILLA_JUGADOR);
   const [editJugadoraLoading, setEditJugadoraLoading] = useState(false);
 
   useEffect(() => {
@@ -32,11 +41,13 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     setJugadoraNombre("");
     setJugadoraDorsal("");
     setJugadoraApodo("");
+    setJugadoraRol(ROL_PLANTILLA_JUGADOR);
     setAddJugadoraLoading(false);
     setJugadoraEditandoId(null);
     setEditJugadoraNombre("");
     setEditJugadoraDorsal("");
     setEditJugadoraApodo("");
+    setEditJugadoraRol(ROL_PLANTILLA_JUGADOR);
     setEditJugadoraLoading(false);
   }, [equipoActivo]);
 
@@ -51,8 +62,7 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
         q,
         (snapshot) => {
           const docs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-          docs.sort((a, b) => a.dorsal - b.dorsal);
-          setJugadoras(docs);
+          setJugadoras(ordenarPlantilla(docs));
           setJugadorasLoading(false);
         },
         (err) => {
@@ -77,8 +87,12 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     e.preventDefault();
     const clubIdEquipo = equipoActivo?.clubId || userData?.clubId;
     if (!equipoActivo || !clubIdEquipo) return;
-    if (!jugadoraNombre.trim() || !jugadoraDorsal.trim()) return;
-    if (dorsalEstaOcupado(jugadoras, jugadoraDorsal)) {
+    const rol = normalizeRolPlantilla(jugadoraRol);
+    const esJugador = rol === ROL_PLANTILLA_JUGADOR;
+    if (!jugadoraNombre.trim()) return;
+    const dorsal = esJugador ? dorsalParaGuardar(rol, jugadoraDorsal) : null;
+    if (esJugador && dorsal == null) return;
+    if (esJugador && dorsalEstaOcupado(jugadoras, dorsal)) {
       setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado);
       return;
     }
@@ -87,8 +101,9 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     try {
       await addDoc(collection(db, "Jugadoras"), {
         nombre: jugadoraNombre.trim(),
-        dorsal: Number(jugadoraDorsal),
+        dorsal,
         apodo: jugadoraApodo.trim(),
+        rolPlantilla: rol,
         equipoId: equipoActivo.id,
         clubId: clubIdEquipo,
         creadoEn: new Date(),
@@ -96,6 +111,7 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
       setJugadoraNombre("");
       setJugadoraDorsal("");
       setJugadoraApodo("");
+      setJugadoraRol(ROL_PLANTILLA_JUGADOR);
     } catch {
       setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorAnadirJugador);
     }
@@ -123,8 +139,9 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
   const handleIniciarEditJugadora = (jugadora) => {
     setJugadoraEditandoId(jugadora.id);
     setEditJugadoraNombre(jugadora.nombre || "");
-    setEditJugadoraDorsal(String(jugadora.dorsal ?? ""));
+    setEditJugadoraDorsal(esJugadorPlantilla(jugadora) ? String(jugadora.dorsal ?? "") : "");
     setEditJugadoraApodo(jugadora.apodo || "");
+    setEditJugadoraRol(normalizeRolPlantilla(jugadora.rolPlantilla));
     setErrorMsg("");
   };
 
@@ -133,11 +150,16 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     setEditJugadoraNombre("");
     setEditJugadoraDorsal("");
     setEditJugadoraApodo("");
+    setEditJugadoraRol(ROL_PLANTILLA_JUGADOR);
   };
 
   const handleGuardarJugadora = async (jugadoraId) => {
-    if (!editJugadoraNombre.trim() || !editJugadoraDorsal.trim()) return;
-    if (dorsalEstaOcupado(jugadoras, editJugadoraDorsal, jugadoraId)) {
+    if (!editJugadoraNombre.trim()) return;
+    const rol = normalizeRolPlantilla(editJugadoraRol);
+    const esJugador = rol === ROL_PLANTILLA_JUGADOR;
+    const dorsal = esJugador ? dorsalParaGuardar(rol, editJugadoraDorsal) : null;
+    if (esJugador && dorsal == null) return;
+    if (esJugador && dorsalEstaOcupado(jugadoras, dorsal, jugadoraId)) {
       setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado);
       return;
     }
@@ -146,8 +168,9 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     try {
       await updateDoc(doc(db, "Jugadoras", jugadoraId), {
         nombre: editJugadoraNombre.trim(),
-        dorsal: Number(editJugadoraDorsal),
+        dorsal,
         apodo: editJugadoraApodo.trim(),
+        rolPlantilla: rol,
       });
       handleCancelarEditJugadora();
     } catch {
@@ -165,6 +188,8 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     setJugadoraDorsal,
     jugadoraApodo,
     setJugadoraApodo,
+    jugadoraRol,
+    setJugadoraRol,
     addJugadoraLoading,
     jugadoraEditandoId,
     editJugadoraNombre,
@@ -173,6 +198,8 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     setEditJugadoraDorsal,
     editJugadoraApodo,
     setEditJugadoraApodo,
+    editJugadoraRol,
+    setEditJugadoraRol,
     editJugadoraLoading,
     handleAddJugadora,
     handleEliminarJugadora,

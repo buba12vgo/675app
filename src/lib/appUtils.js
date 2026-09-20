@@ -115,7 +115,12 @@ export function getDevicePreviewFromWidth(width) {
 export function dorsalEstaOcupado(jugadoras, dorsal, exceptId = null) {
   const n = Number(dorsal);
   if (!Number.isFinite(n)) return false;
-  return (jugadoras || []).some((j) => j.id !== exceptId && Number(j.dorsal) === n);
+  return (jugadoras || []).some((j) => {
+    if (j.id === exceptId) return false;
+    if (j.rolPlantilla === "entrenador" || j.rolPlantilla === "ayudante") return false;
+    if (j.dorsal == null || j.dorsal === "") return false;
+    return Number(j.dorsal) === n;
+  });
 }
 
 export const GENERO_FEMENINO = "femenino";

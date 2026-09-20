@@ -48,6 +48,8 @@ export function PlantillaTab({
                 setEditDorsal={plantillaRowProps.setEditDorsal}
                 editApodo={plantillaRowProps.editApodo}
                 setEditApodo={plantillaRowProps.setEditApodo}
+                editRol={plantillaRowProps.editRol}
+                setEditRol={plantillaRowProps.setEditRol}
                 editLoading={plantillaRowProps.editLoading}
                 onStartEdit={plantillaRowProps.onStartEdit}
                 onCancelEdit={plantillaRowProps.onCancelEdit}

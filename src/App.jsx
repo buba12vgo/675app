@@ -197,6 +197,8 @@ function App() {
     setJugadoraDorsal,
     jugadoraApodo,
     setJugadoraApodo,
+    jugadoraRol,
+    setJugadoraRol,
     addJugadoraLoading,
     jugadoraEditandoId,
     editJugadoraNombre,
@@ -205,6 +207,8 @@ function App() {
     setEditJugadoraDorsal,
     editJugadoraApodo,
     setEditJugadoraApodo,
+    editJugadoraRol,
+    setEditJugadoraRol,
     editJugadoraLoading,
     handleAddJugadora,
     handleEliminarJugadora,
@@ -545,6 +549,8 @@ function App() {
       setJugadoraDorsal={setJugadoraDorsal}
       jugadoraApodo={jugadoraApodo}
       setJugadoraApodo={setJugadoraApodo}
+      jugadoraRol={jugadoraRol}
+      setJugadoraRol={setJugadoraRol}
       addJugadoraLoading={addJugadoraLoading}
       jugadoraEditandoId={jugadoraEditandoId}
       editJugadoraNombre={editJugadoraNombre}
@@ -553,6 +559,8 @@ function App() {
       setEditJugadoraDorsal={setEditJugadoraDorsal}
       editJugadoraApodo={editJugadoraApodo}
       setEditJugadoraApodo={setEditJugadoraApodo}
+      editJugadoraRol={editJugadoraRol}
+      setEditJugadoraRol={setEditJugadoraRol}
       editJugadoraLoading={editJugadoraLoading}
       handleIniciarEditJugadora={handleIniciarEditJugadora}
       handleCancelarEditJugadora={handleCancelarEditJugadora}
