@@ -22,6 +22,7 @@ import { usePlantilla } from "./hooks/usePlantilla.js";
 import { useSesiones } from "./hooks/useSesiones.js";
 import { useJugadorasClub } from "./hooks/useJugadorasClub.js";
 import { useUsuariosAdmin } from "./hooks/useUsuariosAdmin.js";
+import { useDashboardDatos } from "./hooks/useDashboardDatos.js";
 import {
   IconHome,
   IconCalendar,
@@ -72,7 +73,7 @@ function App() {
     savingFavoritos,
   } = useAuth(setErrorMsg);
 
-  const [superadminVista, setSuperadminVista] = useState("clubes");
+  const [superadminVista, setSuperadminVista] = useState("dashboard");
   const [equiposFiltroSuperadmin, setEquiposFiltroSuperadmin] = useState("todos");
 
   const {
@@ -170,7 +171,22 @@ function App() {
     setErrorMsg,
   });
 
-  const [coordinadorVista, setCoordinadorVista] = useState("equipos");
+  const [coordinadorVista, setCoordinadorVista] = useState("dashboard");
+  const dashboardEnabled =
+    Boolean(userData?.rol) &&
+    !equipoActivo &&
+    ((userData.rol === "coordinador" && coordinadorVista === "dashboard") ||
+      (userData.rol === "superadmin" && superadminVista === "dashboard"));
+  const {
+    jugadoras: dashboardJugadoras,
+    sesiones: dashboardSesiones,
+    loading: dashboardLoading,
+  } = useDashboardDatos({
+    enabled: dashboardEnabled,
+    equipos,
+    clubId: userData?.rol === "coordinador" ? userData?.clubId || "" : "",
+    esSuperadmin: userData?.rol === "superadmin",
+  });
   const [tab, setTab] = useState("home");
   const sessionRestoredRef = useRef(false);
   const tabIdentityRef = useRef(null);
@@ -630,6 +646,26 @@ function App() {
     cardBgElevated,
   };
 
+  const dashboardProps = {
+    titulo: esSuperadmin ? "Dashboard" : "Dashboard del club",
+    lead: esSuperadmin
+      ? "Indicadores por equipo, sin entrar en cada jugadora."
+      : `Indicadores de ${userData?.clubNombre || "tu club"}, sin entrar en cada jugadora.`,
+    equipos,
+    equiposLoading,
+    jugadoras: dashboardJugadoras,
+    sesiones: dashboardSesiones,
+    loading: dashboardLoading,
+    clubes,
+    mostrarFiltroClub: esSuperadmin,
+    getClubNombre,
+    getEquipoLogo,
+    onEntrarEquipo: handleEntrarEquipo,
+    accentLight,
+    accentSoft,
+    accentBorder,
+  };
+
   const canSeedDemoData = userData?.rol === "superadmin";
   const demoSeedProps = {
     onSeed: handleSeedDemoData,
@@ -894,6 +930,7 @@ function App() {
                     inputBg,
                     cardBgElevated,
                   }}
+                  dashboardProps={dashboardProps}
                 />
               ) : (
                 <ClubMemberContent
@@ -913,6 +950,7 @@ function App() {
                     clubNombre: userData?.clubNombre,
                     coordinacionProps,
                     equiposListaProps,
+                    dashboardProps,
                   }}
                   entrenadorEquiposProps={{
                     equiposListaProps: {

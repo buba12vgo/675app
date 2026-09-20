@@ -1,7 +1,9 @@
 import { CoordinacionPanel } from "../components/CoordinacionPanel.jsx";
 import { EquiposListaContainer } from "../components/EquiposListaContainer.jsx";
+import { ClubDashboard } from "../components/ClubDashboard.jsx";
 
 const COORDINADOR_TABS = [
+  { key: "dashboard", label: "Dashboard" },
   { key: "equipos", label: "Equipos" },
   { key: "coordinacion", label: "Coordinación" },
 ];
@@ -18,6 +20,7 @@ export function CoordinadorDashboard({
   clubNombre,
   coordinacionProps,
   equiposListaProps,
+  dashboardProps,
 }) {
   return (
     <>
@@ -26,7 +29,7 @@ export function CoordinadorDashboard({
         style={{
           marginBottom: 24,
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 520,
         }}
       >
         {COORDINADOR_TABS.map(({ key, label }) => (
@@ -40,7 +43,9 @@ export function CoordinadorDashboard({
           </button>
         ))}
       </div>
-      {coordinadorVista === "coordinacion" ? (
+      {coordinadorVista === "dashboard" ? (
+        <ClubDashboard {...dashboardProps} />
+      ) : coordinadorVista === "coordinacion" ? (
         <CoordinacionPanel {...coordinacionProps} />
       ) : (
         <EquiposListaContainer

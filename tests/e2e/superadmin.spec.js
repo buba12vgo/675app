@@ -10,11 +10,13 @@ test.describe("Superadmin", () => {
   });
 
   test("SA-01 panel clubes y equipos", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Dashboard" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Clubes" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Equipos" })).toBeVisible();
   });
 
   test("SA-07 botón datos de prueba visible", async ({ page }) => {
+    await page.getByRole("button", { name: "Equipos" }).click();
     await expect(page.getByRole("button", { name: /Datos prueba/i })).toBeVisible();
   });
 

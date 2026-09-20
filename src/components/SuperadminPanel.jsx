@@ -1,8 +1,10 @@
 import { SuperadminClubesPanel } from "./SuperadminClubesPanel.jsx";
 import { SuperadminEquiposPanel } from "./SuperadminEquiposPanel.jsx";
 import { SuperadminUsuariosPanel } from "./SuperadminUsuariosPanel.jsx";
+import { ClubDashboard } from "./ClubDashboard.jsx";
 
 const SUPERADMIN_TABS = [
+  { key: "dashboard", label: "Dashboard" },
   { key: "clubes", label: "Clubes" },
   { key: "equipos", label: "Equipos" },
   { key: "usuarios", label: "Usuarios" },
@@ -21,6 +23,7 @@ export function SuperadminPanel({
   clubesPanelProps,
   equiposPanelProps,
   superadminUsuariosProps,
+  dashboardProps,
 }) {
   return (
     <>
@@ -29,7 +32,7 @@ export function SuperadminPanel({
         style={{
           marginBottom: 24,
           width: "100%",
-          maxWidth: 520,
+          maxWidth: 640,
         }}
       >
         {SUPERADMIN_TABS.map(({ key, label }) => (
@@ -44,7 +47,9 @@ export function SuperadminPanel({
         ))}
       </div>
 
-      {superadminVista === "clubes" ? (
+      {superadminVista === "dashboard" ? (
+        <ClubDashboard {...dashboardProps} />
+      ) : superadminVista === "clubes" ? (
         <SuperadminClubesPanel {...clubesPanelProps} />
       ) : superadminVista === "usuarios" ? (
         <SuperadminUsuariosPanel {...superadminUsuariosProps} />

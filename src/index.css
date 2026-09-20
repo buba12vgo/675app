@@ -2841,6 +2841,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .segmented-control {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 4px;
   background: var(--color-card-elevated);
@@ -4899,3 +4900,124 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
     padding-right: 4px;
   }
 }
+
+.club-dashboard {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dash-summary {
+  padding: 18px 18px 16px;
+}
+
+.dash-summary__title {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.dash-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dash-kpi-grid--team {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dash-kpi {
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: var(--color-card-elevated);
+  border: 1px solid color-mix(in srgb, var(--color-accent-light) 14%, var(--color-border));
+  text-align: center;
+}
+
+.dash-kpi__value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-kpi__label {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.dash-team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.dash-team-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-team-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dash-team-card__titles {
+  min-width: 0;
+}
+
+.dash-team-card__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.dash-team-card__meta {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.dash-team-card__enter {
+  align-self: stretch;
+}
+
+@media (max-width: 639px) {
+  .dash-kpi-grid,
+  .dash-kpi-grid--team {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dash-kpi__value {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 768px) {
+  .dash-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+

@@ -16,6 +16,7 @@ export function SuperadminShell({
   clubesPanelProps,
   equiposPanelProps,
   superadminUsuariosProps,
+  dashboardProps,
 }) {
   if (equipoActivo) {
     return <TeamLayout {...teamLayoutProps} />;
@@ -35,6 +36,7 @@ export function SuperadminShell({
       clubesPanelProps={clubesPanelProps}
       equiposPanelProps={equiposPanelProps}
       superadminUsuariosProps={superadminUsuariosProps}
+      dashboardProps={dashboardProps}
     />
   );
 }
