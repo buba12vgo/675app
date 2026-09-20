@@ -2,7 +2,7 @@
 
 App de clubes de baloncesto: clubes → equipos → plantilla, calendario y estadísticas.
 
-Roles: **superadmin**, **coordinador**, **entrenador** y **preparador físico**. El coordinador gestiona equipos y escudos del club. El entrenador trabaja la plantilla y las sesiones (entreno/partido/físico; hasta 4 favoritos). El preparador físico accede a los equipos del club (hasta 10 favoritos), crea y edita entrenamientos físicos (asistencia y valoración propias) y solo consulta entrenos/partidos.
+Roles: **superadmin**, **coordinador**, **entrenador** y **preparador físico**. Un club puede tener varios coordinadores; gestionan equipos y escudos. El entrenador trabaja la plantilla y las sesiones (entreno/partido/físico; hasta 4 favoritos). El preparador físico accede a los equipos del club (hasta 10 favoritos), crea y edita entrenamientos físicos (asistencia y valoración propias) y solo consulta entrenos/partidos.
 
 **Cómo usar la app:** en https://675app.vercel.app pulsa **Cómo funciona la app** (también está en Opciones cuando ya has entrado).
 

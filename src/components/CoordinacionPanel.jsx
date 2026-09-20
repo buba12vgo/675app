@@ -47,7 +47,7 @@ export function CoordinacionPanel({
   const staffFavoritos = usuarios.filter(
     (u) => u.rol === "entrenador" || u.rol === "preparador_fisico"
   );
-  const coordinador = usuarios.find((u) => u.rol === "coordinador");
+  const coordinadores = usuarios.filter((u) => u.rol === "coordinador");
 
   return (
     <div className="content-medium tactical-page" style={{ width: "97%", margin: "0 auto" }}>
@@ -84,13 +84,36 @@ export function CoordinacionPanel({
         </div>
 
         <div style={{ background: cardBgElevated, border: `1px solid ${inputBorder}`, borderRadius: 14, padding: "16px 18px" }}>
-          <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Coordinador</div>
-          {coordinador ? (
-            <div style={{ color: accentLight, fontWeight: 700, fontSize: 16 }}>
-              {coordinador.nombre?.trim() || coordinador.email}
-            </div>
+          <div style={{ color: text, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
+            Coordinadores ({usuariosLoading ? "…" : coordinadores.length})
+          </div>
+          {usuariosLoading ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>Cargando usuarios…</div>
+          ) : coordinadores.length === 0 ? (
+            <div style={{ color: textMuted, fontSize: 14 }}>Sin coordinadores asignados</div>
           ) : (
-            <div style={{ color: textMuted, fontSize: 14 }}>Sin coordinador asignado</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {coordinadores.map((u) => (
+                <div
+                  key={u.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: inputBg,
+                    border: `1px solid ${inputBorder}`,
+                  }}
+                >
+                  <span style={{ color: accentLight, fontWeight: 700, fontSize: 15 }}>
+                    {u.nombre?.trim() || u.email}
+                  </span>
+                  <span style={{ color: textMuted, fontSize: 12 }}>{u.email}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

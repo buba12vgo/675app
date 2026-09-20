@@ -5,12 +5,12 @@ import {
   collection,
   onSnapshot,
   updateDoc,
-  writeBatch,
   query,
   where,
 } from "firebase/firestore";
 import { formatRolLabel, isCoordinador } from "../lib/appUtils.js";
 import { normalizeEquiposFavoritos, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
+import { payloadGuardarUsuarioClub, usuariosTrasGuardarClub } from "../lib/usuariosAdmin.js";
 
 export function useUsuariosAdmin({
   userData,
@@ -122,58 +122,22 @@ export function useUsuariosAdmin({
       ? clubes.find((c) => c.id === clubId)?.nombre || usuario.clubNombre || getClubNombre(clubId)
       : null;
 
+    const payload = payloadGuardarUsuarioClub({
+      clubId,
+      clubNombre,
+      rolFinal,
+      equiposFavoritos:
+        clubId === usuario.clubId
+          ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
+          : [],
+    });
+
     setSavingUsuarioId(usuario.id);
     setErrorMsg("");
     setUsuariosNotice(null);
     try {
-      const batch = writeBatch(db);
-      const userRef = doc(db, "Usuarios", usuario.id);
-
-      if (clubId && rolFinal === "coordinador") {
-        const actual = usuarios.find(
-          (u) => u.id !== usuario.id && u.clubId === clubId && u.rol === "coordinador"
-        );
-        if (actual) {
-          batch.update(doc(db, "Usuarios", actual.id), { rol: "entrenador" });
-        }
-      }
-
-      batch.update(userRef, {
-        clubId,
-        clubNombre,
-        rol: rolFinal,
-        solicitudClubId: null,
-        solicitudClubNombre: null,
-        equiposFavoritos:
-          clubId === usuario.clubId
-            ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
-            : [],
-      });
-
-      await batch.commit();
-
-      setUsuarios((prev) =>
-        prev.map((u) => {
-          if (u.id === usuario.id) {
-            return {
-              ...u,
-              clubId,
-              clubNombre,
-              rol: rolFinal,
-              solicitudClubId: null,
-              solicitudClubNombre: null,
-              equiposFavoritos:
-                clubId === usuario.clubId
-                  ? normalizeEquiposFavoritos(usuario.equiposFavoritos, maxEquiposFavoritosParaRol(rolFinal))
-                  : [],
-            };
-          }
-          if (clubId && rolFinal === "coordinador" && u.clubId === clubId && u.rol === "coordinador") {
-            return { ...u, rol: "entrenador" };
-          }
-          return u;
-        })
-      );
+      await updateDoc(doc(db, "Usuarios", usuario.id), payload);
+      setUsuarios((prev) => usuariosTrasGuardarClub(prev, usuario.id, payload));
       setUsuariosNotice(
         `${usuario.nombre?.trim() || usuario.email} guardado como ${formatRolLabel(rolFinal)}${clubNombre ? ` (${clubNombre})` : ""}.`
       );

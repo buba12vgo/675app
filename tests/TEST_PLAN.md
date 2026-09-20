@@ -70,6 +70,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 | RULE-04 | Jugadoras | No lee jugadoras de otro club | Reglas |
 | RULE-05 | Sesiones | Entrenador lee calendario de su equipo | Reglas / Integración |
 | RULE-06 | Superadmin | Acceso global | Reglas |
+| RULE-07 | Usuarios | Un club puede tener varios coordinadores | Unit / Reglas |
 
 ## 7. Lógica de negocio (unitarias)
 

@@ -277,6 +277,13 @@ try {
     );
   });
 
+  await test("Un club puede tener dos coordinadores", async () => {
+    const coordSnap = await assertSucceeds(getDoc(doc(superadmin, "Usuarios/coord-a")));
+    const coachSnap = await assertSucceeds(getDoc(doc(superadmin, "Usuarios/coach-a")));
+    if (coordSnap.data().rol !== "coordinador") throw new Error("coord-a debe seguir siendo coordinador");
+    if (coachSnap.data().rol !== "coordinador") throw new Error("coach-a debe ser coordinador");
+  });
+
   await test("Coordinador lista entrenadores de su club", async () => {
     const q = query(collection(coordA, "Usuarios"), where("clubId", "==", "club-a"));
     const snap = await assertSucceeds(getDocs(q));

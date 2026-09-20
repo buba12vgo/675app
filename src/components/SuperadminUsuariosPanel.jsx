@@ -199,7 +199,7 @@ export function SuperadminUsuariosPanel({
         Usuarios por club
       </h2>
       <p className="tactical-lead">
-        Asigna club y rol a cada usuario. Solo puede haber un coordinador por club.
+        Asigna club y rol a cada usuario. Un club puede tener varios coordinadores.
       </p>
       {notice && (
         <div className="notice-banner" style={{ marginBottom: 8, textAlign: "center", fontWeight: 600 }}>

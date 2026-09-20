@@ -95,7 +95,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
               </tr>
               <tr>
                 <td>Coordinador</td>
-                <td>Equipos y escudos del club, coordinación del staff. También entra a los equipos.</td>
+                <td>Puede haber varios por club. Equipos, escudos y coordinación del staff. También entra a los equipos.</td>
               </tr>
               <tr>
                 <td>Superadmin</td>
@@ -252,7 +252,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section">
         <h2>Coordinador y superadmin</h2>
         <p>
-          El <strong>coordinador</strong> empieza en un dashboard de KPIs por equipo (plantilla, sesiones, partidos y balance victorias-derrotas), y también tiene Equipos y Coordinación. Dentro de cada equipo, el entrenador y el coordinador ven el mismo dashboard del equipo.
+          El <strong>coordinador</strong> empieza en un dashboard de KPIs por equipo (plantilla, sesiones, partidos y balance victorias-derrotas), y también tiene Equipos y Coordinación. Puede haber más de un coordinador por club. Dentro de cada equipo, el entrenador y el coordinador ven el mismo dashboard del equipo.
         </p>
         <p>
           El <strong>superadmin</strong> ve el mismo dashboard de todos los clubes, crea clubes, asigna club y rol (entrenador, coordinador o preparador físico)
