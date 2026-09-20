@@ -83,7 +83,7 @@ export function ClubDashboard({
 
       <div className="stats-filters tactical-card">
         <div className="field-label">Periodo</div>
-        <div className="chip-row">
+        <div className="chip-row dash-periodos">
           {PERIODOS.map(({ key, label }) => (
             <button
               key={key}

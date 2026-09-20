@@ -4921,6 +4921,11 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   color: var(--color-text-muted);
 }
 
+.dash-periodos .chip {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
 .dash-kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
