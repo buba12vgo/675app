@@ -25,6 +25,7 @@ export async function loginAsSuperadmin(page) {
 }
 
 const MOBILE_TAB_ALIASES = {
+  Dashboard: "Dash",
   Calendario: "Agenda",
   Estadísticas: "Stats",
   Plantilla: "Plantilla",

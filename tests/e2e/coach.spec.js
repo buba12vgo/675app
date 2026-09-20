@@ -14,10 +14,20 @@ test.describe("Entrenador", () => {
   test("COACH-05 y TEAM-01 navegan todas las pestañas del equipo", async ({ page }) => {
     await enterFirstTeam(page);
 
-    for (const tab of ["Inicio", "Calendario", "Estadísticas", "Plantilla"]) {
+    for (const tab of ["Inicio", "Dashboard", "Calendario", "Estadísticas", "Plantilla"]) {
       await openTeamTab(page, tab);
       await expect(teamTab(page, tab)).toBeVisible();
     }
+  });
+
+  test("TEAM-01b dashboard del equipo abre en todo el periodo", async ({ page }) => {
+    await enterFirstTeam(page);
+    await openTeamTab(page, "Dashboard");
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Todo" })).toHaveClass(/chip--active/);
+    await expect(page.getByRole("button", { name: "Este mes" })).toBeVisible();
+    await expect(page.getByText("Balance", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ver equipo" })).toHaveCount(0);
   });
 
   test("TEAM-02 inicio muestra tarjetas de eventos", async ({ page }) => {

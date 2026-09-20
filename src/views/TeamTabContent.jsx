@@ -3,6 +3,7 @@ import { HomeTab } from "../components/HomeTab.jsx";
 import { CalendarioTab } from "../components/CalendarioTab.jsx";
 import { EstadisticasTab } from "../components/EstadisticasTab.jsx";
 import { PlantillaTab } from "../components/PlantillaTab.jsx";
+import { ClubDashboard } from "../components/ClubDashboard.jsx";
 import {
   getEquipoLabels,
   getProximosEventosInicio,
@@ -202,6 +203,23 @@ export function TeamTabContent({
         canSchedulePartido={canEditSesion(userRol, { tipo: TIPO_SESION_PARTIDO })}
         canScheduleFisico={canEditSesion(userRol, { tipo: TIPO_SESION_FISICO })}
         guardandoSesion={guardandoSesion}
+      />
+    );
+  }
+
+  if (tab === "dashboard") {
+    return (
+      <ClubDashboard
+        titulo="Dashboard"
+        lead="Indicadores del equipo, sin entrar en cada jugadora."
+        equipos={[equipoActivo]}
+        jugadoras={jugadoras}
+        sesiones={sesionesEquipo}
+        loading={sesionesLoading || jugadorasLoading}
+        modoEquipo
+        accentLight={accentLight}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
       />
     );
   }

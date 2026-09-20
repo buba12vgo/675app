@@ -84,7 +84,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
             <tbody>
               <tr>
                 <td>Entrenador</td>
-                <td>Plantilla, entrenos, partidos y físicos de sus equipos (hasta 4 favoritos).</td>
+                <td>Dashboard, plantilla, entrenos, partidos y físicos de sus equipos (hasta 4 favoritos).</td>
               </tr>
               <tr>
                 <td>Preparador físico</td>
@@ -126,8 +126,9 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-inicio">
         <h2>4. Inicio del equipo</h2>
         <p>
-          El menú izquierdo (en el móvil, abajo) tiene Inicio, Calendario, Estadísticas y Plantilla.
+          El menú izquierdo (en el móvil, abajo) tiene Inicio, Dashboard, Calendario, Estadísticas y Plantilla.
           Inicio resume lo próximo: entreno, partido y físico. Desde las tarjetas puedes programar o ir al calendario.
+          El dashboard muestra KPIs del equipo (plantilla, sesiones, partidos, absentismo y balance de victorias y derrotas) en todo el periodo, con filtros de mes o semana.
         </p>
         <Figure
           src="/tutorial/03_inicio.jpg"
@@ -251,7 +252,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section">
         <h2>Coordinador y superadmin</h2>
         <p>
-          El <strong>coordinador</strong> empieza en un dashboard de KPIs por equipo (plantilla, sesiones, partidos y absentismo), y también tiene Equipos y Coordinación.
+          El <strong>coordinador</strong> empieza en un dashboard de KPIs por equipo (plantilla, sesiones, partidos y balance victorias-derrotas), y también tiene Equipos y Coordinación. Dentro de cada equipo, el entrenador y el coordinador ven el mismo dashboard del equipo.
         </p>
         <p>
           El <strong>superadmin</strong> ve el mismo dashboard de todos los clubes, crea clubes, asigna club y rol (entrenador, coordinador o preparador físico)

@@ -48,7 +48,34 @@ describe("dashboardKpis", () => {
     expect(kpis.absentismoPct).toBe(50);
     expect(kpis.victorias).toBe(1);
     expect(kpis.notaMedia).toBe(4);
-    expect(balancePartidos(kpis)).toBe("1-0-0");
+    expect(balancePartidos(kpis)).toBe("1-0");
+  });
+
+  it("el balance solo cuenta victorias y derrotas", () => {
+    const jugadoras = [{ id: "j1", equipoId: "eq-1", dorsal: 4 }];
+    const sesiones = [
+      {
+        equipoId: "eq-1",
+        tipo: "partido",
+        fecha: "2026-09-01",
+        puntosFavor: 50,
+        puntosContra: 50,
+      },
+      {
+        equipoId: "eq-1",
+        tipo: "partido",
+        fecha: "2026-09-08",
+        puntosFavor: 62,
+        puntosContra: 58,
+      },
+    ];
+    const kpis = calcularKpisEquipo({ equipo, jugadoras, sesiones, periodo: "todo" });
+    expect(kpis.partidos).toBe(2);
+    expect(kpis.victorias).toBe(1);
+    expect(kpis.empates).toBe(1);
+    expect(kpis.derrotas).toBe(0);
+    expect(kpis.partidosConResultado).toBe(1);
+    expect(balancePartidos(kpis)).toBe("1-0");
   });
 
   it("ignora doblaje en el absentismo y no usa asistencia de partidos", () => {
@@ -102,6 +129,6 @@ describe("dashboardKpis", () => {
     expect(total.entrenos).toBe(1);
     expect(total.partidos).toBe(1);
     expect(total.derrotas).toBe(1);
-    expect(balancePartidos(total)).toBe("0-0-1");
+    expect(balancePartidos(total)).toBe("0-1");
   });
 });

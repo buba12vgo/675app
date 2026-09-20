@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { IconChart } from "./icons.jsx";
+import { IconDashboard } from "./icons.jsx";
 import { EmptyState } from "./EmptyState.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { formatGeneroEquipo, formatTipoCanasta } from "../lib/appUtils.js";
@@ -12,9 +12,9 @@ import {
 } from "../lib/dashboardKpis.js";
 
 const PERIODOS = [
+  { key: "todo", label: "Todo" },
   { key: "mensual", label: "Este mes" },
   { key: "semanal", label: "Esta semana" },
-  { key: "todo", label: "Todo" },
 ];
 
 function KpiStat({ label, value }) {
@@ -26,17 +26,21 @@ function KpiStat({ label, value }) {
   );
 }
 
-function ResumenStrip({ kpis, titulo }) {
+function ResumenStrip({ kpis, titulo, detallado = false }) {
   return (
     <section className="tactical-card dash-summary">
       <h3 className="dash-summary__title">{titulo}</h3>
-      <div className="dash-kpi-grid">
+      <div className={`dash-kpi-grid${detallado ? " dash-kpi-grid--team" : ""}`}>
         <KpiStat label="Jugadoras" value={kpis.jugadoras} />
         <KpiStat label="Sesiones" value={kpis.sesiones} />
         <KpiStat label="Partidos" value={kpis.partidos} />
+        {detallado ? <KpiStat label="Entrenos" value={kpis.entrenos} /> : null}
+        {detallado ? <KpiStat label="Físicos" value={kpis.fisicos} /> : null}
         <KpiStat label="Absentismo" value={formatearPct(kpis.absentismoPct)} />
         <KpiStat label="Asistencia" value={formatearPct(kpis.asistenciaPct)} />
         <KpiStat label="Balance" value={balancePartidos(kpis)} />
+        {detallado ? <KpiStat label="Nota media" value={formatearNota(kpis.notaMedia)} /> : null}
+        {detallado ? <KpiStat label="Staff" value={kpis.staff} /> : null}
       </div>
     </section>
   );
@@ -55,11 +59,12 @@ export function ClubDashboard({
   getClubNombre,
   getEquipoLogo,
   onEntrarEquipo,
+  modoEquipo = false,
   accentLight,
   accentSoft,
   accentBorder,
 }) {
-  const [periodo, setPeriodo] = useState("mensual");
+  const [periodo, setPeriodo] = useState("todo");
   const [clubFiltro, setClubFiltro] = useState("");
 
   const equiposVisibles = useMemo(() => {
@@ -76,7 +81,7 @@ export function ClubDashboard({
   return (
     <div className="club-dashboard tactical-page">
       <h2 className="tactical-title">
-        <IconChart size={22} />
+        <IconDashboard size={22} />
         {titulo}
       </h2>
       {lead ? <p className="tactical-lead">{lead}</p> : null}
@@ -119,6 +124,8 @@ export function ClubDashboard({
         <EmptyState title="Cargando dashboard…" />
       ) : equiposVisibles.length === 0 ? (
         <EmptyState title="No hay equipos para mostrar." hint="Crea un equipo o cambia el filtro de club." />
+      ) : modoEquipo ? (
+        <ResumenStrip kpis={totales} titulo="Resumen" detallado />
       ) : (
         <>
           <ResumenStrip

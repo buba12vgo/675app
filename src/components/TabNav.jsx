@@ -1,5 +1,6 @@
 const MOBILE_TAB_LABELS = {
   home: "Inicio",
+  dashboard: "Dash",
   sesiones: "Agenda",
   players: "Stats",
   plantilla: "Plantilla",

@@ -1,6 +1,6 @@
 export const SESSION_CONTEXT_KEY = "675app.session";
 
-export const TEAM_TABS = ["home", "sesiones", "players", "plantilla"];
+export const TEAM_TABS = ["home", "dashboard", "sesiones", "players", "plantilla"];
 
 function canUseStorage() {
   return typeof sessionStorage !== "undefined";

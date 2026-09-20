@@ -40,6 +40,9 @@ describe("parseSessionContext", () => {
       equipoId: "eq-1",
       tab: "sesiones",
     });
+    expect(parseSessionContext({ userId: "u1", tab: "dashboard", equipoId: "eq-1" }).tab).toBe(
+      "dashboard"
+    );
   });
 });
 

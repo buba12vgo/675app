@@ -25,6 +25,7 @@ import { useUsuariosAdmin } from "./hooks/useUsuariosAdmin.js";
 import { useDashboardDatos } from "./hooks/useDashboardDatos.js";
 import {
   IconHome,
+  IconDashboard,
   IconCalendar,
   IconChart,
   IconUsers,
@@ -424,6 +425,7 @@ function App() {
 
   const tabsMenu = [
     { key: "home", label: "Inicio", Icon: IconHome },
+    { key: "dashboard", label: "Dashboard", Icon: IconDashboard },
     { key: "sesiones", label: "Calendario", Icon: IconCalendar },
     { key: "players", label: "Estadísticas", Icon: IconChart },
     { key: "plantilla", label: "Plantilla", Icon: IconUsers },

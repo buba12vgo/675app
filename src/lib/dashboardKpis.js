@@ -49,7 +49,7 @@ export function formatearNota(valor) {
 
 export function balancePartidos(kpis) {
   if (!kpis?.partidosConResultado) return "—";
-  return `${kpis.victorias}-${kpis.empates}-${kpis.derrotas}`;
+  return `${kpis.victorias}-${kpis.derrotas}`;
 }
 
 function registrarAsistencia(sesion, jugadorIds, acc) {
@@ -74,7 +74,7 @@ function registrarAsistencia(sesion, jugadorIds, acc) {
   });
 }
 
-export function calcularKpisEquipo({ equipo, jugadoras = [], sesiones = [], periodo = "mensual", desde = "", hasta = "" }) {
+export function calcularKpisEquipo({ equipo, jugadoras = [], sesiones = [], periodo = "todo", desde = "", hasta = "" }) {
   const equipoId = equipo?.id || "";
   const plantilla = (jugadoras || []).filter((j) => j.equipoId === equipoId);
   const jugadores = plantilla.filter(esJugadorPlantilla);
@@ -101,14 +101,14 @@ export function calcularKpisEquipo({ equipo, jugadoras = [], sesiones = [], peri
   });
 
   acc.sesiones = acc.entrenos + acc.partidos + acc.fisicos;
-  acc.partidosConResultado = acc.victorias + acc.empates + acc.derrotas;
+  acc.partidosConResultado = acc.victorias + acc.derrotas;
   acc.absentismoPct = porcentajeAbsentismo(acc.presentes, acc.ausencias);
   acc.asistenciaPct = acc.absentismoPct == null ? null : 100 - acc.absentismoPct;
   acc.notaMedia = acc.notaCount > 0 ? acc.notaSuma / acc.notaCount : null;
   return acc;
 }
 
-export function calcularKpisEquipos({ equipos = [], jugadoras = [], sesiones = [], periodo = "mensual", desde = "", hasta = "" }) {
+export function calcularKpisEquipos({ equipos = [], jugadoras = [], sesiones = [], periodo = "todo", desde = "", hasta = "" }) {
   return (equipos || []).map((equipo) => ({
     equipo,
     kpis: calcularKpisEquipo({ equipo, jugadoras, sesiones, periodo, desde, hasta }),
@@ -134,7 +134,7 @@ export function agregarKpis(filas) {
     acc.notaCount += kpis.notaCount || 0;
     if (kpis.ultimaFecha && kpis.ultimaFecha > acc.ultimaFecha) acc.ultimaFecha = kpis.ultimaFecha;
   });
-  acc.partidosConResultado = acc.victorias + acc.empates + acc.derrotas;
+  acc.partidosConResultado = acc.victorias + acc.derrotas;
   acc.absentismoPct = porcentajeAbsentismo(acc.presentes, acc.ausencias);
   acc.asistenciaPct = acc.absentismoPct == null ? null : 100 - acc.absentismoPct;
   acc.notaMedia = acc.notaCount > 0 ? acc.notaSuma / acc.notaCount : null;
