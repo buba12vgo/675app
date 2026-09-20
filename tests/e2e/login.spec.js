@@ -21,6 +21,8 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: "Cómo funciona la app" }).click();
     await expect(page.getByRole("heading", { name: "Cómo funciona la app" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "6. Dashboard" })).toBeVisible();
+    await expect(page.getByText(/dashboard del club/i).first()).toBeVisible();
+    await expect(page.locator('img[alt*="Dashboard del club"]')).toHaveCount(2);
     await expect(page.getByText(/Jugador\/a/)).toBeVisible();
     await expect(page.getByText(/puede generar datos de prueba/i)).toHaveCount(0);
     await page.getByRole("button", { name: "Volver" }).click();

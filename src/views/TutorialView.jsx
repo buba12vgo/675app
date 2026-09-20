@@ -14,6 +14,7 @@ const SECTIONS = [
   { id: "estadisticas", label: "Estadísticas" },
   { id: "opciones", label: "Opciones" },
   { id: "movil", label: "Móvil" },
+  { id: "coordinacion", label: "Club" },
 ];
 
 function Figure({ src, alt, caption }) {
@@ -44,7 +45,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         <p className="tutorial__kicker">Guía de 675app</p>
         <h1 className="tutorial__title">Cómo funciona la app</h1>
         <p className="tutorial__lead">
-          675app organiza el día a día del club: equipos, plantilla, entrenos, partidos y trabajo físico.
+          675app organiza el día a día del club: dashboard, equipos, plantilla, entrenos, partidos y trabajo físico.
           Esta guía sigue el orden en el que se usa, con el aspecto actual de la web.
         </p>
       </header>
@@ -167,14 +168,19 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-dashboard">
         <h2>6. Dashboard</h2>
         <p>
-          El dashboard del equipo muestra indicadores de plantilla, no el detalle de cada jugadora: número de
-          jugadoras, staff, sesiones (entrenos, partidos y físicos), absentismo, asistencia, nota media y balance de
-          partidos en formato victorias-derrotas (sin empates).
+          El coordinador y el superadmin empiezan en el <strong>dashboard del club</strong>: un resumen y, debajo, una
+          tarjeta por equipo (jugadoras, sesiones, partidos, absentismo, nota y balance victorias-derrotas, sin
+          empates). El periodo por defecto es <strong>Todo</strong>; puedes pasar a este mes o esta semana.{" "}
+          <strong>Ver equipo</strong> abre ese equipo.
         </p>
+        <Figure
+          src="/tutorial/14_dashboard_club.jpg"
+          alt="Dashboard del club con KPIs por equipo"
+          caption="Dashboard del club: resumen y una tarjeta por equipo."
+        />
         <p>
-          El periodo por defecto es <strong>Todo</strong>. Puedes filtrar a este mes o esta semana. Entrenador,
-          coordinador y superadmin ven este mismo dashboard al entrar en un equipo. El coordinador y el superadmin
-          tienen además un dashboard de club (o de todos los clubes) antes de entrar.
+          Dentro de un equipo, la pestaña <strong>Dashboard</strong> del menú muestra los mismos indicadores de esa
+          plantilla, sin el detalle de cada jugadora. La ven el entrenador, el coordinador y el superadmin.
         </p>
         <Figure
           src="/tutorial/13_dashboard.jpg"
@@ -300,15 +306,19 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         </p>
       </section>
 
-      <section className="tutorial__section">
+      <section className="tutorial__section" id="tutorial-coordinacion">
         <h2>Coordinador y superadmin</h2>
         <p>
-          El <strong>coordinador</strong> empieza en un dashboard de KPIs por equipo (plantilla, sesiones, partidos y
-          balance victorias-derrotas). También tiene Equipos y Coordinación. Puede haber más de un coordinador por
-          club. Dentro de cada equipo, el entrenador y el coordinador ven el mismo dashboard.
+          El <strong>coordinador</strong> entra en el dashboard del club (arriba). También tiene Equipos y Coordinación.
+          Puede haber más de un coordinador por club.
         </p>
+        <Figure
+          src="/tutorial/14_dashboard_club.jpg"
+          alt="Dashboard del club del coordinador con KPIs por equipo"
+          caption="Nada más entrar, el coordinador ve el dashboard del club."
+        />
         <p>
-          El <strong>superadmin</strong> ve el dashboard de todos los clubes, crea clubes y asigna club y rol
+          El <strong>superadmin</strong> ve el mismo dashboard de todos los clubes, crea clubes y asigna club y rol
           (entrenador, coordinador o preparador físico).
         </p>
       </section>
