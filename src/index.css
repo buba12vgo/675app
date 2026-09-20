@@ -880,7 +880,8 @@ html:not(.dark) .app-header-logout {
 
 .app-shell[data-device-preview="mobile"] .app-nav-mobile,
 .app-shell[data-device-preview="tablet"] .app-nav-mobile {
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .app-shell[data-device-preview="mobile"] .app-nav-desktop,
@@ -5024,5 +5025,11 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   .dash-team-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.app-shell[data-device-preview="mobile"] .dash-kpi-grid,
+.app-shell[data-device-preview="mobile"] .dash-kpi-grid--team,
+.app-shell[data-device-preview="tablet"] .dash-kpi-grid--team {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
