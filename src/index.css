@@ -3311,6 +3311,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .plantilla-roles {
   width: 100%;
+  flex-wrap: nowrap;
 }
 
 .plantilla-roles .chip {
