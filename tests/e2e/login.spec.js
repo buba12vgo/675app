@@ -15,4 +15,15 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: "Ingresar" }).click();
     await expect(page.locator("text=/Firebase|invalid|credencial|password/i").first()).toBeVisible({ timeout: 10000 });
   });
+
+  test("AUTH-06 abre Cómo funciona la app", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Cómo funciona la app" }).click();
+    await expect(page.getByRole("heading", { name: "Cómo funciona la app" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "6. Dashboard" })).toBeVisible();
+    await expect(page.getByText(/Jugador\/a/)).toBeVisible();
+    await expect(page.getByText(/puede generar datos de prueba/i)).toHaveCount(0);
+    await page.getByRole("button", { name: "Volver" }).click();
+    await expect(page.getByPlaceholder("Correo electrónico")).toBeVisible();
+  });
 });

@@ -1,9 +1,7 @@
-import { DemoSeedCard } from "./DemoSeedCard.jsx";
 import { EquiposListaContainer } from "./EquiposListaContainer.jsx";
 
 export function SuperadminEquiposPanel({
   userData,
-  demoSeedProps,
   equiposFiltroSuperadmin,
   onEquiposFiltroChange,
   accent,
@@ -15,7 +13,6 @@ export function SuperadminEquiposPanel({
 }) {
   return (
     <>
-      <DemoSeedCard {...demoSeedProps} />
       <div
         style={{
           display: "flex",

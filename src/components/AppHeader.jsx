@@ -8,15 +8,12 @@ export function AppHeader({
   compact,
   barStyle,
   inputBorder,
-  accent,
+  accent: _accent,
   text,
   textMuted,
   accentLight: _accentLight,
   cardBgElevated,
   userData,
-  canSeedDemoData,
-  seedingDemo,
-  onSeedDemo,
   devicePreview,
   onDevicePreviewChange,
   showDevicePreview,
@@ -74,24 +71,6 @@ export function AppHeader({
             <IconSettings size={16} color={textMuted} />
             <span className="app-header-options-btn__label">Opciones</span>
           </button>
-          {canSeedDemoData && (
-            <button
-              type="button"
-              className="app-header-seed-btn"
-              onClick={onSeedDemo}
-              disabled={seedingDemo}
-              style={{
-                color: accent,
-                borderColor: inputBorder,
-                background: cardBgElevated,
-                opacity: seedingDemo ? 0.75 : 1,
-                cursor: seedingDemo ? "wait" : "pointer",
-              }}
-            >
-              <span className="app-header-seed-btn__long">{seedingDemo ? "Generando…" : "Datos prueba"}</span>
-              <span className="app-header-seed-btn__short">{seedingDemo ? "…" : "Demo"}</span>
-            </button>
-          )}
           {showDevicePreview ? (
             <DevicePreviewControl mode={devicePreview} onChange={onDevicePreviewChange} />
           ) : null}

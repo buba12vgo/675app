@@ -1,10 +1,10 @@
 # 675app
 
-App de clubes de baloncesto: clubes → equipos → plantilla, calendario y estadísticas.
+App de clubes de baloncesto: clubes → equipos → plantilla, calendario, dashboard y estadísticas.
 
-Roles: **superadmin**, **coordinador**, **entrenador** y **preparador físico**. Un club puede tener varios coordinadores; gestionan equipos y escudos. El entrenador trabaja la plantilla y las sesiones (entreno/partido/físico; hasta 4 favoritos). El preparador físico accede a los equipos del club (hasta 10 favoritos), crea y edita entrenamientos físicos (asistencia y valoración propias) y solo consulta entrenos/partidos.
+Roles: **superadmin**, **coordinador**, **entrenador** y **preparador físico**. Un club puede tener varios coordinadores; gestionan equipos y escudos. El entrenador trabaja la plantilla (jugador/a, entrenador o ayudante), el dashboard del equipo y las sesiones (entreno/partido/físico; hasta 4 favoritos). El preparador físico accede a los equipos del club (hasta 10 favoritos), crea y edita entrenamientos físicos (asistencia y valoración propias) y solo consulta entrenos/partidos.
 
-**Cómo usar la app:** en https://675app.vercel.app pulsa **Cómo funciona la app** (también está en Opciones cuando ya has entrado).
+**Cómo usar la app:** en https://675app.vercel.app pulsa **Cómo funciona la app** (también está en Opciones cuando ya has entrado). La guía cubre el aspecto actual (pista, modo claro/oscuro) y el uso de cada pantalla.
 
 Stack: React 19 + Vite 8 + Firebase Auth/Firestore (plan Spark, **sin Storage**). Los escudos van en la colección `Logos` o como PNG en `public/logos/`.
 

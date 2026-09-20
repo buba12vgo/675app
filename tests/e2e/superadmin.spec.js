@@ -15,9 +15,11 @@ test.describe("Superadmin", () => {
     await expect(page.getByRole("button", { name: "Equipos" })).toBeVisible();
   });
 
-  test("SA-07 botón datos de prueba visible", async ({ page }) => {
+  test("SA-07 no ofrece generar datos de prueba", async ({ page }) => {
+    await expect(page.getByRole("button", { name: /Datos prueba|Generar datos de prueba/i })).toHaveCount(0);
     await page.getByRole("button", { name: "Equipos" }).click();
-    await expect(page.getByRole("button", { name: /Datos prueba/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Datos prueba|Generar datos de prueba/i })).toHaveCount(0);
+    await expect(page.getByText(/Datos de prueba/i)).toHaveCount(0);
   });
 
   test("SA-05 filtro equipos todos / mi club", async ({ page }) => {

@@ -13,7 +13,6 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { seedDemoData } from "../seedDemoData.js";
 import { prepareLogoDataUrl, validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
 import { clubLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
@@ -37,8 +36,6 @@ export function useClubes({
   const [nuevoClubNombre, setNuevoClubNombre] = useState("");
   const [gestionLoading, setGestionLoading] = useState(false);
   const [selectClubLoading, setSelectClubLoading] = useState(false);
-  const [seedingDemo, setSeedingDemo] = useState(false);
-  const [seedNotice, setSeedNotice] = useState(null);
   const [savingClubLogoId, setSavingClubLogoId] = useState(null);
   const [clubEditandoId, setClubEditandoId] = useState(null);
   const [editClubNombre, setEditClubNombre] = useState("");
@@ -478,39 +475,6 @@ export function useClubes({
     }
   };
 
-  const handleSeedDemoData = async () => {
-    if (userData?.rol !== "superadmin") {
-      setErrorMsg("No tienes permiso para generar datos de prueba.");
-      return;
-    }
-
-    const confirmed = await confirm({
-      title: "¿Generar datos de prueba?",
-      text: "Por cada club: 6 equipos, 10 jugadoras por equipo y entrenamientos/partidos aleatorios de los últimos 90 días.\n\nSi no hay clubes, se crearán 3 de demo.",
-      confirmLabel: "Generar datos",
-      danger: false,
-    });
-    if (!confirmed) return;
-
-    setSeedingDemo(true);
-    setErrorMsg("");
-    setSeedNotice(null);
-    try {
-      const summary = await seedDemoData(db, { clubIdFilter: null });
-      setSeedNotice(
-        `Datos generados: ${summary.clubes} club${summary.clubes === 1 ? "" : "es"} · ${summary.equiposCreados} equipos nuevos · ${summary.jugadorasCreadas} jugadoras · ${summary.sesionesCreadas} sesiones.`
-      );
-    } catch (err) {
-      setErrorMsg(
-        err?.code === "permission-denied"
-          ? "No tienes permiso para generar datos de prueba."
-          : err?.message || "No se pudieron generar los datos de prueba."
-      );
-    } finally {
-      setSeedingDemo(false);
-    }
-  };
-
   return {
     clubes,
     activeClub,
@@ -518,8 +482,6 @@ export function useClubes({
     setNuevoClubNombre,
     gestionLoading,
     selectClubLoading,
-    seedingDemo,
-    seedNotice,
     getClubNombre,
     getClubLogo,
     handleCrearClub,
@@ -528,7 +490,6 @@ export function useClubes({
     handleAprobarSolicitudClub,
     handleRechazarSolicitudClub,
     handleQuitarMiClub,
-    handleSeedDemoData,
     handleUploadClubLogo,
     handleRemoveClubLogo,
     savingClubLogoId,

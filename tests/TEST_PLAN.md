@@ -11,6 +11,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 | AUTH-03 | Login | Credenciales inválidas muestran error | E2E |
 | AUTH-04 | Header | Muestra rol y botón Salir tras login | E2E |
 | AUTH-05 | Header | Logo 675app vuelve a inicio | E2E |
+| AUTH-06 | Tutorial | Login abre «Cómo funciona la app» sin datos de prueba | E2E |
 
 ## 2. Entrenador — club y equipos
 
@@ -27,7 +28,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 
 | ID | Área | Caso | Tipo |
 |----|------|------|------|
-| TEAM-01 | Nav | Tabs visibles: Inicio, Calendario, Estadísticas, Plantilla, Opciones | E2E |
+| TEAM-01 | Nav | Tabs visibles: Inicio, Dashboard, Calendario, Estadísticas, Plantilla | E2E |
 | TEAM-02 | Inicio | Tarjetas próximo entreno / partido | E2E |
 | TEAM-03 | Calendario | Grilla mensual y leyenda entreno/partido | E2E |
 | TEAM-04 | Calendario | Clic en día abre panel de sesión | Manual |
@@ -48,7 +49,7 @@ Ejecutar con `npm test` (rápido) o `npm run test:full` (incluye E2E e integraci
 | SA-04 | Clubes | Asignarse «Mi club» | Manual |
 | SA-05 | Equipos | Ver todos / filtrar por mi club | E2E |
 | SA-06 | Equipos | Entrar en cualquier equipo | E2E |
-| SA-07 | Seed | Botón «Datos prueba» solo superadmin | E2E / Integración |
+| SA-07 | Seed | No hay generación de datos de prueba | E2E |
 
 ## 5. UI global
 

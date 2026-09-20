@@ -1,4 +1,3 @@
-import { DemoSeedCard } from "./DemoSeedCard.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
 import { IconGear } from "./icons.jsx";
@@ -17,7 +16,6 @@ export function SuperadminClubesPanel({
   onAccent,
   cardBgElevated,
   onQuitarMiClub,
-  demoSeedProps,
   solicitudesLoading,
   solicitudesClub,
   onAprobarSolicitud,
@@ -84,7 +82,6 @@ export function SuperadminClubesPanel({
           </div>
         )}
       </div>
-      <DemoSeedCard {...demoSeedProps} />
       {solicitudesLoading ? (
         <div className="empty-state-text" style={{ width: "97%", marginBottom: 16, fontSize: 15 }}>
           Cargando solicitudes de club…

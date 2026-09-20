@@ -116,8 +116,6 @@ function App() {
     setNuevoClubNombre,
     gestionLoading,
     selectClubLoading,
-    seedingDemo,
-    seedNotice,
     getClubNombre,
     getClubLogo,
     handleCrearClub,
@@ -126,7 +124,6 @@ function App() {
     handleAprobarSolicitudClub,
     handleRechazarSolicitudClub,
     handleQuitarMiClub,
-    handleSeedDemoData,
     handleUploadClubLogo,
     handleRemoveClubLogo,
     savingClubLogoId,
@@ -668,18 +665,6 @@ function App() {
     accentBorder,
   };
 
-  const canSeedDemoData = userData?.rol === "superadmin";
-  const demoSeedProps = {
-    onSeed: handleSeedDemoData,
-    seeding: seedingDemo,
-    notice: seedNotice,
-    accent,
-    text,
-    textSecondary,
-    inputBorder,
-    cardBgElevated,
-  };
-
   const superadminClubesPanelProps = {
     userData,
     accent,
@@ -693,7 +678,6 @@ function App() {
     onAccent,
     cardBgElevated,
     onQuitarMiClub: handleQuitarMiClub,
-    demoSeedProps,
     solicitudesLoading,
     solicitudesClub,
     onAprobarSolicitud: handleAprobarSolicitudClub,
@@ -815,9 +799,6 @@ function App() {
             accentLight={accentLight}
             cardBgElevated={cardBgElevated}
             userData={userData}
-            canSeedDemoData={canSeedDemoData}
-            seedingDemo={seedingDemo}
-            onSeedDemo={handleSeedDemoData}
             devicePreview={devicePreview}
             onDevicePreviewChange={setDevicePreview}
             showDevicePreview={showDevicePreview}
@@ -900,7 +881,6 @@ function App() {
                   clubesPanelProps={superadminClubesPanelProps}
                   equiposPanelProps={{
                     userData,
-                    demoSeedProps,
                     equiposFiltroSuperadmin,
                     onEquiposFiltroChange: setEquiposFiltroSuperadmin,
                     accent,
