@@ -210,10 +210,9 @@ service cloud.firestore {
         );
     }
 
-    function validClubData() {
+    function validClubShape() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['nombre', 'creadoEn', 'logoUrl', 'logoSource', 'logoUpdatedAt'])
-        && d.nombre is string
+      return d.nombre is string
         && d.nombre.size() > 0
         && d.nombre.size() <= 80
         && optionalTimestamp(d, 'creadoEn')
@@ -225,22 +224,20 @@ service cloud.firestore {
         );
     }
 
-    function validClubLogoMutation() {
-      let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return !changed.hasAny(['logoUrl', 'logoSource', 'logoUpdatedAt'])
-        || (
-          !('logoUrl' in request.resource.data)
-          || (request.resource.data.logoUrl is string && request.resource.data.logoUrl.size() <= 500)
-        );
+    function validClubCreate() {
+      return request.resource.data.keys().hasOnly(['nombre', 'creadoEn', 'logoUrl', 'logoSource', 'logoUpdatedAt'])
+        && validClubShape();
     }
 
-    function validEquipoData() {
+    function validClubUpdate() {
+      return validClubShape()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['nombre', 'logoUrl', 'logoSource', 'logoUpdatedAt']);
+    }
+
+    function validEquipoShape() {
       let d = request.resource.data;
-      return d.keys().hasOnly([
-          'nombre', 'clubId', 'genero', 'tipoCanasta', 'creadoEn',
-          'logoUrl', 'logoSource', 'logoUpdatedAt'
-        ])
-        && d.nombre is string
+      return d.nombre is string
         && d.nombre.size() > 0
         && d.nombre.size() <= 80
         && d.clubId is string
@@ -257,10 +254,23 @@ service cloud.firestore {
         );
     }
 
-    function validJugadoraData() {
+    function validEquipoCreate() {
+      return request.resource.data.keys().hasOnly([
+          'nombre', 'clubId', 'genero', 'tipoCanasta', 'creadoEn',
+          'logoUrl', 'logoSource', 'logoUpdatedAt'
+        ])
+        && validEquipoShape();
+    }
+
+    function validEquipoUpdate() {
+      return validEquipoShape()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['nombre', 'genero', 'tipoCanasta', 'logoUrl', 'logoSource', 'logoUpdatedAt']);
+    }
+
+    function validJugadoraShape() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['nombre', 'dorsal', 'apodo', 'rolPlantilla', 'equipoId', 'clubId', 'creadoEn'])
-        && d.nombre is string
+      return d.nombre is string
         && d.nombre.size() > 0
         && d.nombre.size() <= 80
         && d.equipoId is string
@@ -284,15 +294,22 @@ service cloud.firestore {
         );
     }
 
-    function validSesionData() {
-      let d = request.resource.data;
-      return d.keys().hasOnly([
-          'equipoId', 'fecha', 'tipo', 'tematica', 'ejercicios', 'rival', 'local',
-          'puntosFavor', 'puntosContra', 'asistencias', 'valoraciones',
-          'jugadorasExternas', 'motivosAusencia', 'planificacionSextos',
-          'creadoEn', 'actualizadoEn'
+    function validJugadoraCreate() {
+      return request.resource.data.keys().hasOnly([
+          'nombre', 'dorsal', 'apodo', 'rolPlantilla', 'equipoId', 'clubId', 'creadoEn'
         ])
-        && d.equipoId is string
+        && validJugadoraShape();
+    }
+
+    function validJugadoraUpdate() {
+      return validJugadoraShape()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['nombre', 'dorsal', 'apodo', 'rolPlantilla']);
+    }
+
+    function validSesionShape() {
+      let d = request.resource.data;
+      return d.equipoId is string
         && d.equipoId.size() > 0
         && d.equipoId.size() <= 80
         && d.fecha is string
@@ -314,6 +331,30 @@ service cloud.firestore {
         )
         && optionalTimestamp(d, 'creadoEn')
         && optionalTimestamp(d, 'actualizadoEn');
+    }
+
+    function validSesionCreate() {
+      return request.resource.data.keys().hasOnly([
+          'equipoId', 'fecha', 'tipo', 'tematica', 'ejercicios', 'rival', 'local',
+          'puntosFavor', 'puntosContra', 'asistencias', 'valoraciones',
+          'jugadorasExternas', 'motivosAusencia', 'planificacionSextos',
+          'creadoEn', 'actualizadoEn'
+        ])
+        && validSesionShape()
+        && request.resource.data.creadoEn is timestamp;
+    }
+
+    function validSesionUpdate() {
+      return validSesionShape()
+        && sesionImmutableFields()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'equipoId', 'fecha', 'tipo',
+            'tematica', 'ejercicios', 'rival', 'local',
+            'puntosFavor', 'puntosContra', 'asistencias', 'valoraciones',
+            'jugadorasExternas', 'motivosAusencia', 'planificacionSextos',
+            'actualizadoEn'
+          ]);
     }
 
     function sesionImmutableFields() {
@@ -351,8 +392,8 @@ service cloud.firestore {
 
     match /Clubes/{clubId} {
       allow read: if isSignedIn();
-      allow create: if isSuperadmin() && validClubData();
-      allow update: if validClubData() && validClubLogoMutation() && (
+      allow create: if isSuperadmin() && validClubCreate();
+      allow update: if validClubUpdate() && (
         isSuperadmin() || (
           isCoordinador()
           && userClubId() == clubId
@@ -364,10 +405,10 @@ service cloud.firestore {
 
     match /Equipos/{equipoId} {
       allow read: if isSignedIn() && (isSuperadmin() || resource.data.clubId == userClubId());
-      allow create: if isSignedIn() && canManageEquipoClub(request.resource.data.clubId) && validEquipoData();
+      allow create: if isSignedIn() && canManageEquipoClub(request.resource.data.clubId) && validEquipoCreate();
       allow update: if canManageEquipoClub(resource.data.clubId)
         && canManageEquipoClub(request.resource.data.clubId)
-        && validEquipoData();
+        && validEquipoUpdate();
       allow delete: if isSuperadmin();
     }
 
@@ -379,7 +420,7 @@ service cloud.firestore {
         || canAccessEquipo(resource.data.equipoId)
       );
       allow create: if isSignedIn()
-        && validJugadoraData()
+        && validJugadoraCreate()
         && (
           isSuperadmin() || (
             belongsToClub(request.resource.data.clubId)
@@ -387,7 +428,7 @@ service cloud.firestore {
           )
         );
       allow update: if isSignedIn()
-        && validJugadoraData()
+        && validJugadoraUpdate()
         && (
           isSuperadmin() || (
             belongsToClub(resource.data.clubId)
@@ -407,13 +448,11 @@ service cloud.firestore {
     match /Sesiones/{sesionId} {
       allow read: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
       allow create: if isSignedIn()
-        && validSesionData()
-        && request.resource.data.creadoEn is timestamp
+        && validSesionCreate()
         && canAccessEquipo(request.resource.data.equipoId)
         && canWriteSesionTipo(sesionTipo(request.resource.data));
       allow update: if isSignedIn()
-        && validSesionData()
-        && sesionImmutableFields()
+        && validSesionUpdate()
         && canAccessEquipo(resource.data.equipoId)
         && canAccessEquipo(request.resource.data.equipoId)
         && canWriteSesionTipo(sesionTipo(resource.data))
