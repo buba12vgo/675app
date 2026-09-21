@@ -1925,6 +1925,16 @@ html:not(.dark) .app-header-logout {
   color: var(--color-text-secondary);
 }
 
+.tutorial__contact {
+  color: var(--color-accent-light);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tutorial__contact:hover {
+  text-decoration: underline;
+}
+
 .tutorial__figure {
   margin: 0 0 14px;
 }
@@ -2132,6 +2142,27 @@ html:not(.dark) .login-submit {
   text-transform: uppercase;
   color: var(--color-text-muted);
   text-align: center;
+}
+
+.login-footer__contact,
+.user-options-contact a {
+  color: var(--color-accent-light);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-footer__contact:hover,
+.user-options-contact a:hover {
+  text-decoration: underline;
+}
+
+.user-options-contact {
+  margin: 20px 0 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .btn-primary {

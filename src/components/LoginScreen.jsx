@@ -3,6 +3,7 @@ import { BlurredBackground } from "./BlurredBackground.jsx";
 import { CourtWatermark } from "./CourtWatermark.jsx";
 import { ThemeToggleButton } from "./ThemeToggleButton.jsx";
 import { IconEye, IconEyeOff, IconHelp } from "./icons.jsx";
+import { CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/contact.js";
 
 const LOGO_SRC = "/logo-675.png";
 
@@ -113,6 +114,9 @@ export function LoginScreen({
           </button>
         ) : null}
         <p className="login-footer__kicker">Pizarra táctica · Categorías base · Club 675</p>
+        <a className="login-footer__contact" href={CONTACT_MAILTO}>
+          Contacto: {CONTACT_EMAIL}
+        </a>
       </footer>
     </div>
   );

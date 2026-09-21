@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/contact.js";
+
 export function UserOptionsPanel({
   userNombre,
   onNombreChange,
@@ -129,6 +131,9 @@ export function UserOptionsPanel({
           )}
         </div>
       )}
+      <p className="user-options-contact">
+        Contacto: <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>
+      </p>
     </div>
   );
 }

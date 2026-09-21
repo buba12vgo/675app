@@ -1,4 +1,5 @@
 import { IconChevronLeft } from "../components/icons.jsx";
+import { CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/contact.js";
 
 const SECTIONS = [
   { id: "entrar", label: "Entrar" },
@@ -321,6 +322,9 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         <p>
           El <strong>superadmin</strong> ve el mismo dashboard de todos los clubes, crea clubes y asigna club y rol
           (entrenador, coordinador o preparador físico).
+        </p>
+        <p>
+          Contacto: <a className="tutorial__contact" href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>
         </p>
       </section>
     </article>
