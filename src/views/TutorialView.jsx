@@ -61,8 +61,9 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       <section className="tutorial__section" id="tutorial-entrar">
         <h2>1. Entrar</h2>
         <p>
-          Abre <strong>675app.vercel.app</strong>. El logo 675 está arriba a la izquierda y en la tarjeta de acceso.
-          Entra con correo y contraseña o con Google. Abajo tienes este mismo tutorial:{" "}
+          Abre <strong>675basket.com</strong>. El logo 675 está arriba a la izquierda y en la tarjeta de acceso.
+          Entra con correo y contraseña o con Google. Esta guía está en{" "}
+          <strong>675basket.com/como-funciona</strong> y también abajo en el login:{" "}
           <strong>Cómo funciona la app</strong>.
         </p>
         <Figure

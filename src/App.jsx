@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   THEMES,
   applyThemeToDocument,
@@ -48,6 +48,7 @@ import {
   persistSessionContext,
   clearSessionContext,
 } from "./lib/sessionContext.js";
+import { isTutorialLocation, setTutorialLocation } from "./lib/tutorialLocation.js";
 
 function App() {
   const [errorMsg, setErrorMsg] = useState("");
@@ -193,7 +194,25 @@ function App() {
   );
   const showDevicePreview = import.meta.env.DEV;
   const [colorMode, setColorMode] = useState(() => getStoredTheme());
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(() => isTutorialLocation());
+  const openTutorial = useCallback(() => {
+    setShowTutorial(true);
+    setTutorialLocation(true);
+  }, []);
+  const closeTutorial = useCallback(() => {
+    setShowTutorial(false);
+    setTutorialLocation(false);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setShowTutorial(isTutorialLocation());
+    window.addEventListener("popstate", sync);
+    window.addEventListener("hashchange", sync);
+    return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("hashchange", sync);
+    };
+  }, []);
   const [statsPeriodo, setStatsPeriodo] = useState("mensual");
   const [statsVista, setStatsVista] = useState("todo");
   const [statsDesde, setStatsDesde] = useState(() => {
@@ -317,9 +336,9 @@ function App() {
       tabIdentityRef.current = next;
       setTab("home");
       setShowOpcionesPanel(false);
-      setShowTutorial(false);
+      closeTutorial();
     }
-  }, [userData?.clubId, userData?.rol, setShowOpcionesPanel]);
+  }, [userData?.clubId, userData?.rol, setShowOpcionesPanel, closeTutorial]);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -430,13 +449,13 @@ function App() {
 
   const handleGoHome = () => {
     setShowOpcionesPanel(false);
-    setShowTutorial(false);
+    closeTutorial();
     if (equipoActivo) setTab("home");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleLogout = async () => {
-    setShowTutorial(false);
+    closeTutorial();
     clearSessionContext();
     sessionRestoredRef.current = false;
     tabIdentityRef.current = null;
@@ -452,7 +471,7 @@ function App() {
           <BlurredBackground isDark={isDarkMode} />
           <CourtWatermark className="court-watermark" variant="landscape" />
           <TutorialView
-            onBack={() => setShowTutorial(false)}
+            onBack={closeTutorial}
             textMuted={textMuted}
             inputBorder={inputBorder}
             cardBgElevated={cardBgElevated}
@@ -474,7 +493,7 @@ function App() {
         onEmailLogin={handleEmailLogin}
         onGoogleLogin={handleGoogleLogin}
         errorMsg={errorMsg}
-        onOpenTutorial={() => setShowTutorial(true)}
+        onOpenTutorial={openTutorial}
       />
     );
   }
@@ -854,13 +873,13 @@ function App() {
                     esEntrenador: userData?.rol === "entrenador",
                     onOpenTutorial: () => {
                       setShowOpcionesPanel(false);
-                      setShowTutorial(true);
+                      openTutorial();
                     },
                   }}
                 />
               ) : showTutorial ? (
                 <TutorialView
-                  onBack={() => setShowTutorial(false)}
+                  onBack={closeTutorial}
                   textMuted={textMuted}
                   inputBorder={inputBorder}
                   cardBgElevated={cardBgElevated}
