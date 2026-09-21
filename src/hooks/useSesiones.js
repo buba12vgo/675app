@@ -4,13 +4,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  setDoc,
   updateDoc,
   deleteDoc,
   collection,
   onSnapshot,
   query,
   where,
-  runTransaction,
 } from "firebase/firestore";
 import {
   createSesionDocId,
@@ -25,7 +25,7 @@ import {
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
-import { resetCamposSesion, SesionAlreadyExistsError, mensajeErrorCrearSesion } from "../lib/sessionUtils.js";
+import { resetCamposSesion, mensajeErrorCrearSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
 import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
 import {
@@ -373,13 +373,9 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         planificacionSextos: {},
         creadoEn: new Date(),
       };
-      await runTransaction(db, async (transaction) => {
-        const existing = await transaction.get(sesionDocRef);
-        if (existing.exists()) {
-          throw new SesionAlreadyExistsError();
-        }
-        transaction.set(sesionDocRef, payload);
-      });
+      // No transaction.get: un get de un id nuevo lo niegan las reglas (resource no existe).
+      // Si el doc ya está, este setDoc es un update y las reglas bloquean el overwrite de creadoEn.
+      await setDoc(sesionDocRef, payload);
       const snap = await getDoc(sesionDocRef);
       if (snap.exists()) {
         aplicarSesionAlEstado(snap.data(), snap.id, formSetters);
