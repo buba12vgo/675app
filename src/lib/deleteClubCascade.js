@@ -10,6 +10,14 @@ import { equipoLogoDocId } from "./logoDocs.js";
 
 const BATCH_LIMIT = 400;
 
+export function mergeDocsById(snaps) {
+  const byId = new Map();
+  (snaps || []).forEach((snap) => {
+    (snap?.docs || []).forEach((item) => byId.set(item.id, item));
+  });
+  return [...byId.values()];
+}
+
 async function commitOps(db, ops) {
   for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
     const batch = writeBatch(db);
@@ -47,18 +55,20 @@ export async function deleteClubCascade(db, clubId) {
   const equipos = equiposSnap.docs;
   const equipoIds = equipos.map((equipoDoc) => equipoDoc.id);
 
-  const [jugadorasSnap, logosSnap, usuariosSnap, solicitudesSnap] = await Promise.all([
+  const [jugadorasSnap, logosSnap, usuariosSnap, solicitudesSnap, sesionesPorClub] = await Promise.all([
     getDocs(query(collection(db, "Jugadoras"), where("clubId", "==", clubId))),
     getDocs(query(collection(db, "Logos"), where("clubId", "==", clubId))),
     getDocs(query(collection(db, "Usuarios"), where("clubId", "==", clubId))),
     getDocs(query(collection(db, "Usuarios"), where("solicitudClubId", "==", clubId))),
+    getDocs(query(collection(db, "Sesiones"), where("clubId", "==", clubId))),
   ]);
 
-  const sesionesDocs = [];
-  for (const equipoId of equipoIds) {
-    const sesSnap = await getDocs(query(collection(db, "Sesiones"), where("equipoId", "==", equipoId)));
-    sesionesDocs.push(...sesSnap.docs);
-  }
+  const sesionesPorEquipo = await Promise.all(
+    equipoIds.map((equipoId) =>
+      getDocs(query(collection(db, "Sesiones"), where("equipoId", "==", equipoId)))
+    )
+  );
+  const sesionesDocs = mergeDocsById([sesionesPorClub, ...sesionesPorEquipo]);
 
   const assignedUserIds = new Set(usuariosSnap.docs.map((userDoc) => userDoc.id));
   const ops = [];

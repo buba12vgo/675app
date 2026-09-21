@@ -11,11 +11,11 @@ service cloud.firestore {
     //   Signed-in read is the club-name directory for "pedir club". Escudos live in Logos.
     // Equipos/{id}: nombre, clubId, genero?, tipoCanasta?, creadoEn?, logo*?
     // Jugadoras/{id}: nombre, dorsal?, apodo?, rolPlantilla?, equipoId, clubId, creadoEn?
-    // Sesiones/{id}: equipoId, fecha (YYYY-MM-DD), tipo (entreno|partido|fisico),
+    // Sesiones/{id}: equipoId, clubId, fecha (YYYY-MM-DD), tipo (entreno|partido|fisico),
     //   tematica?, ejercicios?, rival?, local?, puntosFavor?, puntosContra?,
     //   asistencias?, valoraciones?, jugadorasExternas?, motivosAusencia?,
     //   planificacionSextos?, creadoEn?, actualizadoEn?
-    //   creadoEn/equipoId/fecha/tipo immutable after create (blocks setDoc overwrite).
+    //   creadoEn/equipoId/fecha/tipo/clubId immutable after create (blocks setDoc overwrite).
     // Logos/{id}: tipo (club|equipo), entityId, clubId, logoUrl (<=750000), logoSource?, actualizadoEn?
     // ===============================================================
 
@@ -200,6 +200,7 @@ service cloud.firestore {
         && request.resource.data.rol == 'entrenador'
         && request.resource.data.email is string
         && request.resource.data.email.size() > 0
+        && request.resource.data.email == request.auth.token.email
         && (
           !keys.hasAny(['nombre'])
           || (
@@ -330,26 +331,38 @@ service cloud.firestore {
           || (d.jugadorasExternas is list && d.jugadorasExternas.size() <= 40)
         )
         && optionalTimestamp(d, 'creadoEn')
-        && optionalTimestamp(d, 'actualizadoEn');
+        && optionalTimestamp(d, 'actualizadoEn')
+        && (
+          !('clubId' in d)
+          || (d.clubId is string && d.clubId.size() > 0 && d.clubId.size() <= 80)
+        );
+    }
+
+    function sesionClubIdMatchesEquipo() {
+      return !('clubId' in request.resource.data)
+        || request.resource.data.clubId == equipoClubId(request.resource.data.equipoId);
     }
 
     function validSesionCreate() {
       return request.resource.data.keys().hasOnly([
-          'equipoId', 'fecha', 'tipo', 'tematica', 'ejercicios', 'rival', 'local',
+          'equipoId', 'clubId', 'fecha', 'tipo', 'tematica', 'ejercicios', 'rival', 'local',
           'puntosFavor', 'puntosContra', 'asistencias', 'valoraciones',
           'jugadorasExternas', 'motivosAusencia', 'planificacionSextos',
           'creadoEn', 'actualizadoEn'
         ])
         && validSesionShape()
-        && request.resource.data.creadoEn is timestamp;
+        && request.resource.data.creadoEn is timestamp
+        && request.resource.data.clubId is string
+        && request.resource.data.clubId == equipoClubId(request.resource.data.equipoId);
     }
 
     function validSesionUpdate() {
       return validSesionShape()
         && sesionImmutableFields()
+        && sesionClubIdMatchesEquipo()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly([
-            'equipoId', 'fecha', 'tipo',
+            'equipoId', 'clubId', 'fecha', 'tipo',
             'tematica', 'ejercicios', 'rival', 'local',
             'puntosFavor', 'puntosContra', 'asistencias', 'valoraciones',
             'jugadorasExternas', 'motivosAusencia', 'planificacionSextos',
@@ -367,6 +380,11 @@ service cloud.firestore {
           !('creadoEn' in old)
             ? !('creadoEn' in d)
             : d.creadoEn == old.creadoEn
+        )
+        && (
+          !('clubId' in old)
+            ? true
+            : d.clubId == old.clubId
         );
     }
 
@@ -446,7 +464,11 @@ service cloud.firestore {
     }
 
     match /Sesiones/{sesionId} {
-      allow read: if isSignedIn() && (isSuperadmin() || canAccessEquipo(resource.data.equipoId));
+      allow read: if isSignedIn() && (
+        isSuperadmin()
+        || ('clubId' in resource.data && belongsToClub(resource.data.clubId))
+        || canAccessEquipo(resource.data.equipoId)
+      );
       allow create: if isSignedIn()
         && validSesionCreate()
         && canAccessEquipo(request.resource.data.equipoId)

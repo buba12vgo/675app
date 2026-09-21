@@ -1,30 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 
-export function useJugadorasClub({ clubId, enabled, setErrorMsg }) {
+function sortEquipos(lista) {
+  return [...(lista || [])].sort((a, b) =>
+    (a.nombre || "").localeCompare(b.nombre || "", "es")
+  );
+}
+
+export function useJugadorasClub({ clubId, enabled, equipos = null, setErrorMsg }) {
   const [jugadorasClub, setJugadorasClub] = useState([]);
-  const [equiposClub, setEquiposClub] = useState([]);
+  const [equiposLocal, setEquiposLocal] = useState([]);
   const [jugadorasClubLoading, setJugadorasClubLoading] = useState(false);
+  const usaEquiposPadre = Array.isArray(equipos);
+
+  const equiposClub = useMemo(() => {
+    if (!usaEquiposPadre) return equiposLocal;
+    return sortEquipos((equipos || []).filter((equipo) => !clubId || equipo.clubId === clubId));
+  }, [usaEquiposPadre, equipos, equiposLocal, clubId]);
 
   useEffect(() => {
     if (!enabled || !clubId) {
       setJugadorasClub([]);
-      setEquiposClub([]);
+      setEquiposLocal([]);
       setJugadorasClubLoading(false);
       return;
     }
 
     setJugadorasClubLoading(true);
-    const unsubEquipos = onSnapshot(
-      query(collection(db, "Equipos"), where("clubId", "==", clubId)),
-      (snapshot) => {
-        const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-        lista.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
-        setEquiposClub(lista);
-      },
-      () => setEquiposClub([])
-    );
+    let unsubEquipos = () => {};
+    if (!usaEquiposPadre) {
+      unsubEquipos = onSnapshot(
+        query(collection(db, "Equipos"), where("clubId", "==", clubId)),
+        (snapshot) => {
+          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          setEquiposLocal(sortEquipos(lista));
+        },
+        () => setEquiposLocal([])
+      );
+    }
 
     const unsubJugadoras = onSnapshot(
       query(collection(db, "Jugadoras"), where("clubId", "==", clubId)),
@@ -47,7 +61,7 @@ export function useJugadorasClub({ clubId, enabled, setErrorMsg }) {
       unsubEquipos();
       unsubJugadoras();
     };
-  }, [clubId, enabled, setErrorMsg]);
+  }, [clubId, enabled, setErrorMsg, usaEquiposPadre]);
 
   return { jugadorasClub, equiposClub, jugadorasClubLoading };
 }
