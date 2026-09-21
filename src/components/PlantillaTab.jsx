@@ -32,7 +32,7 @@ export function PlantillaTab({
         ) : jugadoras.length === 0 ? (
           <EmptyState
             title={equipoLabels.noHayJugadoresPlantilla}
-            hint="Añádela con el formulario de arriba."
+            hint={readOnly ? "Solo puedes consultar la plantilla." : "Añádela con el formulario de arriba."}
           />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 13, width: "100%", marginTop: 4 }}>

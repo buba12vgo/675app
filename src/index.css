@@ -269,6 +269,7 @@ select {
 .field-label {
   display: block;
   margin: 0 0 8px;
+  padding-inline-end: 0.25em;
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 800;
@@ -4940,6 +4941,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .dash-summary__title {
   margin: 0 0 14px;
+  padding-inline-end: 0.25em;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 800;
@@ -4983,11 +4985,13 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .dash-kpi__label {
   margin-top: 4px;
+  padding-inline: 2px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+  overflow: visible;
 }
 
 .dash-team-grid {

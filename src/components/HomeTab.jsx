@@ -33,6 +33,7 @@ export function HomeTab({
   canSchedulePartido = true,
   canScheduleFisico = true,
   guardandoSesion,
+  plantilla = [],
 }) {
   const colorProps = {
     accent,
@@ -82,6 +83,7 @@ export function HomeTab({
             onOpen={(fecha) => onOpenCalendar(fecha, "entreno")}
             onSchedule={proximoEntreno || !canScheduleEntreno ? undefined : onScheduleEntreno}
             scheduling={guardandoSesion}
+            plantilla={plantilla}
           />
           <HomeEventCard
             tipo="partido"
@@ -92,6 +94,7 @@ export function HomeTab({
             onOpen={(fecha) => onOpenCalendar(fecha, "partido")}
             onSchedule={proximoPartido || !canSchedulePartido ? undefined : onSchedulePartido}
             scheduling={guardandoSesion}
+            plantilla={plantilla}
           />
           <HomeEventCard
             tipo="fisico"
@@ -102,6 +105,7 @@ export function HomeTab({
             onOpen={(fecha) => onOpenCalendar(fecha, "fisico")}
             onSchedule={proximoFisico || !canScheduleFisico ? undefined : onScheduleFisico}
             scheduling={guardandoSesion}
+            plantilla={plantilla}
           />
         </div>
       )}

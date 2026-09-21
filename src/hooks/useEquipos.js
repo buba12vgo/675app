@@ -78,6 +78,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
         || (superadminVista === "equipos" && !equipoActivo);
       if (!verListaEquipos) {
         setEquipos([]);
+        setEquiposLoading(false);
         return;
       }
       setEquiposLoading(true);
@@ -90,7 +91,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
         q,
         (snapshot) => {
           const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-          lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+          lista.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
           setEquipos(lista);
           setEquiposLoading(false);
         },
@@ -110,7 +111,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
         q,
         (snapshot) => {
           const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-          lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+          lista.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
           setEquipos(lista);
           setEquiposLoading(false);
         },
@@ -123,6 +124,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     }
 
     setEquipos([]);
+    setEquiposLoading(false);
   }, [userData?.rol, userData?.clubId, superadminVista, equiposFiltroSuperadmin, equipoActivo]);
 
   useEffect(() => {

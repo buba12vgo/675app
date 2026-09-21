@@ -13,6 +13,7 @@ export function PlanificacionSextosPanel({
   inputBorder,
   textMuted,
   cardBgElevated,
+  readOnly = false,
 }) {
   const columnaJugadora = labels?.statsColumnaJugador || labels?.jugador || "Jugadora";
 
@@ -67,7 +68,8 @@ export function PlanificacionSextosPanel({
                             className={`planificacion-cell${marcado ? " planificacion-cell--on" : ""}`}
                             aria-pressed={marcado}
                             aria-label={`${etiquetaJugadoraPlanificacion(j)}, ${SEXTOS_LABELS[sexto - 1]}`}
-                            onClick={() => onToggleSexto(j.id, sexto)}
+                            disabled={readOnly}
+                            onClick={() => !readOnly && onToggleSexto(j.id, sexto)}
                           >
                             {marcado ? "X" : ""}
                           </button>

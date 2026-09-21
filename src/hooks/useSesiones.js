@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import {
   doc,
@@ -15,6 +15,7 @@ import {
 import {
   createSesionDocId,
   canCreateTipoSesion,
+  canEditSesion,
   diaTieneEntreno,
   diaTieneTipo,
   normalizarTipoSesion,
@@ -97,6 +98,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const [motivosAusencia, setMotivosAusencia] = useState({});
   const [planificacionSextos, setPlanificacionSextos] = useState({});
   const [pendingSelectTipo, setPendingSelectTipo] = useState(null);
+  const pendingSelectIdRef = useRef(null);
+  const noticeTimeoutRef = useRef(null);
 
   const sesionSetters = {
     setTematica,
@@ -161,6 +164,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   }, [equipoActivo, userData?.clubId, userData?.rol, setErrorMsg]);
 
   useEffect(() => {
+    let cancelled = false;
     if (equipoActivo && fechaSesionSeleccionada && tab === "sesiones") {
       setSesionCargando(true);
       setSesionDoc(null);
@@ -178,11 +182,16 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
             where("fecha", "==", fechaSesionSeleccionada)
           );
           const snap = await getDocs(qSesion);
+          if (cancelled) return;
           const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const preferId = pendingSelectIdRef.current;
+          if (preferId) pendingSelectIdRef.current = null;
           const preferTipo = pendingSelectTipo;
           setPendingSelectTipo(null);
           let elegido = null;
-          if (preferTipo) {
+          if (preferId) {
+            elegido = docs.find((d) => d.id === preferId) || null;
+          } else if (preferTipo) {
             const matches = docs.filter((d) => normalizarTipoSesion(d) === preferTipo);
             elegido = matches.length === 1 ? matches[0] : null;
           } else if (docs.length === 1) {
@@ -196,11 +205,12 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
             resetCamposSesion(sesionSetters);
           }
         } catch {
+          if (cancelled) return;
           setSesionDoc(null);
           setSesionId(null);
           resetCamposSesion(sesionSetters);
         }
-        setSesionCargando(false);
+        if (!cancelled) setSesionCargando(false);
       };
       fetchSesion();
     } else {
@@ -209,9 +219,16 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       resetCamposSesion(sesionSetters);
       setSesionCargando(false);
     }
+    return () => {
+      cancelled = true;
+    };
     // pendingSelectTipo is consumed intentionally on fecha/tab change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equipoActivo, fechaSesionSeleccionada, tab]);
+
+  useEffect(() => () => {
+    if (noticeTimeoutRef.current) window.clearTimeout(noticeTimeoutRef.current);
+  }, []);
 
   useEffect(() => {
     if (!sesionDoc) return;
@@ -292,6 +309,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     setSesionDoc(null);
     setSesionId(null);
     setPendingSelectTipo(null);
+    pendingSelectIdRef.current = null;
     resetCamposSesion(sesionSetters);
     setSesionCargando(false);
     setGuardandoSesion(false);
@@ -300,30 +318,30 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
 
   const handleCrearSesion = async (tipo = TIPO_SESION_ENTRENO, fechaOverride = null) => {
     const fecha = fechaOverride || fechaSesionSeleccionada;
-    if (!equipoActivo || !fecha) return;
+    if (!equipoActivo || !fecha) return null;
     const tipoNorm = normalizarTipoSesion({ tipo });
     if (!canCreateTipoSesion(rol, tipoNorm)) {
       setErrorMsg("No tienes permiso para crear este tipo de sesión.");
-      return;
+      return null;
     }
     if (tipoNorm === TIPO_SESION_FISICO) {
       if (diaTieneTipo(sesionesEquipo, fecha, TIPO_SESION_FISICO)) {
         setErrorMsg("Ya hay un entrenamiento físico este día.");
-        return;
+        return null;
       }
     } else if (tipoNorm === TIPO_SESION_ENTRENO) {
       if (diaTieneEntreno(sesionesEquipo, fecha)) {
         setErrorMsg("Ya hay un entreno este día.");
-        return;
+        return null;
       }
       if (diaTieneTipo(sesionesEquipo, fecha, TIPO_SESION_PARTIDO)) {
         setErrorMsg("Ya hay un partido este día. No se puede añadir un entreno.");
-        return;
+        return null;
       }
     } else if (tipoNorm === TIPO_SESION_PARTIDO) {
       if (diaTieneEntreno(sesionesEquipo, fecha)) {
         setErrorMsg("Ya hay un entreno este día. No se puede añadir un partido.");
-        return;
+        return null;
       }
     }
 
@@ -360,16 +378,19 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         aplicarSesionAlEstado(snap.data(), snap.id, formSetters);
         if (!fechaSesionSeleccionada) setFechaSesionSeleccionada(fecha);
       }
+      setGuardandoSesion(false);
+      return docId;
     } catch {
       setErrorMsg("Error creando la sesión.");
     }
     setGuardandoSesion(false);
+    return null;
   };
 
   const handleGuardarSesion = async () => {
     if (!equipoActivo || !fechaSesionSeleccionada || !sesionId) return;
     const tipoNorm = normalizarTipoSesion({ tipo: tipoSesion });
-    if (!canCreateTipoSesion(rol, tipoNorm)) {
+    if (!canEditSesion(rol, { tipo: tipoNorm })) {
       setErrorMsg("No tienes permiso para editar esta sesión.");
       return;
     }
@@ -416,13 +437,15 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         payload.local = "casa";
         payload.puntosFavor = null;
         payload.puntosContra = null;
-        if (tipoNorm === TIPO_SESION_FISICO) {
-          payload.planificacionSextos = {};
-        }
+        payload.planificacionSextos = {};
       }
       await updateDoc(sesionDocRef, payload);
       setSesionGuardadaNotice("Guardado");
-      window.setTimeout(() => setSesionGuardadaNotice(""), 2500);
+      if (noticeTimeoutRef.current) window.clearTimeout(noticeTimeoutRef.current);
+      noticeTimeoutRef.current = window.setTimeout(() => {
+        setSesionGuardadaNotice("");
+        noticeTimeoutRef.current = null;
+      }, 2500);
     } catch {
       setErrorMsg("Error guardando la sesión.");
     }
@@ -431,7 +454,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
 
   const handleEliminarSesion = async () => {
     if (!equipoActivo || !fechaSesionSeleccionada || !sesionDoc || !sesionId) return;
-    if (!canCreateTipoSesion(rol, normalizarTipoSesion(sesionDoc))) {
+    if (!canEditSesion(rol, sesionDoc)) {
       setErrorMsg("No tienes permiso para eliminar esta sesión.");
       return;
     }
@@ -505,14 +528,15 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       return;
     }
     const fecha = sugerirFechaLibre(sesionesEquipo, tipoNorm);
+    const createdId = await handleCrearSesion(tipoNorm, fecha);
+    if (!createdId) return;
     const [y, m] = fecha.split("-").map(Number);
     setAnioActual(y);
     setMesActual(m - 1);
-    // La creación abre la sesión nueva; no auto-seleccionar otra del mismo tipo.
+    pendingSelectIdRef.current = createdId;
     setPendingSelectTipo(null);
     setFechaSesionSeleccionada(fecha);
     setTab("sesiones");
-    await handleCrearSesion(tipoNorm, fecha);
   };
 
   const abrirSesionEnCalendario = (fecha, tipoPreferido = null) => {

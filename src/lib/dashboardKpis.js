@@ -1,7 +1,6 @@
 import {
   filtrarSesionesPorPeriodo,
   normalizarTipoSesion,
-  TIPO_SESION_ENTRENO,
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "./appUtils.js";

@@ -216,6 +216,13 @@ describe("getProximosEventosInicio", () => {
     expect(proximoEntreno?.tematica).toBe("Tiro");
     expect(proximoPartido?.rival).toBe("Rival");
   });
+
+  it("encuentra el próximo entreno futuro, no solo hoy o mañana", () => {
+    const hoy = new Date(2026, 7, 17);
+    const sesiones = [{ fecha: "2026-08-20", tipo: "entreno", tematica: "Defensa" }];
+    const { proximoEntreno } = getProximosEventosInicio(sesiones, hoy);
+    expect(proximoEntreno?.tematica).toBe("Defensa");
+  });
 });
 
 describe("sugerirFechaLibre", () => {
@@ -230,6 +237,16 @@ describe("sugerirFechaLibre", () => {
     expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "partido" }], "partido", hoy)).toBe("2026-08-17");
     expect(sugerirFechaLibre([{ fecha: "2026-08-17", tipo: "entreno" }], "partido", hoy)).toBe("2026-08-18");
   });
+
+  it("no vuelve al primer día ocupado si no hay hueco en el rango", () => {
+    const hoy = new Date(2026, 7, 17);
+    const ocupadas = [
+      { fecha: "2026-08-17", tipo: "entreno" },
+      { fecha: "2026-08-18", tipo: "entreno" },
+      { fecha: "2026-08-19", tipo: "entreno" },
+    ];
+    expect(sugerirFechaLibre(ocupadas, "entreno", hoy, 3)).toBe("2026-08-20");
+  });
 });
 
 describe("getMetricasEvento", () => {
@@ -238,6 +255,14 @@ describe("getMetricasEvento", () => {
       asistencias: { a: true, b: false, c: true },
     });
     expect(m).toEqual({ confirmadas: 2, total: 3 });
+  });
+
+  it("no cuenta al staff de plantilla en la convocatoria", () => {
+    const m = getMetricasEvento(
+      { asistencias: { a: true, b: false, e1: true } },
+      [{ id: "e1", rolPlantilla: "entrenador" }]
+    );
+    expect(m).toEqual({ confirmadas: 1, total: 2 });
   });
 });
 
@@ -257,6 +282,11 @@ describe("filtrarSesionesPorPeriodo", () => {
     expect(getRangoFechasEstadisticas("todo")).toEqual({ inicio: "", fin: "" });
     expect(filtrarSesionesPorPeriodo(sesiones, "todo")).toHaveLength(3);
   });
+
+  it("rango incompleto no devuelve todas las sesiones", () => {
+    expect(filtrarSesionesPorPeriodo(sesiones, "rango")).toHaveLength(0);
+    expect(filtrarSesionesPorPeriodo(sesiones, "rango", "2026-08-01", "")).toHaveLength(0);
+  });
 });
 
 describe("calcularEstadisticasJugadoras", () => {
@@ -274,6 +304,8 @@ describe("calcularEstadisticasJugadoras", () => {
     expect(stats[0].partidos.presentes).toBe(1);
     expect(stats[0].entrenos.notaMedia).toBe(4);
     expect(stats[0].entrenos.notasCount).toBe(1);
+    expect(stats[0].entrenos.total).toBe(2);
+    expect(stats[0].partidos.total).toBe(1);
   });
 
   it("desglosa justificada, no justificada y salud", () => {
@@ -347,5 +379,16 @@ describe("calcularEstadisticasJugadoras", () => {
     expect(stats[0].entrenos.ausencias).toBe(1);
     expect(stats[0].entrenos.salud).toBe(1);
     expect(stats[0].entrenos.notaMedia).toBe(null);
+  });
+
+  it("el total solo cuenta sesiones con registro de la jugadora", () => {
+    const jugadoras = [{ id: "j1", nombre: "Ana", dorsal: 1 }];
+    const sesiones = [
+      { tipo: "entreno", fecha: "2026-08-01", asistencias: { j1: true } },
+      { tipo: "entreno", fecha: "2026-08-02", asistencias: { j2: true } },
+    ];
+    const stats = calcularEstadisticasJugadoras(jugadoras, sesiones);
+    expect(stats[0].entrenos.total).toBe(1);
+    expect(stats[0].entrenos.presentes).toBe(1);
   });
 });

@@ -2,6 +2,22 @@ import { useMemo, useState } from "react";
 import { marcaRolPlantilla } from "../lib/plantillaRoles.js";
 import { ordenarFilasEstadisticas } from "../lib/ordenarEstadisticas.js";
 
+function StatsSortBtn({ colKey, label, align = "center", defaultDir = "desc", sortKey, sortDir, onToggle }) {
+  const activo = sortKey === colKey;
+  return (
+    <button
+      type="button"
+      className={`stats-table-sort${activo ? " stats-table-sort--active" : ""}${align === "center" ? " stats-table-sort--center" : ""}`}
+      onClick={() => onToggle(colKey, defaultDir)}
+    >
+      <span className="stats-table-sort__label">{label}</span>
+      <span className="stats-table-sort__icon" aria-hidden="true">
+        {activo ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+      </span>
+    </button>
+  );
+}
+
 export function EstadisticasTablaAusenciasStaff({
   tipo,
   totalSesiones,
@@ -56,22 +72,6 @@ export function EstadisticasTablaAusenciasStaff({
     setSortDir(defaultDir);
   };
 
-  const SortBtn = ({ colKey, label, align = "center", defaultDir = "desc" }) => {
-    const activo = sortKey === colKey;
-    return (
-      <button
-        type="button"
-        className={`stats-table-sort${activo ? " stats-table-sort--active" : ""}${align === "center" ? " stats-table-sort--center" : ""}`}
-        onClick={() => toggleSort(colKey, defaultDir)}
-      >
-        <span className="stats-table-sort__label">{label}</span>
-        <span className="stats-table-sort__icon" aria-hidden="true">
-          {activo ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
-        </span>
-      </button>
-    );
-  };
-
   return (
     <div className="stats-section tactical-card">
       <div className="stats-section-header" style={{ borderLeftColor: color }}>
@@ -81,10 +81,10 @@ export function EstadisticasTablaAusenciasStaff({
       </div>
       <div className="stats-table stats-table--tipo stats-table--staff" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div className={`stats-table-header stats-table-header--tipo stats-table-header--staff${esPartido ? " stats-table-header--staff-partido" : ""}`} role="row">
-          <SortBtn colKey="nombre" label="Nombre" align="start" defaultDir="asc" />
-          <SortBtn colKey="ausencias" label="Aus." />
+          <StatsSortBtn colKey="nombre" label="Nombre" align="start" defaultDir="asc" sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} />
+          <StatsSortBtn colKey="ausencias" label="Aus." sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} />
           {columnasMotivo.map((col) => (
-            <SortBtn key={col.key} colKey={col.key} label={col.label} />
+            <StatsSortBtn key={col.key} colKey={col.key} label={col.label} sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} />
           ))}
         </div>
         {filas.map((row) => {

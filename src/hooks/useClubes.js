@@ -267,6 +267,7 @@ export function useClubes({
         clubNombre: usuario.solicitudClubNombre || getClubNombre(usuario.solicitudClubId),
         solicitudClubId: null,
         solicitudClubNombre: null,
+        equiposFavoritos: [],
       });
     } catch {
       setErrorMsg("No se pudo aprobar la solicitud de club.");

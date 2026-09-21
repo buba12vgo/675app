@@ -43,8 +43,9 @@ export function AsistenciaValoracionPanel({
   const playerLabels = labels || getEquipoLabels(generoEquipo);
   const motivosDisponibles = motivosAusenciaParaTipo(tipoSesion, generoEquipo);
   const motivoDefault = motivoAusenciaDefaultParaTipo(tipoSesion);
-  const presentesCount = jugadoras.filter(j => asistencias[j.id]).length;
-  const totalJugadoras = jugadoras.length;
+  const jugadoresConteo = jugadoras.filter((j) => !esStaffPlantilla(j));
+  const presentesCount = jugadoresConteo.filter((j) => asistencias[j.id]).length;
+  const totalJugadoras = jugadoresConteo.length;
   const verdePresente = success;
   const rojoAusente = error;
   const resumen = resumenPresentes
@@ -302,7 +303,8 @@ export function AsistenciaValoracionPanel({
                           className={`asistencia-rating-btn${valoracionActual === n ? " asistencia-rating-btn--active" : ""}`}
                           aria-label={`Valoración ${n}`}
                           aria-pressed={valoracionActual === n}
-                          onClick={() => setValoraciones(prev => ({ ...prev, [j.id]: n }))}
+                          disabled={readOnly}
+                          onClick={() => !readOnly && setValoraciones(prev => ({ ...prev, [j.id]: n }))}
                           style={{
                             borderColor: valoracionActual === n ? accent : inputBorder,
                             background: valoracionActual === n ? accent : "transparent",
@@ -324,6 +326,7 @@ export function AsistenciaValoracionPanel({
                             type="button"
                             className={`asistencia-motivo-btn${activo ? " asistencia-motivo-btn--active" : ""}`}
                             aria-pressed={activo}
+                            disabled={readOnly}
                             onClick={() => marcarAusente(j.id, motivo.id)}
                             title={motivo.label}
                           >
@@ -340,7 +343,9 @@ export function AsistenciaValoracionPanel({
                       className="asistencia-toggle-btn"
                       aria-label={estaPresente ? "Marcar ausente" : "Marcar presente"}
                       title={estaPresente ? "Presente — pulsa para elegir el motivo de ausencia" : "Ausente — pulsa para marcar presente"}
+                      disabled={readOnly}
                       onClick={() => {
+                        if (readOnly) return;
                         if (estaPresente) iniciarAusencia(j.id);
                         else marcarPresente(j.id);
                       }}

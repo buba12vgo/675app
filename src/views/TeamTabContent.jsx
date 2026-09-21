@@ -203,6 +203,7 @@ export function TeamTabContent({
         canSchedulePartido={canEditSesion(userRol, { tipo: TIPO_SESION_PARTIDO })}
         canScheduleFisico={canEditSesion(userRol, { tipo: TIPO_SESION_FISICO })}
         guardandoSesion={guardandoSesion}
+        plantilla={jugadoras}
       />
     );
   }

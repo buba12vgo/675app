@@ -13,7 +13,7 @@ test.describe("Login", () => {
     await page.getByPlaceholder("Correo electrónico").fill("noexiste@test.com");
     await page.getByPlaceholder("Contraseña").fill("wrongpass");
     await page.getByRole("button", { name: "Ingresar" }).click();
-    await expect(page.locator("text=/Firebase|invalid|credencial|password/i").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/correo o contraseña incorrectos/i)).toBeVisible({ timeout: 10000 });
   });
 
   test("AUTH-06 abre Cómo funciona la app", async ({ page }) => {

@@ -231,7 +231,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
           Rellenas rival, si es en casa o fuera, y el resultado. El marcador usa el <strong>nombre del club</strong> y
           el del <strong>rival</strong> (no “A favor” / “En contra”). La convocatoria es la asistencia del partido:
           convocada o no, y nota si juega. Si no convoca, el motivo es <strong>No convocada</strong> o{" "}
-          <strong>Lesionada</strong> (en equipos masculinos: No convocado / Lesionado). En canasta grande aparece
+          <strong>Lesionada</strong> (en equipos masculinos: No convocado / Lesionado). En equipos minibasket aparece
           también <strong>Planificación</strong> (sextos).
         </p>
         <Figure

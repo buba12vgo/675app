@@ -27,8 +27,10 @@ export function useAuth(setErrorMsg) {
   useEffect(() => {
     let unsubAuth;
     let unsubProfile;
+    let authGen = 0;
 
     unsubAuth = onAuthStateChanged(auth, async (u) => {
+      const gen = ++authGen;
       if (unsubProfile) {
         unsubProfile();
         unsubProfile = null;
@@ -40,19 +42,26 @@ export function useAuth(setErrorMsg) {
         try {
           const docRef = doc(db, "Usuarios", u.uid);
           const docSnap = await getDoc(docRef);
+          if (gen !== authGen) return;
           if (!docSnap.exists()) {
             const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
             await setDoc(docRef, nuevoUsuario);
+            if (gen !== authGen) return;
           }
 
           unsubProfile = onSnapshot(
             docRef,
             (snap) => {
+              if (gen !== authGen) return;
               setUserData(snap.exists() ? snap.data() : null);
             },
-            () => setUserData(null)
+            () => {
+              if (gen !== authGen) return;
+              setUserData(null);
+            }
           );
         } catch {
+          if (gen !== authGen) return;
           setUserData(null);
         }
       } else {
@@ -61,6 +70,7 @@ export function useAuth(setErrorMsg) {
     });
 
     return () => {
+      authGen += 1;
       if (typeof unsubProfile === "function") unsubProfile();
       if (typeof unsubAuth === "function") unsubAuth();
     };

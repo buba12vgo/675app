@@ -31,6 +31,7 @@ export function HomeEventCard({
   onOpen,
   onSchedule,
   scheduling = false,
+  plantilla = [],
 }) {
   const esPartido = tipo === "partido";
   const esFisico = tipo === "fisico";
@@ -44,7 +45,7 @@ export function HomeEventCard({
       ? "Próximo físico"
       : "Próximo entreno";
   const TipoIcon = esPartido ? IconScoreboard : esFisico ? IconFitness : IconBasketball;
-  const metricas = sesion ? getMetricasEvento(sesion) : null;
+  const metricas = sesion ? getMetricasEvento(sesion, plantilla) : null;
   const metricaLabel = esPartido ? "Convocadas" : "Confirmadas";
   const metricaTexto = metricas?.total
     ? `${metricaLabel}: ${metricas.confirmadas}/${metricas.total}`
@@ -121,7 +122,7 @@ export function HomeEventCard({
               ? "No hay partidos programados."
               : esFisico
                 ? "No hay entrenamiento físico próximo."
-                : "No hay entreno programado para hoy ni para mañana."}
+                : "No hay entrenos programados."}
           </p>
           {onSchedule && (
             <button

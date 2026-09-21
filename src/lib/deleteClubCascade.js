@@ -84,6 +84,7 @@ export async function deleteClubCascade(db, clubId) {
         rol,
         solicitudClubId: null,
         solicitudClubNombre: null,
+        equiposFavoritos: [],
       })
     );
   });

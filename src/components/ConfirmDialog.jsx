@@ -27,7 +27,7 @@ export function ConfirmDialog({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        aria-describedby="confirm-dialog-text"
+        aria-describedby={body ? "confirm-dialog-text" : undefined}
         onClick={(event) => event.stopPropagation()}
       >
         <div id="confirm-dialog-title" className="confirm-dialog__title">

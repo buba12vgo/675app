@@ -77,6 +77,7 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
       );
     } else {
       setJugadoras([]);
+      setJugadorasLoading(false);
     }
     return () => {
       if (typeof unsub === "function") unsub();

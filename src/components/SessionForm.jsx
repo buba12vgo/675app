@@ -71,8 +71,8 @@ export function SessionForm({
   readOnly = false,
 }) {
   const [pasoEliminar, setPasoEliminar] = useState(0);
-  const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id]).length;
-  const totalJugadoras = jugadorasSesion.length;
+  const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id] && esJugadorPlantilla(j)).length;
+  const totalJugadoras = jugadorasSesion.filter(esJugadorPlantilla).length;
   const esPartido = tipoSesion === TIPO_SESION_PARTIDO;
   const esFisico = tipoSesion === TIPO_SESION_FISICO;
   const esMinibasket = esEquipoMinibasket(tipoCanasta, nombreEquipo);
@@ -392,6 +392,7 @@ export function SessionForm({
               jugadorasConvocadas={jugadorasConvocadas}
               planificacionSextos={planificacionSextos}
               onToggleSexto={readOnly ? () => {} : onToggleSexto}
+              readOnly={readOnly}
               labels={equipoLabels}
               inputBorder={inputBorder}
               textMuted={textMuted}

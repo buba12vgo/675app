@@ -6,6 +6,7 @@ import {
   MOTIVO_LESIONADO,
   MOTIVO_AUSENCIA_DEFAULT,
 } from "./motivosAusencia.js";
+import { esStaffPlantilla } from "./plantillaRoles.js";
 
 
 const ROL_LABELS = {
@@ -117,7 +118,7 @@ export function dorsalEstaOcupado(jugadoras, dorsal, exceptId = null) {
   if (!Number.isFinite(n)) return false;
   return (jugadoras || []).some((j) => {
     if (j.id === exceptId) return false;
-    if (j.rolPlantilla === "entrenador" || j.rolPlantilla === "ayudante") return false;
+    if (esStaffPlantilla(j)) return false;
     if (j.dorsal == null || j.dorsal === "") return false;
     return Number(j.dorsal) === n;
   });
@@ -288,17 +289,9 @@ export function getProximosEventosInicio(sesiones, hoy = new Date()) {
     .filter((s) => s.fecha && s.fecha >= hoyStr)
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
 
-  const proximoEntreno =
-    futuras.find(
-      (s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO && (s.fecha === hoyStr || s.fecha === mananaStr)
-    ) || null;
-
+  const proximoEntreno = futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO) || null;
   const proximoPartido = futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO) || null;
-
-  const proximoFisico =
-    futuras.find(
-      (s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO && (s.fecha === hoyStr || s.fecha === mananaStr)
-    ) || futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO) || null;
+  const proximoFisico = futuras.find((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO) || null;
 
   return { proximoEntreno, proximoPartido, proximoFisico, hoyStr, mananaStr };
 }
@@ -341,12 +334,15 @@ export function sugerirFechaLibre(sesiones, segundo = null, tercero = undefined,
     }
     if (!diaTieneSesionTactica(sesiones, ymd)) return ymd;
   }
-  return formatDateYYYYMMDD(start);
+  const fallback = new Date(start);
+  fallback.setDate(start.getDate() + maxDias);
+  return formatDateYYYYMMDD(fallback);
 }
 
-export function getMetricasEvento(sesion) {
+export function getMetricasEvento(sesion, plantilla = []) {
   const asist = sesion?.asistencias || {};
-  const entries = Object.entries(asist);
+  const staffIds = new Set((plantilla || []).filter(esStaffPlantilla).map((p) => p.id));
+  const entries = Object.entries(asist).filter(([id]) => !staffIds.has(id));
   const total = entries.length;
   const confirmadas = entries.filter(([, presente]) => presente === true).length;
   return { confirmadas, total };
@@ -372,12 +368,15 @@ export function getRangoFechasEstadisticas(periodo, desde, hasta) {
 }
 
 export function filtrarSesionesPorPeriodo(sesiones, periodo, desde, hasta) {
+  const lista = sesiones || [];
+  if (periodo === "todo") return lista;
   const { inicio, fin } = getRangoFechasEstadisticas(periodo, desde, hasta);
-  if (!inicio || !fin) return sesiones;
-  return sesiones.filter((s) => s.fecha >= inicio && s.fecha <= fin);
+  if (!inicio || !fin) return [];
+  return lista.filter((s) => s.fecha >= inicio && s.fecha <= fin);
 }
 
 export function calcularStatsPorLista(jugadoraId, sesiones) {
+  let total = 0;
   let presentes = 0;
   let ausencias = 0;
   let justificada = 0;
@@ -391,6 +390,7 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
   sesiones.forEach((s) => {
     const asist = s.asistencias || {};
     if (typeof asist[jugadoraId] === "undefined") return;
+    total += 1;
     if (asist[jugadoraId] === false) {
       const motivo = (s.motivosAusencia || {})[jugadoraId] || MOTIVO_AUSENCIA_DEFAULT;
       const esPartido = normalizarTipoSesion(s) === TIPO_SESION_PARTIDO;
@@ -423,7 +423,7 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
     }
   });
   return {
-    total: sesiones.length,
+    total,
     presentes,
     ausencias,
     justificada,
