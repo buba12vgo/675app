@@ -4,13 +4,13 @@ import {
   doc,
   getDoc,
   getDocs,
-  setDoc,
   updateDoc,
   deleteDoc,
   collection,
   onSnapshot,
   query,
   where,
+  runTransaction,
 } from "firebase/firestore";
 import {
   createSesionDocId,
@@ -25,7 +25,7 @@ import {
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
-import { resetCamposSesion } from "../lib/sessionUtils.js";
+import { resetCamposSesion, SesionAlreadyExistsError, mensajeErrorCrearSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
 import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
 import {
@@ -356,7 +356,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       });
       const docId = createSesionDocId(equipoActivo.id, fecha, tipoNorm);
       const sesionDocRef = doc(db, "Sesiones", docId);
-      await setDoc(sesionDocRef, {
+      const payload = {
         equipoId: equipoActivo.id,
         fecha,
         tipo: tipoNorm,
@@ -372,6 +372,13 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         motivosAusencia: {},
         planificacionSextos: {},
         creadoEn: new Date(),
+      };
+      await runTransaction(db, async (transaction) => {
+        const existing = await transaction.get(sesionDocRef);
+        if (existing.exists()) {
+          throw new SesionAlreadyExistsError();
+        }
+        transaction.set(sesionDocRef, payload);
       });
       const snap = await getDoc(sesionDocRef);
       if (snap.exists()) {
@@ -380,8 +387,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       }
       setGuardandoSesion(false);
       return docId;
-    } catch {
-      setErrorMsg("Error creando la sesión.");
+    } catch (error) {
+      setErrorMsg(mensajeErrorCrearSesion(error, tipoNorm));
     }
     setGuardandoSesion(false);
     return null;
