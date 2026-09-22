@@ -85,6 +85,24 @@ function optimizeRasterLogo(file, maxDim = 256) {
   });
 }
 
+export function sanitizeSvgMarkup(svg) {
+  let out = String(svg || "");
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  out = out.replace(/<foreignObject\b[^>]*>[\s\S]*?<\/foreignObject>/gi, "");
+  out = out.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  out = out.replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  out = out.replace(/javascript\s*:/gi, "");
+  return out;
+}
+
+function svgToDataUrl(svg) {
+  const sanitized = sanitizeSvgMarkup(svg);
+  if (!sanitized.includes("<svg")) {
+    throw new Error("El SVG no es válido.");
+  }
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sanitized)}`;
+}
+
 async function optimizeLogoToDataUrl(file) {
   const mime = getFileMimeType(file);
   if (mime === "image/svg+xml") {
@@ -92,7 +110,27 @@ async function optimizeLogoToDataUrl(file) {
     if (typeof dataUrl !== "string" || dataUrl.length > LOGO_INLINE_MAX_CHARS) {
       throw new Error("El SVG es demasiado grande. Usa un archivo más ligero.");
     }
-    return dataUrl;
+    const comma = dataUrl.indexOf(",");
+    const raw = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+    let svg;
+    if (dataUrl.includes(";base64,")) {
+      try {
+        svg = atob(raw);
+      } catch {
+        svg = raw;
+      }
+    } else {
+      try {
+        svg = decodeURIComponent(raw);
+      } catch {
+        svg = raw;
+      }
+    }
+    const next = svgToDataUrl(svg);
+    if (next.length > LOGO_INLINE_MAX_CHARS) {
+      throw new Error("El SVG es demasiado grande. Usa un archivo más ligero.");
+    }
+    return next;
   }
 
   return optimizeRasterLogo(file);

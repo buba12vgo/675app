@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   THEMES,
   applyThemeToDocument,
@@ -183,7 +183,7 @@ function App() {
   } = useDashboardDatos({
     enabled: dashboardEnabled,
     equipos,
-    clubId: userData?.rol === "coordinador" ? userData?.clubId || "" : "",
+    clubId: userData?.clubId || "",
     esSuperadmin: userData?.rol === "superadmin",
   });
   const [tab, setTab] = useState("home");
@@ -302,9 +302,14 @@ function App() {
   } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
 
   const clubIdSesion = equipoActivo?.clubId || userData?.clubId || null;
+  const equiposDelClubSesion = useMemo(
+    () => (equipos || []).filter((equipo) => equipo.clubId === clubIdSesion),
+    [equipos, clubIdSesion]
+  );
   const { jugadorasClub, equiposClub, jugadorasClubLoading } = useJugadorasClub({
     clubId: clubIdSesion,
     enabled: Boolean(equipoActivo && clubIdSesion && tab === "sesiones"),
+    equipos: equiposDelClubSesion,
     setErrorMsg,
   });
 

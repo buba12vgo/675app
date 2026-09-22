@@ -25,7 +25,7 @@ import {
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "../lib/appUtils.js";
-import { resetCamposSesion } from "../lib/sessionUtils.js";
+import { resetCamposSesion, mensajeErrorCrearSesion } from "../lib/sessionUtils.js";
 import { normalizeExternasIds } from "../lib/jugadorasClub.js";
 import { normalizeMotivosAusenciaMap, motivoAusenciaParaGuardar } from "../lib/motivosAusencia.js";
 import {
@@ -162,6 +162,18 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       if (typeof unsub === "function") unsub();
     };
   }, [equipoActivo, userData?.clubId, userData?.rol, setErrorMsg]);
+
+  useEffect(() => {
+    const clubId = equipoActivo?.clubId || userData?.clubId;
+    if (!clubId || !sesionesEquipo.length) return undefined;
+    const pendientes = sesionesEquipo
+      .filter((sesion) => !sesion.clubId && sesion.id && canEditSesion(rol, sesion))
+      .slice(0, 20);
+    pendientes.forEach((sesion) => {
+      updateDoc(doc(db, "Sesiones", sesion.id), { clubId }).catch(() => {});
+    });
+    return undefined;
+  }, [equipoActivo?.clubId, userData?.clubId, sesionesEquipo, rol]);
 
   useEffect(() => {
     let cancelled = false;
@@ -319,6 +331,11 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
   const handleCrearSesion = async (tipo = TIPO_SESION_ENTRENO, fechaOverride = null) => {
     const fecha = fechaOverride || fechaSesionSeleccionada;
     if (!equipoActivo || !fecha) return null;
+    const clubIdSesion = equipoActivo.clubId || userData?.clubId;
+    if (!clubIdSesion) {
+      setErrorMsg("No se pudo crear la sesión: falta el club del equipo.");
+      return null;
+    }
     const tipoNorm = normalizarTipoSesion({ tipo });
     if (!canCreateTipoSesion(rol, tipoNorm)) {
       setErrorMsg("No tienes permiso para crear este tipo de sesión.");
@@ -356,8 +373,9 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       });
       const docId = createSesionDocId(equipoActivo.id, fecha, tipoNorm);
       const sesionDocRef = doc(db, "Sesiones", docId);
-      await setDoc(sesionDocRef, {
+      const payload = {
         equipoId: equipoActivo.id,
+        clubId: clubIdSesion,
         fecha,
         tipo: tipoNorm,
         tematica: "",
@@ -372,7 +390,10 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         motivosAusencia: {},
         planificacionSextos: {},
         creadoEn: new Date(),
-      });
+      };
+      // No transaction.get: un get de un id nuevo lo niegan las reglas (resource no existe).
+      // Si el doc ya está, este setDoc es un update y las reglas bloquean el overwrite de creadoEn.
+      await setDoc(sesionDocRef, payload);
       const snap = await getDoc(sesionDocRef);
       if (snap.exists()) {
         aplicarSesionAlEstado(snap.data(), snap.id, formSetters);
@@ -380,8 +401,8 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       }
       setGuardandoSesion(false);
       return docId;
-    } catch {
-      setErrorMsg("Error creando la sesión.");
+    } catch (error) {
+      setErrorMsg(mensajeErrorCrearSesion(error, tipoNorm));
     }
     setGuardandoSesion(false);
     return null;
@@ -412,6 +433,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
       const idsConvocadas = idsSesion.filter((id) => asistenciasLimpias[id]);
       const planificacionLimpia = planificacionParaGuardar(planificacionSextos, idsConvocadas);
       const sesionDocRef = doc(db, "Sesiones", sesionId);
+      const clubIdSesion = equipoActivo.clubId || userData?.clubId;
       const payload = {
         equipoId: equipoActivo.id,
         fecha: fechaSesionSeleccionada,
@@ -422,6 +444,7 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
         jugadorasExternas: idsExternas,
         actualizadoEn: new Date(),
       };
+      if (clubIdSesion) payload.clubId = clubIdSesion;
       if (tipoNorm === TIPO_SESION_PARTIDO) {
         payload.rival = rivalPartido.trim();
         payload.local = localPartido;

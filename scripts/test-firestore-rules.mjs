@@ -84,6 +84,20 @@ try {
       clubId: "club-b",
       logoUrl: "/logos/eq-b.png",
     });
+    await setDoc(doc(db, "Clubes/club-a"), { nombre: "Club A" });
+    await setDoc(doc(db, "Clubes/club-b"), { nombre: "Club B" });
+    await setDoc(doc(db, "Logos/club_club-a"), {
+      tipo: "club",
+      entityId: "club-a",
+      clubId: "club-a",
+      logoUrl: "/logos/club-a.png",
+    });
+    await setDoc(doc(db, "Logos/club_club-b"), {
+      tipo: "club",
+      entityId: "club-b",
+      clubId: "club-b",
+      logoUrl: "/logos/club-b.png",
+    });
   });
 
   const coachA = testEnv.authenticatedContext("coach-a").firestore();
@@ -349,6 +363,152 @@ try {
     await assertFails(deleteDoc(doc(coachNew, "Equipos/eq-a")));
   });
 
+  await test("Coordinador no puede eliminar equipos", async () => {
+    await assertFails(deleteDoc(doc(coordA, "Equipos/eq-a")));
+  });
+
+  await test("Entrenador sin club lista clubes para solicitar", async () => {
+    await assertSucceeds(getDocs(collection(coachNew, "Clubes")));
+  });
+
+  await test("Entrenador lee el escudo de su club", async () => {
+    await assertSucceeds(getDoc(doc(coachA, "Logos/club_club-a")));
+  });
+
+  await test("Entrenador no lee el escudo de otro club", async () => {
+    await assertFails(getDoc(doc(coachA, "Logos/club_club-b")));
+  });
+
+  await test("Entrenador sin club no lee escudos de club", async () => {
+    await assertFails(getDoc(doc(coachNew, "Logos/club_club-b")));
+  });
+
+  await test("Superadmin lee escudo de cualquier club", async () => {
+    await assertSucceeds(getDoc(doc(superadmin, "Logos/club_club-b")));
+  });
+
+  await test("Entrenador no escribe campos extra en sesión", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Sesiones/eq-a_2026-08-01"), {
+        hack: true,
+      })
+    );
+  });
+
+  await test("Entrenador no escribe campos extra en jugadora", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Jugadoras/j-a"), {
+        admin: true,
+      })
+    );
+  });
+
+  await test("Entrenador crea un entreno con esquema válido", async () => {
+    await assertSucceeds(
+      setDoc(doc(coachA, "Sesiones/eq-a_2026-09-21_entreno"), {
+        equipoId: "eq-a",
+        clubId: "club-a",
+        fecha: "2026-09-21",
+        tipo: "entreno",
+        tematica: "",
+        ejercicios: "",
+        rival: "",
+        local: "casa",
+        puntosFavor: null,
+        puntosContra: null,
+        asistencias: {},
+        valoraciones: {},
+        jugadorasExternas: [],
+        motivosAusencia: {},
+        planificacionSextos: {},
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Entrenador no crea sesión sin clubId", async () => {
+    await assertFails(
+      setDoc(doc(coachA, "Sesiones/eq-a_2026-09-22_entreno"), {
+        equipoId: "eq-a",
+        fecha: "2026-09-22",
+        tipo: "entreno",
+        tematica: "",
+        ejercicios: "",
+        rival: "",
+        local: "casa",
+        puntosFavor: null,
+        puntosContra: null,
+        asistencias: {},
+        valoraciones: {},
+        jugadorasExternas: [],
+        motivosAusencia: {},
+        planificacionSextos: {},
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Entrenador no crea sesión con el club de otro", async () => {
+    await assertFails(
+      setDoc(doc(coachA, "Sesiones/eq-a_2026-09-23_entreno"), {
+        equipoId: "eq-a",
+        clubId: "club-b",
+        fecha: "2026-09-23",
+        tipo: "entreno",
+        tematica: "",
+        ejercicios: "",
+        rival: "",
+        local: "casa",
+        puntosFavor: null,
+        puntosContra: null,
+        asistencias: {},
+        valoraciones: {},
+        jugadorasExternas: [],
+        motivosAusencia: {},
+        planificacionSextos: {},
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Entrenador lista sesiones de su club por clubId", async () => {
+    const q = query(collection(coachA, "Sesiones"), where("clubId", "==", "club-a"));
+    await assertSucceeds(getDocs(q));
+  });
+
+  await test("Entrenador no pisa un entreno existente con setDoc", async () => {
+    await assertFails(
+      setDoc(doc(coachA, "Sesiones/eq-a_2026-09-21_entreno"), {
+        equipoId: "eq-a",
+        fecha: "2026-09-21",
+        tipo: "entreno",
+        tematica: "hack",
+        ejercicios: "",
+        rival: "",
+        local: "casa",
+        puntosFavor: null,
+        puntosContra: null,
+        asistencias: {},
+        valoraciones: {},
+        jugadorasExternas: [],
+        motivosAusencia: {},
+        planificacionSextos: {},
+        creadoEn: new Date(),
+      })
+    );
+  });
+
+  await test("Coordinador no guarda un logo gigante", async () => {
+    await assertFails(
+      setDoc(doc(coordA, "Logos/equipo_eq-a2"), {
+        tipo: "equipo",
+        entityId: "eq-a2",
+        clubId: "club-a",
+        logoUrl: `data:image/png;base64,${"A".repeat(750001)}`,
+      })
+    );
+  });
+
   await test("Superadmin puede eliminar equipos", async () => {
     await assertSucceeds(deleteDoc(doc(superadmin, "Equipos/eq-b")));
   });
@@ -358,7 +518,7 @@ try {
   });
 
   await test("Nuevo usuario se crea solo como entrenador", async () => {
-    const newbie = testEnv.authenticatedContext("newbie").firestore();
+    const newbie = testEnv.authenticatedContext("newbie", { email: "newbie@test.com" }).firestore();
     await assertSucceeds(
       setDoc(doc(newbie, "Usuarios/newbie"), {
         email: "newbie@test.com",
@@ -368,8 +528,19 @@ try {
     );
   });
 
+  await test("Nuevo usuario no puede poner el email de otro", async () => {
+    const liar = testEnv.authenticatedContext("liar", { email: "liar@test.com" }).firestore();
+    await assertFails(
+      setDoc(doc(liar, "Usuarios/liar"), {
+        email: "otro@test.com",
+        rol: "entrenador",
+        creadoEn: new Date(),
+      })
+    );
+  });
+
   await test("Nuevo usuario no puede crearse como superadmin", async () => {
-    const evil = testEnv.authenticatedContext("evil").firestore();
+    const evil = testEnv.authenticatedContext("evil", { email: "evil@test.com" }).firestore();
     await assertFails(
       setDoc(doc(evil, "Usuarios/evil"), {
         email: "evil@test.com",
@@ -380,7 +551,7 @@ try {
   });
 
   await test("Nuevo usuario no puede asignarse club al crearse", async () => {
-    const sneaky = testEnv.authenticatedContext("sneaky").firestore();
+    const sneaky = testEnv.authenticatedContext("sneaky", { email: "sneaky@test.com" }).firestore();
     await assertFails(
       setDoc(doc(sneaky, "Usuarios/sneaky"), {
         email: "sneaky@test.com",

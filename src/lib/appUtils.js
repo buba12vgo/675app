@@ -73,14 +73,22 @@ export function buildSesionDocId(equipoId, fecha, tipo, uniqueKey = null) {
 }
 
 /** Partidos pueden repetirse el mismo día → ID único. Entreno/físico siguen siendo 1/día. */
+export function uniqueSessionKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(6);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("").slice(0, 10);
+  }
+  return `${Date.now().toString(36)}x`;
+}
+
 export function createSesionDocId(equipoId, fecha, tipo) {
   const t = normalizarTipoSesion({ tipo });
   if (t === TIPO_SESION_PARTIDO) {
-    const unique =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID().replace(/-/g, "").slice(0, 10)
-        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    return buildSesionDocId(equipoId, fecha, t, unique);
+    return buildSesionDocId(equipoId, fecha, t, uniqueSessionKey());
   }
   return buildSesionDocId(equipoId, fecha, t);
 }

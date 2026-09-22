@@ -63,6 +63,11 @@ export function useAuth(setErrorMsg) {
           const docSnap = await getDoc(docRef);
           if (gen !== authGen) return;
           if (!docSnap.exists()) {
+            if (!u.email) {
+              setUserData(null);
+              setErrorMsg("No se pudo leer el correo de la cuenta.");
+              return;
+            }
             const nuevoUsuario = { email: u.email, rol: "entrenador", creadoEn: new Date() };
             await setDoc(docRef, nuevoUsuario);
             if (gen !== authGen) return;
