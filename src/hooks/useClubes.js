@@ -7,17 +7,15 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
-  deleteDoc,
-  deleteField,
-  setDoc,
   query,
   where,
 } from "firebase/firestore";
-import { prepareLogoDataUrl, validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
+import { validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
-import { clubLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
+import { clubLogoDocId, isInlineDataUrl } from "../lib/logoDocs.js";
 import { deleteClubCascade } from "../lib/deleteClubCascade.js";
 import { useConfirm } from "../components/ConfirmProvider.jsx";
+import { clearLegacyInlineLogo, deleteStoredLogo, persistLogoToStorage } from "../lib/logoPersist.js";
 
 export function useClubes({
   user,
@@ -158,7 +156,7 @@ export function useClubes({
     const canWrite =
       userData?.rol === "superadmin" ||
       (userData?.rol === "coordinador" && Boolean(userData?.clubId));
-    if (!canWrite) return;
+    if (!canWrite || !user?.uid) return;
 
     const pending = [];
     clubes.forEach((club) => {
@@ -179,19 +177,14 @@ export function useClubes({
         if (cancelled) return;
         if (userData?.rol === "coordinador" && club.id !== userData.clubId) continue;
         try {
-          await setDoc(doc(db, "Logos", clubLogoDocId(club.id)), {
+          await persistLogoToStorage({
+            uid: user.uid,
             tipo: "club",
             entityId: club.id,
             clubId: club.id,
-            logoUrl: club.logoUrl,
-            logoSource: "inline",
-            actualizadoEn: new Date(),
+            fileOrDataUrl: club.logoUrl,
           });
-          await updateDoc(doc(db, "Clubes", club.id), {
-            logoUrl: deleteField(),
-            logoSource: deleteField(),
-            logoUpdatedAt: deleteField(),
-          });
+          await clearLegacyInlineLogo("Clubes", club.id);
         } catch {
           /* ignore one-off migration errors */
         }
@@ -201,7 +194,7 @@ export function useClubes({
     return () => {
       cancelled = true;
     };
-  }, [clubes, activeClub, userData?.rol, userData?.clubId]);
+  }, [clubes, activeClub, user, userData?.rol, userData?.clubId]);
 
   const getClubNombre = useCallback(
     (clubId) => {
@@ -396,34 +389,15 @@ export function useClubes({
         club?.nombre || (activeClub?.id === clubId ? activeClub?.nombre : null);
       const custom = clubLogos[clubId];
       const stored =
-        shortLogoUrl(club?.logoUrl) ||
-        (activeClub?.id === clubId ? shortLogoUrl(activeClub?.logoUrl) : null);
+        club?.logoUrl ||
+        (activeClub?.id === clubId ? activeClub?.logoUrl : null);
       return resolveClubLogoUrl({ logoUrl: custom || stored, nombre });
     },
     [clubes, activeClub, clubLogos]
   );
 
-  const persistClubLogo = async (clubId, logoUrl) => {
-    await setDoc(doc(db, "Logos", clubLogoDocId(clubId)), {
-      tipo: "club",
-      entityId: clubId,
-      clubId,
-      logoUrl,
-      logoSource: "inline",
-      actualizadoEn: new Date(),
-    });
-    const club = clubes.find((c) => c.id === clubId) || activeClub;
-    if (isInlineDataUrl(club?.logoUrl)) {
-      await updateDoc(doc(db, "Clubes", clubId), {
-        logoUrl: deleteField(),
-        logoSource: deleteField(),
-        logoUpdatedAt: deleteField(),
-      });
-    }
-  };
-
   const handleUploadClubLogo = async (clubId, file) => {
-    if (!clubId) return;
+    if (!clubId || !user?.uid) return;
     const validationError = validateLogoFile(file);
     if (validationError) {
       setErrorMsg(validationError);
@@ -433,8 +407,17 @@ export function useClubes({
     setSavingClubLogoId(clubId);
     setErrorMsg("");
     try {
-      const logoUrl = await prepareLogoDataUrl(file);
-      await persistClubLogo(clubId, logoUrl);
+      const logoUrl = await persistLogoToStorage({
+        uid: user.uid,
+        tipo: "club",
+        entityId: clubId,
+        clubId,
+        fileOrDataUrl: file,
+      });
+      const club = clubes.find((c) => c.id === clubId) || activeClub;
+      if (isInlineDataUrl(club?.logoUrl)) {
+        await clearLegacyInlineLogo("Clubes", clubId);
+      }
       setClubLogos((prev) => ({ ...prev, [clubId]: logoUrl }));
     } catch (err) {
       setErrorMsg(getLogoErrorMessage(err));
@@ -455,14 +438,10 @@ export function useClubes({
     setSavingClubLogoId(clubId);
     setErrorMsg("");
     try {
-      await deleteDoc(doc(db, "Logos", clubLogoDocId(clubId)));
+      await deleteStoredLogo("club", clubId);
       const club = clubes.find((c) => c.id === clubId) || activeClub;
       if (club?.logoUrl) {
-        await updateDoc(doc(db, "Clubes", clubId), {
-          logoUrl: deleteField(),
-          logoSource: deleteField(),
-          logoUpdatedAt: deleteField(),
-        });
+        await clearLegacyInlineLogo("Clubes", clubId);
       }
       setClubLogos((prev) => {
         const next = { ...prev };

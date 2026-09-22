@@ -3,10 +3,12 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   writeBatch,
   doc,
 } from "firebase/firestore";
 import { equipoLogoDocId } from "./logoDocs.js";
+import { deleteStoredLogoPaths } from "./logoPersist.js";
 
 const BATCH_LIMIT = 400;
 
@@ -27,9 +29,10 @@ async function commitOps(db, ops) {
 }
 
 export async function deleteEquipoCascade(db, equipoId) {
-  const [jugadorasSnap, sesionesSnap] = await Promise.all([
+  const [jugadorasSnap, sesionesSnap, logoSnap] = await Promise.all([
     getDocs(query(collection(db, "Jugadoras"), where("equipoId", "==", equipoId))),
     getDocs(query(collection(db, "Sesiones"), where("equipoId", "==", equipoId))),
+    getDoc(doc(db, "Logos", equipoLogoDocId(equipoId))),
   ]);
 
   const ops = [];
@@ -43,6 +46,7 @@ export async function deleteEquipoCascade(db, equipoId) {
   ops.push((batch) => batch.delete(doc(db, "Equipos", equipoId)));
 
   await commitOps(db, ops);
+  await deleteStoredLogoPaths([logoSnap.exists() ? logoSnap.data().storagePath : null]);
 
   return {
     jugadoras: jugadorasSnap.size,
@@ -110,6 +114,7 @@ export async function deleteClubCascade(db, clubId) {
   ops.push((batch) => batch.delete(doc(db, "Clubes", clubId)));
 
   await commitOps(db, ops);
+  await deleteStoredLogoPaths(logosSnap.docs.map((logoDoc) => logoDoc.data().storagePath));
 
   return {
     equipos: equipos.length,

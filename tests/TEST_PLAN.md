@@ -96,7 +96,9 @@ npm run test:rules    # emulador Firestore (requiere Java)
 npm run test:integration  # acceso real Firebase
 ```
 
-Variables en `tests/env.test.example`:
+## CI
+
+GitHub Actions corre lint, build, unitarios, reglas y Playwright. AUTH-01/03/06 van siempre. AUTH-02/04/05 y los flujos de entrenador necesitan los secretos `TEST_COACH_EMAIL` / `TEST_COACH_PASSWORD`.
 
 - `TEST_COACH_EMAIL` / `TEST_COACH_PASSWORD`
 - `TEST_SUPERADMIN_EMAIL` / `TEST_SUPERADMIN_PASSWORD` (opcional)

@@ -6,7 +6,7 @@ Roles: **superadmin**, **coordinador**, **entrenador** y **preparador físico**.
 
 **Cómo usar la app:** https://675basket.com/como-funciona (también desde el login o Opciones: **Cómo funciona la app**). La guía cubre el aspecto actual (pista, modo claro/oscuro) y el uso de cada pantalla.
 
-Stack: React 19 + Vite 8 + Firebase Auth/Firestore (plan Spark, **sin Storage**). Los escudos van en la colección `Logos` o como PNG en `public/logos/`.
+Stack: React 19 + Vite 8 + Firebase Auth, Firestore y Storage. Los escudos nuevos van a Storage y el documento `Logos` guarda la URL. Los PNG de `public/logos/` siguen como plantillas.
 
 ## Desarrollo
 
@@ -26,7 +26,7 @@ npm run test:rules    # emulador Firestore (hace falta Java)
 npm run test:full     # incluye Playwright
 ```
 
-Desplegar reglas:
+Desplegar reglas e índices:
 
 ```bash
 npm run deploy:rules

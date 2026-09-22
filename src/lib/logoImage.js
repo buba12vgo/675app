@@ -103,6 +103,26 @@ function svgToDataUrl(svg) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sanitized)}`;
 }
 
+export function dataUrlToBlob(dataUrl) {
+  if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) {
+    throw new Error("La imagen no es válida.");
+  }
+  const comma = dataUrl.indexOf(",");
+  const header = comma >= 0 ? dataUrl.slice(0, comma) : dataUrl;
+  const raw = comma >= 0 ? dataUrl.slice(comma + 1) : "";
+  const mime = header.match(/data:([^;]+)/)?.[1] || "application/octet-stream";
+  let bytes;
+  if (/;base64/i.test(header)) {
+    const binary = atob(raw);
+    bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  } else {
+    const decoded = decodeURIComponent(raw);
+    bytes = new TextEncoder().encode(decoded);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
 async function optimizeLogoToDataUrl(file) {
   const mime = getFileMimeType(file);
   if (mime === "image/svg+xml") {
@@ -140,12 +160,34 @@ export async function prepareLogoDataUrl(file) {
   return optimizeLogoToDataUrl(file);
 }
 
+export async function prepareLogoUpload(fileOrDataUrl) {
+  const dataUrl =
+    typeof fileOrDataUrl === "string"
+      ? fileOrDataUrl
+      : await optimizeLogoToDataUrl(fileOrDataUrl);
+  const blob = dataUrlToBlob(dataUrl);
+  const contentType = blob.type || "image/png";
+  const ext = contentType === "image/svg+xml"
+    ? "svg"
+    : contentType === "image/webp"
+      ? "webp"
+      : contentType === "image/gif"
+        ? "gif"
+        : contentType === "image/jpeg"
+          ? "jpg"
+          : "png";
+  return { blob, contentType, ext };
+}
+
 export function getLogoErrorMessage(error) {
   const code = error?.code || "";
   const message = error?.message || "";
 
-  if (code.includes("permission-denied")) {
+  if (code.includes("permission-denied") || code.includes("unauthorized")) {
     return "No tienes permiso para guardar el escudo.";
+  }
+  if (code.includes("storage/")) {
+    return "No se pudo subir el escudo. Prueba de nuevo.";
   }
   if (message) return message;
   return "No se pudo guardar el escudo.";

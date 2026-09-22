@@ -354,6 +354,19 @@ try {
     );
   });
 
+  await test("Coordinador guarda escudo con URL de Storage", async () => {
+    await assertSucceeds(
+      setDoc(doc(coordA, "Logos/equipo_eq-a"), {
+        tipo: "equipo",
+        entityId: "eq-a",
+        clubId: "club-a",
+        logoUrl: "https://firebasestorage.googleapis.com/v0/b/app/o/x.png?alt=media&token=abc",
+        logoSource: "storage",
+        storagePath: "logos/coord-a/equipo_eq-a.png",
+      })
+    );
+  });
+
   await test("Coordinador no pisa el escudo de un equipo de otro club", async () => {
     await assertFails(
       setDoc(doc(coordA, "Logos/equipo_eq-b"), {
@@ -525,7 +538,7 @@ try {
         tipo: "equipo",
         entityId: "eq-a2",
         clubId: "club-a",
-        logoUrl: `data:image/png;base64,${"A".repeat(750001)}`,
+        logoUrl: `https://example.com/${"A".repeat(8001)}`,
       })
     );
   });

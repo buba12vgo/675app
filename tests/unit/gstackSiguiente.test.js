@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { rangoConsultaSesiones } from "../../src/lib/appUtils.js";
 import { dorsalReservaId } from "../../src/lib/dorsales.js";
+import { logoObjectPath } from "../../src/lib/logoStorage.js";
+import { dataUrlToBlob } from "../../src/lib/logoImage.js";
 
 describe("rangoConsultaSesiones", () => {
   const hoy = new Date(2026, 8, 22);
@@ -44,5 +46,20 @@ describe("dorsalReservaId", () => {
   it("rellena el dorsal a dos cifras", () => {
     expect(dorsalReservaId("eq-a", 7)).toBe("eq-a_07");
     expect(dorsalReservaId("eq-a", 12)).toBe("eq-a_12");
+  });
+});
+
+describe("logoObjectPath", () => {
+  it("guarda el escudo bajo el uid de quien sube", () => {
+    expect(logoObjectPath("user-1", "club", "clubA", "png")).toBe("logos/user-1/club_clubA.png");
+    expect(logoObjectPath("user-1", "equipo", "eq-9", "svg")).toBe("logos/user-1/equipo_eq-9.svg");
+  });
+});
+
+describe("dataUrlToBlob", () => {
+  it("reconstruye un SVG sanitizable", async () => {
+    const blob = dataUrlToBlob("data:image/svg+xml;charset=utf-8," + encodeURIComponent("<svg></svg>"));
+    expect(blob.type).toContain("svg");
+    expect(await blob.text()).toContain("<svg>");
   });
 });

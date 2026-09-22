@@ -1,4 +1,9 @@
 import { test, expect } from "@playwright/test";
+import {
+  loginAsCoach,
+  enterFirstTeam,
+  shouldRunCoachE2E,
+} from "./helpers/auth.js";
 
 test.describe("Login", () => {
   test("AUTH-01 muestra formulario de acceso", async ({ page }) => {
@@ -35,5 +40,29 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: "Cómo funciona la app" }).click();
     await expect(page).toHaveURL(/\/como-funciona$/);
     await expect(page.getByRole("heading", { name: "Cómo funciona la app" })).toBeVisible();
+  });
+});
+
+test.describe("Login autenticado", () => {
+  test.skip(!shouldRunCoachE2E, "Define TEST_COACH_EMAIL y TEST_COACH_PASSWORD");
+
+  test("AUTH-02 login email válido entra en la app", async ({ page }) => {
+    await loginAsCoach(page);
+    await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+    await expect(page.getByPlaceholder("Correo electrónico")).toHaveCount(0);
+  });
+
+  test("AUTH-04 el header muestra el rol y Salir", async ({ page }) => {
+    await loginAsCoach(page);
+    await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+    await expect(page.locator(".app-header-role__chip")).toBeVisible();
+  });
+
+  test("AUTH-05 el logo 675app vuelve a inicio", async ({ page }) => {
+    await loginAsCoach(page);
+    await enterFirstTeam(page);
+    await page.getByRole("button", { name: /Volver a inicio/i }).click();
+    await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+    await expect(page.locator(".app-team-layout")).toBeVisible();
   });
 });

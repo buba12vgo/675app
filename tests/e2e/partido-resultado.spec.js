@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loginAsCoach } from "./helpers/auth.js";
+import { loginAsCoach, shouldRunCoachE2E } from "./helpers/auth.js";
 
 async function ensureTeamList(page) {
-  // Si ya estamos dentro de un equipo, salir
   const cambiar = page.getByRole("button", { name: "Cambiar equipo" });
   if (await cambiar.isVisible().catch(() => false)) {
     await cambiar.click();
@@ -35,6 +34,8 @@ async function openTab(page, label) {
 }
 
 test.describe("Partido resultado", () => {
+  test.skip(!shouldRunCoachE2E, "Define TEST_COACH_EMAIL y TEST_COACH_PASSWORD");
+
   test("muestra campos de resultado y guarda marcador", async ({ page }) => {
     await loginAsCoach(page);
     await ensureTeamList(page);
@@ -63,11 +64,6 @@ test.describe("Partido resultado", () => {
       await expect(etiquetaFavor).toHaveText(clubNombre);
     }
 
-    await page.screenshot({
-      path: "/opt/cursor/artifacts/partido_resultado_campos.png",
-      fullPage: false,
-    });
-
     await page.getByPlaceholder("Nombre del equipo rival").fill("Rival E2E Resultado");
     await expect(etiquetaContra).toHaveText("Rival E2E Resultado");
     await puntosFavor.fill("78");
@@ -80,19 +76,10 @@ test.describe("Partido resultado", () => {
     await expect(puntosFavor).toHaveValue("78");
     await expect(puntosContra).toHaveValue("65");
 
-    await page.screenshot({
-      path: "/opt/cursor/artifacts/partido_resultado_guardado.png",
-      fullPage: false,
-    });
-
     const volver = page.getByRole("button", { name: /Volver al día/i });
     if (await volver.isVisible().catch(() => false)) {
       await volver.click();
       await expect(page.getByText(/78-65/)).toBeVisible({ timeout: 10000 });
-      await page.screenshot({
-        path: "/opt/cursor/artifacts/partido_resultado_lista_dia.png",
-        fullPage: false,
-      });
     }
   });
 });

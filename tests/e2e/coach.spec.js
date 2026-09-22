@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { loginAsCoach, enterFirstTeam, openTeamTab, teamTab } from "./helpers/auth.js";
+import { loginAsCoach, enterFirstTeam, openTeamTab, teamTab, shouldRunCoachE2E } from "./helpers/auth.js";
 
 test.describe("Entrenador", () => {
+  test.skip(!shouldRunCoachE2E, "Define TEST_COACH_EMAIL y TEST_COACH_PASSWORD");
   test.beforeEach(async ({ page }) => {
     await loginAsCoach(page);
   });

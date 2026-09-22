@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import {
   doc,
   collection,
   addDoc,
   onSnapshot,
   updateDoc,
-  deleteDoc,
-  deleteField,
-  setDoc,
   query,
   where,
 } from "firebase/firestore";
@@ -19,10 +16,11 @@ import {
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
 } from "../lib/appUtils.js";
-import { validateLogoFile, prepareLogoDataUrl, getLogoErrorMessage } from "../lib/logoImage.js";
-import { equipoLogoDocId, isInlineDataUrl, shortLogoUrl } from "../lib/logoDocs.js";
+import { validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
+import { equipoLogoDocId, isInlineDataUrl } from "../lib/logoDocs.js";
 import { useConfirm } from "../components/ConfirmProvider.jsx";
 import { deleteEquipoCascade } from "../lib/deleteClubCascade.js";
+import { clearLegacyInlineLogo, deleteStoredLogo, persistLogoToStorage } from "../lib/logoPersist.js";
 
 export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin, setErrorMsg }) {
   const confirm = useConfirm();
@@ -260,7 +258,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
 
   const getEquipoLogo = (equipo) => {
     if (!equipo) return null;
-    return equipoLogos[equipo.id] || shortLogoUrl(equipo.logoUrl) || null;
+    return equipoLogos[equipo.id] || equipo.logoUrl || null;
   };
 
   const handleUploadEquipoLogo = async (equipoId, file) => {
@@ -273,24 +271,21 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       return;
     }
 
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
     setSavingEquipoLogoId(equipoId);
     setErrorMsg("");
     try {
-      const logoUrl = await prepareLogoDataUrl(file);
-      await setDoc(doc(db, "Logos", equipoLogoDocId(equipoId)), {
+      const logoUrl = await persistLogoToStorage({
+        uid,
         tipo: "equipo",
         entityId: equipoId,
         clubId: equipo.clubId,
-        logoUrl,
-        logoSource: "inline",
-        actualizadoEn: new Date(),
+        fileOrDataUrl: file,
       });
       if (isInlineDataUrl(equipo.logoUrl)) {
-        await updateDoc(doc(db, "Equipos", equipoId), {
-          logoUrl: deleteField(),
-          logoSource: deleteField(),
-          logoUpdatedAt: deleteField(),
-        });
+        await clearLegacyInlineLogo("Equipos", equipoId);
       }
       setEquipoLogos((prev) => ({ ...prev, [equipoId]: logoUrl }));
     } catch (err) {
@@ -314,13 +309,9 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     setSavingEquipoLogoId(equipoId);
     setErrorMsg("");
     try {
-      await deleteDoc(doc(db, "Logos", equipoLogoDocId(equipoId)));
+      await deleteStoredLogo("equipo", equipoId);
       if (equipo.logoUrl) {
-        await updateDoc(doc(db, "Equipos", equipoId), {
-          logoUrl: deleteField(),
-          logoSource: deleteField(),
-          logoUpdatedAt: deleteField(),
-        });
+        await clearLegacyInlineLogo("Equipos", equipoId);
       }
       setEquipoLogos((prev) => {
         const next = { ...prev };

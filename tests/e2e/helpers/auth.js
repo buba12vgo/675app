@@ -3,6 +3,11 @@ export const coachPassword = process.env.TEST_COACH_PASSWORD || "123456";
 export const superadminEmail = process.env.TEST_SUPERADMIN_EMAIL || "";
 export const superadminPassword = process.env.TEST_SUPERADMIN_PASSWORD || "";
 
+export const hasCoachCredentials = Boolean(
+  process.env.TEST_COACH_EMAIL && process.env.TEST_COACH_PASSWORD
+);
+export const shouldRunCoachE2E = hasCoachCredentials || !process.env.CI;
+
 export async function loginWithEmail(page, email, password) {
   await page.goto("/");
   await page.getByPlaceholder("Correo electrónico").fill(email);
