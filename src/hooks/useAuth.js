@@ -10,14 +10,12 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getAuthErrorMessage } from "../lib/authErrors.js";
+import {
+  googleLoginUsesRedirect,
+  markGoogleRedirectPending,
+  clearGoogleRedirectPending,
+} from "../lib/authGoogle.js";
 import { toggleEquipoFavorito, equiposFavoritosLlenos, isEquipoFavorito, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
-
-function googleLoginUsesRedirect() {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent || "";
-  const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  return iOS || /Android/i.test(ua);
-}
 
 const GOOGLE_REDIRECT_FALLBACK = new Set([
   "auth/popup-blocked",
@@ -38,6 +36,7 @@ export function useAuth(setErrorMsg) {
   const [savingUserNombre, setSavingUserNombre] = useState(false);
   const [showOpcionesPanel, setShowOpcionesPanel] = useState(false);
   const [savingFavoritos, setSavingFavoritos] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
     setUserNombreInput(userData?.nombre || "");
@@ -93,10 +92,18 @@ export function useAuth(setErrorMsg) {
       }
     });
 
-    getRedirectResult(auth).catch((error) => {
-      const code = error?.code || "";
-      if (!code || code === "auth/no-auth-event") return;
-      setErrorMsg(getAuthErrorMessage(error));
+    const readyTimeout = setTimeout(() => setAuthReady(true), 4000);
+    Promise.all([
+      typeof auth.authStateReady === "function" ? auth.authStateReady() : Promise.resolve(),
+      getRedirectResult(auth).catch((error) => {
+        const code = error?.code || "";
+        if (!code || code === "auth/no-auth-event") return;
+        setErrorMsg(getAuthErrorMessage(error));
+      }),
+    ]).finally(() => {
+      clearTimeout(readyTimeout);
+      clearGoogleRedirectPending();
+      setAuthReady(true);
     });
 
     return () => {
@@ -123,6 +130,7 @@ export function useAuth(setErrorMsg) {
     const useRedirect = googleLoginUsesRedirect();
     try {
       if (useRedirect) {
+        markGoogleRedirectPending();
         await signInWithRedirect(auth, googleProvider);
         return;
       }
@@ -130,6 +138,7 @@ export function useAuth(setErrorMsg) {
     } catch (error) {
       if (!useRedirect && GOOGLE_REDIRECT_FALLBACK.has(error?.code)) {
         try {
+          markGoogleRedirectPending();
           await signInWithRedirect(auth, googleProvider);
           return;
         } catch (redirectError) {
@@ -199,6 +208,7 @@ export function useAuth(setErrorMsg) {
   return {
     user,
     userData,
+    authReady,
     setUserData,
     email,
     setEmail,

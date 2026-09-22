@@ -11,9 +11,14 @@
     <meta name="theme-color" content="#F7F3ED" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)" />
     <title>675app</title>
+    <style>
+      html, body, #root { margin: 0; min-height: 100%; background: #F7F3ED; }
+      .boot-html { min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+        padding: 24px; font: 700 18px system-ui, sans-serif; color: #0F172A; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="boot-html">Cargando 675app…</p></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

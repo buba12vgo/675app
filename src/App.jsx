@@ -35,16 +35,7 @@ import { BlurredBackground } from "./components/BlurredBackground.jsx";
 import { CourtWatermark } from "./components/CourtWatermark.jsx";
 import { AppErrorBanner } from "./components/AppErrorBanner.jsx";
 import { LoginScreen } from "./components/LoginScreen.jsx";
-
-const TutorialView = lazy(() => import("./views/TutorialView.jsx").then((m) => ({ default: m.TutorialView })));
-const UserOptionsOverlay = lazy(() => import("./views/UserOptionsOverlay.jsx").then((m) => ({ default: m.UserOptionsOverlay })));
-const ClubMemberContent = lazy(() => import("./views/ClubMemberContent.jsx").then((m) => ({ default: m.ClubMemberContent })));
-const SuperadminShell = lazy(() => import("./views/SuperadminShell.jsx").then((m) => ({ default: m.SuperadminShell })));
-const TeamTabContent = lazy(() => import("./views/TeamTabContent.jsx").then((m) => ({ default: m.TeamTabContent })));
-
-function VistaDiferida({ children }) {
-  return <Suspense fallback={null}>{children}</Suspense>;
-}
+import { BootScreen } from "./components/BootScreen.jsx";
 import { db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 import {
@@ -54,6 +45,17 @@ import {
   clearSessionContext,
 } from "./lib/sessionContext.js";
 import { isTutorialLocation, setTutorialLocation } from "./lib/tutorialLocation.js";
+import { hasGoogleRedirectPending } from "./lib/authGoogle.js";
+
+const TutorialView = lazy(() => import("./views/TutorialView.jsx").then((m) => ({ default: m.TutorialView })));
+const UserOptionsOverlay = lazy(() => import("./views/UserOptionsOverlay.jsx").then((m) => ({ default: m.UserOptionsOverlay })));
+const ClubMemberContent = lazy(() => import("./views/ClubMemberContent.jsx").then((m) => ({ default: m.ClubMemberContent })));
+const SuperadminShell = lazy(() => import("./views/SuperadminShell.jsx").then((m) => ({ default: m.SuperadminShell })));
+const TeamTabContent = lazy(() => import("./views/TeamTabContent.jsx").then((m) => ({ default: m.TeamTabContent })));
+
+function VistaDiferida({ children }) {
+  return <Suspense fallback={<BootScreen message="Cargando…" />}>{children}</Suspense>;
+}
 
 function App() {
   const [errorMsg, setErrorMsg] = useState("");
@@ -61,6 +63,7 @@ function App() {
   const {
     user,
     userData,
+    authReady,
     setUserData,
     email,
     setEmail,
@@ -483,6 +486,14 @@ function App() {
     setEquipoActivo(null);
     setTab("home");
   };
+
+  if (!authReady) {
+    return (
+      <BootScreen
+        message={hasGoogleRedirectPending() ? "Completando el acceso con Google…" : "Cargando 675app…"}
+      />
+    );
+  }
 
   if (!user) {
     if (showTutorial) {
