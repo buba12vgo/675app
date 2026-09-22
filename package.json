@@ -16,7 +16,7 @@
     "test:e2e:ci": "playwright test tests/e2e/login.spec.js",
     "test:integration": "node scripts/test-firebase-integration.mjs",
     "test:full": "node scripts/run-tests.mjs --full",
-    "test:rules": "JAVA_HOME=\"${JAVA_HOME:-$HOME/.local/java-home}\" firebase emulators:exec --only firestore \"node scripts/test-firestore-rules.mjs\"",
+    "test:rules": "JAVA_HOME=\"${JAVA_HOME:-$HOME/.local/java-home}\" firebase emulators:exec --only firestore,storage \"node scripts/test-firestore-rules.mjs && node scripts/test-storage-rules.mjs\"",
     "seed:logos": "node scripts/seed-club-logos.mjs",
     "stitch:connect": "node .cursor/skills/google-stitch/scripts/connect.mjs"
   },
