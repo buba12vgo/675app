@@ -1,14 +1,6 @@
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "../firebase";
 
-export function logoExtensionFromMime(mime) {
-  if (mime === "image/png") return "png";
-  if (mime === "image/webp") return "webp";
-  if (mime === "image/gif") return "gif";
-  if (mime === "image/svg+xml") return "svg";
-  return "jpg";
-}
-
 export function logoObjectPath(uid, tipo, entityId, ext) {
   const safeUid = String(uid || "").replace(/[^a-zA-Z0-9_-]/g, "");
   const safeEntity = String(entityId || "").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -32,5 +24,3 @@ export async function deleteLogoAtPath(path) {
     throw err;
   }
 }
-
-export async function deleteLogoAtPath(path) {
