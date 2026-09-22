@@ -538,7 +538,7 @@ try {
         tipo: "equipo",
         entityId: "eq-a2",
         clubId: "club-a",
-        logoUrl: `https://example.com/${"A".repeat(8001)}`,
+        logoUrl: `data:image/png;base64,${"A".repeat(750001)}`,
       })
     );
   });

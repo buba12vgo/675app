@@ -20,25 +20,42 @@ export async function persistLogoToStorage({
   const logoRef = doc(db, "Logos", logoDocId(tipo, entityId));
   const previous = await getDoc(logoRef);
   const previousPath = previous.exists() ? previous.data().storagePath : null;
-  const storagePath = logoObjectPath(uid, tipo, entityId, prepared.ext);
-  const logoUrl = await uploadLogoBytes(storagePath, prepared.blob, prepared.contentType);
-  await setDoc(logoRef, {
-    tipo,
-    entityId,
-    clubId,
-    logoUrl,
-    logoSource: "storage",
-    storagePath,
-    actualizadoEn: new Date(),
-  });
-  if (previousPath && previousPath !== storagePath) {
-    try {
-      await deleteLogoAtPath(previousPath);
-    } catch {
-      /* el puntero nuevo ya está guardado */
+
+  try {
+    const storagePath = logoObjectPath(uid, tipo, entityId, prepared.ext);
+    const logoUrl = await uploadLogoBytes(storagePath, prepared.blob, prepared.contentType);
+    await setDoc(logoRef, {
+      tipo,
+      entityId,
+      clubId,
+      logoUrl,
+      logoSource: "storage",
+      storagePath,
+      actualizadoEn: new Date(),
+    });
+    if (previousPath && previousPath !== storagePath) {
+      try {
+        await deleteLogoAtPath(previousPath);
+      } catch {
+        /* el puntero nuevo ya está guardado */
+      }
     }
+    return logoUrl;
+  } catch (err) {
+    const code = String(err?.code || "");
+    const message = String(err?.message || "");
+    const storageMissing = code.startsWith("storage/") || /storage/i.test(message);
+    if (!storageMissing) throw err;
+    await setDoc(logoRef, {
+      tipo,
+      entityId,
+      clubId,
+      logoUrl: prepared.dataUrl,
+      logoSource: "inline",
+      actualizadoEn: new Date(),
+    });
+    return prepared.dataUrl;
   }
-  return logoUrl;
 }
 
 export async function deleteStoredLogo(tipo, entityId) {

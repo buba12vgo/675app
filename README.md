@@ -31,3 +31,9 @@ Desplegar reglas e índices:
 ```bash
 npm run deploy:rules
 ```
+
+Storage (hace falta pulsar **Get Started** en Firebase Storage una vez):
+
+```bash
+npm run deploy:storage
+```

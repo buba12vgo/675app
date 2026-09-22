@@ -114,7 +114,7 @@ service cloud.firestore {
         && d.entityId.size() <= 80
         && d.logoUrl is string
         && d.logoUrl.size() > 0
-        && d.logoUrl.size() <= 8000
+        && d.logoUrl.size() <= 750000
         && optionalString(d, 'logoSource', 40)
         && optionalString(d, 'storagePath', 240)
         && optionalTimestamp(d, 'actualizadoEn')

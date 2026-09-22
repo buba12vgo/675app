@@ -176,7 +176,7 @@ export async function prepareLogoUpload(fileOrDataUrl) {
         : contentType === "image/jpeg"
           ? "jpg"
           : "png";
-  return { blob, contentType, ext };
+  return { blob, contentType, ext, dataUrl };
 }
 
 export function getLogoErrorMessage(error) {
