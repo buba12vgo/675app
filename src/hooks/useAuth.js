@@ -3,12 +3,31 @@ import { auth, googleProvider, db } from "../firebase";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getAuthErrorMessage } from "../lib/authErrors.js";
 import { toggleEquipoFavorito, equiposFavoritosLlenos, isEquipoFavorito, maxEquiposFavoritosParaRol } from "../lib/equiposFavoritos.js";
+
+function googleLoginUsesRedirect() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return iOS || /Android/i.test(ua);
+}
+
+const GOOGLE_REDIRECT_FALLBACK = new Set([
+  "auth/popup-blocked",
+  "auth/operation-not-supported-in-this-environment",
+  "auth/web-storage-unsupported",
+  "auth/cancelled-popup-request",
+  "auth/internal-error",
+  "auth/timeout",
+  "auth/missing-iframe-start",
+]);
 
 export function useAuth(setErrorMsg) {
   const [user, setUser] = useState(null);
@@ -37,7 +56,7 @@ export function useAuth(setErrorMsg) {
       }
 
       setUser(u);
-      setErrorMsg("");
+      if (u) setErrorMsg("");
       if (u) {
         try {
           const docRef = doc(db, "Usuarios", u.uid);
@@ -69,6 +88,12 @@ export function useAuth(setErrorMsg) {
       }
     });
 
+    getRedirectResult(auth).catch((error) => {
+      const code = error?.code || "";
+      if (!code || code === "auth/no-auth-event") return;
+      setErrorMsg(getAuthErrorMessage(error));
+    });
+
     return () => {
       authGen += 1;
       if (typeof unsubProfile === "function") unsubProfile();
@@ -90,9 +115,23 @@ export function useAuth(setErrorMsg) {
 
   const handleGoogleLogin = async () => {
     setErrorMsg("");
+    const useRedirect = googleLoginUsesRedirect();
     try {
+      if (useRedirect) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
+      if (!useRedirect && GOOGLE_REDIRECT_FALLBACK.has(error?.code)) {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectError) {
+          setErrorMsg(getAuthErrorMessage(redirectError));
+          return;
+        }
+      }
       setErrorMsg(getAuthErrorMessage(error));
     }
   };

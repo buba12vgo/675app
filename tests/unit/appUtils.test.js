@@ -145,7 +145,10 @@ describe("getAuthErrorMessage", () => {
   it("traduce códigos de Firebase y oculta el inglés", () => {
     expect(getAuthErrorMessage({ code: "auth/invalid-credential" })).toMatch(/incorrectos/i);
     expect(getAuthErrorMessage({ code: "auth/popup-closed-by-user" })).toMatch(/cerrado/i);
-    expect(getAuthErrorMessage({ message: "Firebase: Error (auth/whatever)." })).toMatch(/iniciar sesión/i);
+    expect(getAuthErrorMessage({ message: "Firebase: Error (auth/whatever)." })).toMatch(/whatever/i);
+    expect(getAuthErrorMessage({ code: "auth/internal-error" })).toMatch(/completar el acceso/i);
+    expect(getAuthErrorMessage({ code: "auth/unauthorized-domain" })).toMatch(/675basket.com/i);
+    expect(getAuthErrorMessage({})).toMatch(/iniciar sesión/i);
   });
 });
 
