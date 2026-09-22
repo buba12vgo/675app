@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import {
   createSesionDocId,
+  rangoConsultaSesiones,
   canCreateTipoSesion,
   canEditSesion,
   diaTieneEntreno,
@@ -73,7 +74,17 @@ function aplicarSesionAlEstado(data, id, setters) {
   setPuntosContraPartido?.(puntosPartidoDesdeDoc(data.puntosContra));
 }
 
-export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab }) {
+export function useSesiones({
+  equipoActivo,
+  userData,
+  setErrorMsg,
+  jugadoras,
+  tab,
+  setTab,
+  statsPeriodo,
+  statsDesde,
+  statsHasta,
+}) {
   const [sesionCargando, setSesionCargando] = useState(false);
   const [sesionDoc, setSesionDoc] = useState(null);
   const [sesionId, setSesionId] = useState(null);
@@ -129,39 +140,73 @@ export function useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, ta
     : [];
 
   useEffect(() => {
-    let unsub;
+    let unsub = () => {};
+    let stopped = false;
     if (equipoActivo && (userData?.clubId || userData?.rol === "superadmin")) {
       setSesionesLoading(true);
       const sesionesCol = collection(db, "Sesiones");
-      const q = query(sesionesCol, where("equipoId", "==", equipoActivo.id));
-      unsub = onSnapshot(
-        q,
-        (snapshot) => {
-          setSesionesEquipo(
-            snapshot.docs.map((docSnap) => ({
-              ...docSnap.data(),
-              id: docSnap.id,
-              fecha: docSnap.data().fecha,
-            }))
-          );
-          setSesionesLoading(false);
-        },
-        (err) => {
-          setSesionesEquipo([]);
-          setSesionesLoading(false);
-          if (err?.code === "permission-denied") {
-            setErrorMsg("No tienes permiso para ver el calendario de este equipo.");
-          }
+      const rango = rangoConsultaSesiones({
+        mes: mesActual,
+        anio: anioActual,
+        tab,
+        periodo: statsPeriodo,
+        desde: statsDesde,
+        hasta: statsHasta,
+      });
+      const publicar = (snapshot) => {
+        if (stopped) return;
+        setSesionesEquipo(
+          snapshot.docs.map((docSnap) => ({
+            ...docSnap.data(),
+            id: docSnap.id,
+            fecha: docSnap.data().fecha,
+          }))
+        );
+        setSesionesLoading(false);
+      };
+      const fallar = (err) => {
+        if (stopped) return;
+        setSesionesEquipo([]);
+        setSesionesLoading(false);
+        if (err?.code === "permission-denied") {
+          setErrorMsg("No tienes permiso para ver el calendario de este equipo.");
         }
-      );
+      };
+      const escuchar = (conRango) => {
+        const filtros = [where("equipoId", "==", equipoActivo.id)];
+        if (conRango && rango) {
+          filtros.push(where("fecha", ">=", rango.inicio), where("fecha", "<=", rango.fin));
+        }
+        unsub = onSnapshot(query(sesionesCol, ...filtros), publicar, (err) => {
+          if (conRango && rango && err?.code === "failed-precondition") {
+            unsub();
+            escuchar(false);
+            return;
+          }
+          fallar(err);
+        });
+      };
+      escuchar(Boolean(rango));
     } else {
       setSesionesEquipo([]);
       setSesionesLoading(false);
     }
     return () => {
-      if (typeof unsub === "function") unsub();
+      stopped = true;
+      unsub();
     };
-  }, [equipoActivo, userData?.clubId, userData?.rol, setErrorMsg]);
+  }, [
+    equipoActivo,
+    userData?.clubId,
+    userData?.rol,
+    setErrorMsg,
+    mesActual,
+    anioActual,
+    tab,
+    statsPeriodo,
+    statsDesde,
+    statsHasta,
+  ]);
 
   useEffect(() => {
     const clubId = equipoActivo?.clubId || userData?.clubId;

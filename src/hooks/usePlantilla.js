@@ -10,6 +10,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { guardarJugadoraConDorsal } from "../lib/dorsales.js";
 import { getEquipoLabels, dorsalEstaOcupado } from "../lib/appUtils.js";
 import { useConfirm } from "../components/ConfirmProvider.jsx";
 import {
@@ -100,7 +101,7 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
     setAddJugadoraLoading(true);
     setErrorMsg("");
     try {
-      await addDoc(collection(db, "Jugadoras"), {
+      const payload = {
         nombre: jugadoraNombre.trim(),
         dorsal,
         apodo: jugadoraApodo.trim(),
@@ -108,13 +109,29 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
         equipoId: equipoActivo.id,
         clubId: clubIdEquipo,
         creadoEn: new Date(),
-      });
+      };
+      if (esJugador) {
+        await guardarJugadoraConDorsal(db, {
+          mode: "create",
+          ref: doc(collection(db, "Jugadoras")),
+          payload,
+          equipoId: equipoActivo.id,
+          clubId: clubIdEquipo,
+          dorsal,
+        });
+      } else {
+        await addDoc(collection(db, "Jugadoras"), payload);
+      }
       setJugadoraNombre("");
       setJugadoraDorsal("");
       setJugadoraApodo("");
       setJugadoraRol(ROL_PLANTILLA_JUGADOR);
-    } catch {
-      setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorAnadirJugador);
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "dorsal-ocupado"
+          ? getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado
+          : getEquipoLabels(equipoActivo?.genero).errorAnadirJugador
+      );
     }
     setAddJugadoraLoading(false);
   };
@@ -131,7 +148,17 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
       setJugadoraEditandoId(null);
     }
     try {
-      await deleteDoc(doc(db, "Jugadoras", jugadora.id));
+      if (esJugadorPlantilla(jugadora) && jugadora.dorsal != null) {
+        await guardarJugadoraConDorsal(db, {
+          mode: "delete",
+          ref: doc(db, "Jugadoras", jugadora.id),
+          equipoId: jugadora.equipoId || equipoActivo?.id,
+          clubId: jugadora.clubId || equipoActivo?.clubId || userData?.clubId,
+          dorsal: jugadora.dorsal,
+        });
+      } else {
+        await deleteDoc(doc(db, "Jugadoras", jugadora.id));
+      }
     } catch {
       setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorEliminarJugador);
     }
@@ -164,18 +191,37 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
       setErrorMsg(getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado);
       return;
     }
+    const actual = jugadoras.find((item) => item.id === jugadoraId);
+    const dorsalAnterior = esJugadorPlantilla(actual) ? actual?.dorsal ?? null : null;
     setEditJugadoraLoading(true);
     setErrorMsg("");
     try {
-      await updateDoc(doc(db, "Jugadoras", jugadoraId), {
+      const payload = {
         nombre: editJugadoraNombre.trim(),
         dorsal,
         apodo: editJugadoraApodo.trim(),
         rolPlantilla: rol,
-      });
+      };
+      if (dorsal != null || dorsalAnterior != null) {
+        await guardarJugadoraConDorsal(db, {
+          mode: "update",
+          ref: doc(db, "Jugadoras", jugadoraId),
+          payload,
+          equipoId: equipoActivo?.id || actual?.equipoId,
+          clubId: equipoActivo?.clubId || actual?.clubId || userData?.clubId,
+          dorsal,
+          dorsalAnterior,
+        });
+      } else {
+        await updateDoc(doc(db, "Jugadoras", jugadoraId), payload);
+      }
       handleCancelarEditJugadora();
-    } catch {
-      setErrorMsg("No se pudo guardar los cambios.");
+    } catch (err) {
+      setErrorMsg(
+        err?.code === "dorsal-ocupado"
+          ? getEquipoLabels(equipoActivo?.genero).errorDorsalDuplicado
+          : "No se pudo guardar los cambios."
+      );
     }
     setEditJugadoraLoading(false);
   };

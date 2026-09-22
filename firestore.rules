@@ -11,6 +11,8 @@ service cloud.firestore {
     //   Signed-in read is the club-name directory for "pedir club". Escudos live in Logos.
     // Equipos/{id}: nombre, clubId, genero?, tipoCanasta?, creadoEn?, logo*?
     // Jugadoras/{id}: nombre, dorsal?, apodo?, rolPlantilla?, equipoId, clubId, creadoEn?
+    // Dorsales/{equipoId_NN}: equipoId, clubId, dorsal, jugadoraId
+    //   Un dorsal vivo por equipo. El id es equipoId + "_" + dorsal en dos cifras.
     // Sesiones/{id}: equipoId, clubId, fecha (YYYY-MM-DD), tipo (entreno|partido|fisico),
     //   tematica?, ejercicios?, rival?, local?, puntosFavor?, puntosContra?,
     //   asistencias?, valoraciones?, jugadorasExternas?, motivosAusencia?,
@@ -154,21 +156,26 @@ service cloud.firestore {
       return request.resource.data.rol == 'preparador_fisico' ? 10 : 4;
     }
 
+    function favoritoEnClub(favId) {
+      return exists(/databases/$(database)/documents/Equipos/$(favId))
+        && get(/databases/$(database)/documents/Equipos/$(favId)).data.clubId == userClubId();
+    }
+
     function validFavoritosValue() {
       let favs = request.resource.data.equiposFavoritos;
       let max = maxFavoritosAllowed();
       return favs is list
         && favs.size() <= max
-        && (favs.size() == 0 || validFavoritoId(favs, 0))
-        && (favs.size() < 2 || validFavoritoId(favs, 1))
-        && (favs.size() < 3 || validFavoritoId(favs, 2))
-        && (favs.size() < 4 || validFavoritoId(favs, 3))
-        && (favs.size() < 5 || validFavoritoId(favs, 4))
-        && (favs.size() < 6 || validFavoritoId(favs, 5))
-        && (favs.size() < 7 || validFavoritoId(favs, 6))
-        && (favs.size() < 8 || validFavoritoId(favs, 7))
-        && (favs.size() < 9 || validFavoritoId(favs, 8))
-        && (favs.size() < 10 || validFavoritoId(favs, 9));
+        && (favs.size() == 0 || (validFavoritoId(favs, 0) && favoritoEnClub(favs[0])))
+        && (favs.size() < 2 || (validFavoritoId(favs, 1) && favoritoEnClub(favs[1])))
+        && (favs.size() < 3 || (validFavoritoId(favs, 2) && favoritoEnClub(favs[2])))
+        && (favs.size() < 4 || (validFavoritoId(favs, 3) && favoritoEnClub(favs[3])))
+        && (favs.size() < 5 || (validFavoritoId(favs, 4) && favoritoEnClub(favs[4])))
+        && (favs.size() < 6 || (validFavoritoId(favs, 5) && favoritoEnClub(favs[5])))
+        && (favs.size() < 7 || (validFavoritoId(favs, 6) && favoritoEnClub(favs[6])))
+        && (favs.size() < 8 || (validFavoritoId(favs, 7) && favoritoEnClub(favs[7])))
+        && (favs.size() < 9 || (validFavoritoId(favs, 8) && favoritoEnClub(favs[8])))
+        && (favs.size() < 10 || (validFavoritoId(favs, 9) && favoritoEnClub(favs[9])));
     }
 
     function validEquiposFavoritosUpdate() {
@@ -293,6 +300,34 @@ service cloud.firestore {
           || d.dorsal == null
           || (d.dorsal is int && d.dorsal >= 1 && d.dorsal <= 99)
         );
+    }
+
+    function dorsalReservaId(equipoId, dorsal) {
+      return equipoId + '_' + (dorsal < 10 ? '0' + string(dorsal) : string(dorsal));
+    }
+
+    function validDorsal(dorsalId) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['equipoId', 'clubId', 'dorsal', 'jugadoraId'])
+        && d.equipoId is string
+        && d.equipoId.size() > 0
+        && d.equipoId.size() <= 80
+        && d.clubId is string
+        && d.clubId.size() > 0
+        && d.clubId.size() <= 80
+        && d.clubId == equipoClubId(d.equipoId)
+        && d.dorsal is int
+        && d.dorsal >= 1
+        && d.dorsal <= 99
+        && d.jugadoraId is string
+        && d.jugadoraId.size() > 0
+        && d.jugadoraId.size() <= 80
+        && dorsalId == dorsalReservaId(d.equipoId, d.dorsal);
+    }
+
+    function puedeTomarDorsal() {
+      return request.resource.data.jugadoraId == resource.data.jugadoraId
+        || !exists(/databases/$(database)/documents/Jugadoras/$(resource.data.jugadoraId));
     }
 
     function validJugadoraCreate() {
@@ -428,6 +463,45 @@ service cloud.firestore {
         && canManageEquipoClub(request.resource.data.clubId)
         && validEquipoUpdate();
       allow delete: if isSuperadmin();
+    }
+
+    match /Dorsales/{dorsalId} {
+      allow get: if isSignedIn() && (
+        resource == null
+        || isSuperadmin()
+        || canAccessEquipo(resource.data.equipoId)
+      );
+      allow list: if isSignedIn() && (
+        isSuperadmin()
+        || resource.data.clubId == userClubId()
+      );
+      allow create: if isSignedIn()
+        && validDorsal(dorsalId)
+        && (
+          isSuperadmin() || (
+            isCoachStaff()
+            && belongsToClub(request.resource.data.clubId)
+            && canManagePlantillaEquipo(request.resource.data.equipoId)
+          )
+        );
+      allow update: if isSignedIn()
+        && validDorsal(dorsalId)
+        && puedeTomarDorsal()
+        && (
+          isSuperadmin() || (
+            isCoachStaff()
+            && belongsToClub(resource.data.clubId)
+            && belongsToClub(request.resource.data.clubId)
+            && canManagePlantillaEquipo(resource.data.equipoId)
+          )
+        );
+      allow delete: if isSignedIn() && (
+        isSuperadmin() || (
+          isCoachStaff()
+          && belongsToClub(resource.data.clubId)
+          && canManagePlantillaEquipo(resource.data.equipoId)
+        )
+      );
     }
 
     match /Jugadoras/{jugadoraId} {

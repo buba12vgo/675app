@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   THEMES,
   applyThemeToDocument,
@@ -34,12 +34,17 @@ import { AppHeader } from "./components/AppHeader.jsx";
 import { BlurredBackground } from "./components/BlurredBackground.jsx";
 import { CourtWatermark } from "./components/CourtWatermark.jsx";
 import { AppErrorBanner } from "./components/AppErrorBanner.jsx";
-import { UserOptionsOverlay } from "./views/UserOptionsOverlay.jsx";
-import { ClubMemberContent } from "./views/ClubMemberContent.jsx";
-import { SuperadminShell } from "./views/SuperadminShell.jsx";
-import { TeamTabContent } from "./views/TeamTabContent.jsx";
-import { TutorialView } from "./views/TutorialView.jsx";
 import { LoginScreen } from "./components/LoginScreen.jsx";
+
+const TutorialView = lazy(() => import("./views/TutorialView.jsx").then((m) => ({ default: m.TutorialView })));
+const UserOptionsOverlay = lazy(() => import("./views/UserOptionsOverlay.jsx").then((m) => ({ default: m.UserOptionsOverlay })));
+const ClubMemberContent = lazy(() => import("./views/ClubMemberContent.jsx").then((m) => ({ default: m.ClubMemberContent })));
+const SuperadminShell = lazy(() => import("./views/SuperadminShell.jsx").then((m) => ({ default: m.SuperadminShell })));
+const TeamTabContent = lazy(() => import("./views/TeamTabContent.jsx").then((m) => ({ default: m.TeamTabContent })));
+
+function VistaDiferida({ children }) {
+  return <Suspense fallback={null}>{children}</Suspense>;
+}
 import { db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 import {
@@ -299,7 +304,17 @@ function App() {
     seleccionarSesion,
     cerrarSesionFormulario,
     abrirSesionEnCalendario,
-  } = useSesiones({ equipoActivo, userData, setErrorMsg, jugadoras, tab, setTab });
+  } = useSesiones({
+    equipoActivo,
+    userData,
+    setErrorMsg,
+    jugadoras,
+    tab,
+    setTab,
+    statsPeriodo,
+    statsDesde,
+    statsHasta,
+  });
 
   const clubIdSesion = equipoActivo?.clubId || userData?.clubId || null;
   const equiposDelClubSesion = useMemo(
@@ -475,12 +490,14 @@ function App() {
         <div className="tutorial-page">
           <BlurredBackground isDark={isDarkMode} />
           <CourtWatermark className="court-watermark" variant="landscape" />
-          <TutorialView
-            onBack={closeTutorial}
-            textMuted={textMuted}
-            inputBorder={inputBorder}
-            cardBgElevated={cardBgElevated}
-          />
+          <VistaDiferida>
+            <TutorialView
+              onBack={closeTutorial}
+              textMuted={textMuted}
+              inputBorder={inputBorder}
+              cardBgElevated={cardBgElevated}
+            />
+          </VistaDiferida>
         </div>
       );
     }
@@ -515,6 +532,7 @@ function App() {
   };
 
   const tabContent = (
+    <VistaDiferida>
     <TeamTabContent
       equipoActivo={equipoActivo}
       clubNombre={getNombreClubActivo()}
@@ -632,6 +650,7 @@ function App() {
         tableHeaderAccent,
       }}
     />
+    </VistaDiferida>
   );
 
   const showTeamNav = equipoActivo && (userData?.clubId || userData?.rol === "superadmin");
@@ -847,6 +866,7 @@ function App() {
                 width: "100%",
               }}
             >
+              <VistaDiferida>
               {showOpcionesPanel ? (
                 <UserOptionsOverlay
                   onBack={() => setShowOpcionesPanel(false)}
@@ -985,6 +1005,7 @@ function App() {
                   }}
                 />
               )}
+              </VistaDiferida>
               <AppErrorBanner error={error} message={errorMsg} />
             </div>
           </main>

@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "Sesiones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "equipoId", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

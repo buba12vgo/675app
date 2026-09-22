@@ -234,10 +234,31 @@ try {
     );
   });
 
-  await test("Entrenador guarda equipos favoritos", async () => {
+  await test("Entrenador guarda equipos favoritos de su club", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(doc(db, "Equipos/eq-a3"), { nombre: "Infantil A", clubId: "club-a" });
+      await setDoc(doc(db, "Equipos/eq-a4"), { nombre: "Cadete A", clubId: "club-a" });
+    });
     await assertSucceeds(
       updateDoc(doc(coachA, "Usuarios/coach-a"), {
-        equiposFavoritos: ["eq-a", "eq-a2", "eq-b", "eq-c"],
+        equiposFavoritos: ["eq-a", "eq-a2", "eq-a3", "eq-a4"],
+      })
+    );
+  });
+
+  await test("Entrenador no marca favorito de otro club", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-b"],
+      })
+    );
+  });
+
+  await test("Entrenador no marca un favorito que no existe", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Usuarios/coach-a"), {
+        equiposFavoritos: ["eq-c"],
       })
     );
   });
@@ -571,6 +592,51 @@ try {
         logoUrl: "/logos/celta-femenino.png",
       })
     );
+  });
+
+  await test("Entrenador reserva un dorsal de su equipo", async () => {
+    await assertSucceeds(
+      setDoc(doc(coachA, "Dorsales/eq-a_07"), {
+        equipoId: "eq-a",
+        clubId: "club-a",
+        dorsal: 7,
+        jugadoraId: "j-a",
+      })
+    );
+  });
+
+  await test("Entrenador no reserva un dorsal de otro club", async () => {
+    await assertFails(
+      setDoc(doc(coachA, "Dorsales/eq-b_07"), {
+        equipoId: "eq-b",
+        clubId: "club-b",
+        dorsal: 7,
+        jugadoraId: "j-nueva",
+      })
+    );
+  });
+
+  await test("Entrenador no roba un dorsal que ya tiene otra jugadora", async () => {
+    await assertFails(
+      updateDoc(doc(coachA, "Dorsales/eq-a_07"), {
+        equipoId: "eq-a",
+        clubId: "club-a",
+        dorsal: 7,
+        jugadoraId: "j-otra",
+      })
+    );
+  });
+
+  await test("Entrenador no lee un dorsal de otro club", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), "Dorsales/eq-b_04"), {
+        equipoId: "eq-b",
+        clubId: "club-b",
+        dorsal: 4,
+        jugadoraId: "j-b",
+      });
+    });
+    await assertFails(getDoc(doc(coachA, "Dorsales/eq-b_04")));
   });
 
   await test("Entrenador no escribe Logos", async () => {

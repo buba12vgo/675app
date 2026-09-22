@@ -356,6 +356,41 @@ export function getMetricasEvento(sesion, plantilla = []) {
   return { confirmadas, total };
 }
 
+/**
+ * Ventana de sesiones del equipo. null = historial entero (estadísticas «Todo»).
+ * Cubre el mes del calendario, los próximos 120 días y el periodo de estadísticas.
+ */
+export function rangoConsultaSesiones({
+  mes,
+  anio,
+  tab,
+  periodo,
+  desde,
+  hasta,
+  hoy = new Date(),
+}) {
+  if (tab === "estadisticas" && periodo === "todo") return null;
+
+  const fechas = [];
+  const calStart = new Date(anio, mes, 1);
+  calStart.setDate(calStart.getDate() - 7);
+  const calEnd = new Date(anio, mes + 1, 0);
+  calEnd.setDate(calEnd.getDate() + 7);
+  fechas.push(formatDateYYYYMMDD(calStart), formatDateYYYYMMDD(calEnd));
+
+  const futuro = new Date(hoy);
+  futuro.setDate(futuro.getDate() + 120);
+  fechas.push(formatDateYYYYMMDD(hoy), formatDateYYYYMMDD(futuro));
+
+  if (tab === "estadisticas" && periodo && periodo !== "todo") {
+    const { inicio, fin } = getRangoFechasEstadisticas(periodo, desde, hasta);
+    if (inicio && fin) fechas.push(inicio, fin);
+  }
+
+  const ordered = [...fechas].sort();
+  return { inicio: ordered[0], fin: ordered[ordered.length - 1] };
+}
+
 export function getRangoFechasEstadisticas(periodo, desde, hasta) {
   if (periodo === "todo") return { inicio: "", fin: "" };
   const hoy = new Date();
