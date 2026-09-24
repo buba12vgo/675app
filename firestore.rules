@@ -13,6 +13,7 @@ service cloud.firestore {
     // Jugadoras/{id}: nombre, dorsal?, apodo?, rolPlantilla?, equipoId, clubId, creadoEn?
     // Dorsales/{equipoId_NN}: equipoId, clubId, dorsal, jugadoraId
     //   Un dorsal vivo por equipo. El id es equipoId + "_" + dorsal en dos cifras.
+    //   El 0 usa equipoId_00. El 00 usa equipoId__00.
     // Sesiones/{id}: equipoId, clubId, fecha (YYYY-MM-DD), tipo (entreno|partido|fisico),
     //   tematica?, ejercicios?, rival?, local?, puntosFavor?, puntosContra?,
     //   asistencias?, valoraciones?, jugadorasExternas?, motivosAusencia?,
@@ -295,12 +296,15 @@ service cloud.firestore {
         && (
           !('dorsal' in d)
           || d.dorsal == null
-          || (d.dorsal is int && d.dorsal >= 1 && d.dorsal <= 99)
+          || d.dorsal == '00'
+          || (d.dorsal is int && d.dorsal >= 0 && d.dorsal <= 99)
         );
     }
 
     function dorsalReservaId(equipoId, dorsal) {
-      return equipoId + '_' + (dorsal < 10 ? '0' + string(dorsal) : string(dorsal));
+      return dorsal == '00'
+        ? equipoId + '__00'
+        : equipoId + '_' + (dorsal < 10 ? '0' + string(dorsal) : string(dorsal));
     }
 
     function validDorsal(dorsalId) {
@@ -313,9 +317,10 @@ service cloud.firestore {
         && d.clubId.size() > 0
         && d.clubId.size() <= 80
         && d.clubId == equipoClubId(d.equipoId)
-        && d.dorsal is int
-        && d.dorsal >= 1
-        && d.dorsal <= 99
+        && (
+          d.dorsal == '00'
+          || (d.dorsal is int && d.dorsal >= 0 && d.dorsal <= 99)
+        )
         && d.jugadoraId is string
         && d.jugadoraId.size() > 0
         && d.jugadoraId.size() <= 80

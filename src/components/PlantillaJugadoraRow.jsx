@@ -6,6 +6,7 @@ import {
   etiquetaRolPlantilla,
   esJugadorPlantilla,
   marcaRolPlantilla,
+  normalizarDorsalEntrada,
 } from "../lib/plantillaRoles.js";
 
 export function PlantillaJugadoraRow({
@@ -74,11 +75,11 @@ export function PlantillaJugadoraRow({
           />
           {editEsJugador ? (
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="Dorsal"
               value={editDorsal}
-              onChange={(e) => setEditDorsal(e.target.value.replace(/^0+/, ""))}
-              min={1}
+              onChange={(e) => setEditDorsal(normalizarDorsalEntrada(e.target.value))}
               required
               style={{ ...inputStyle, width: 64 }}
             />

@@ -9,6 +9,7 @@ import {
   etiquetaRolPlantilla,
   marcaRolPlantilla,
   dorsalParaGuardar,
+  normalizarDorsalEntrada,
   ordenarPlantilla,
 } from "../../src/lib/plantillaRoles.js";
 
@@ -34,6 +35,14 @@ describe("plantillaRoles", () => {
     expect(dorsalParaGuardar(ROL_PLANTILLA_ENTRENADOR, "12")).toBe(null);
     expect(dorsalParaGuardar(ROL_PLANTILLA_AYUDANTE, "7")).toBe(null);
     expect(dorsalParaGuardar(ROL_PLANTILLA_JUGADOR, "")).toBe(null);
+  });
+
+  it("acepta el 0 y el 00", () => {
+    expect(normalizarDorsalEntrada("0")).toBe("0");
+    expect(normalizarDorsalEntrada("00")).toBe("00");
+    expect(normalizarDorsalEntrada("07")).toBe("7");
+    expect(dorsalParaGuardar(ROL_PLANTILLA_JUGADOR, "0")).toBe(0);
+    expect(dorsalParaGuardar(ROL_PLANTILLA_JUGADOR, "00")).toBe("00");
   });
 
   it("ordena staff primero y jugadores por dorsal", () => {

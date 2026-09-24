@@ -46,6 +46,8 @@ describe("dorsalReservaId", () => {
   it("rellena el dorsal a dos cifras", () => {
     expect(dorsalReservaId("eq-a", 7)).toBe("eq-a_07");
     expect(dorsalReservaId("eq-a", 12)).toBe("eq-a_12");
+    expect(dorsalReservaId("eq-a", 0)).toBe("eq-a_00");
+    expect(dorsalReservaId("eq-a", "00")).toBe("eq-a__00");
   });
 });
 

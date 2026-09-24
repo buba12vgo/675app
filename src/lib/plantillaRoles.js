@@ -33,10 +33,30 @@ export function marcaRolPlantilla(rol) {
   return ROLES_PLANTILLA.find((item) => item.value === value)?.marca || "#";
 }
 
+/** Deja solo dígitos. El 0 y el 00 se conservan; el resto pierde ceros a la izquierda. */
+export function normalizarDorsalEntrada(valor) {
+  const digits = String(valor ?? "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (/^0+$/.test(digits)) return digits.slice(0, 2);
+  return digits.replace(/^0+/, "");
+}
+
+/** "00" queda como texto para no coincidir con el 0. */
+export function claveDorsal(dorsal) {
+  const normalizado = normalizarDorsalEntrada(dorsal);
+  if (normalizado === "00") return "00";
+  if (!normalizado) return "";
+  const n = Number(normalizado);
+  return Number.isFinite(n) ? String(n) : "";
+}
+
 export function dorsalParaGuardar(rol, dorsal) {
   if (normalizeRolPlantilla(rol) !== ROL_PLANTILLA_JUGADOR) return null;
-  const n = Number(String(dorsal ?? "").trim());
-  if (!Number.isFinite(n) || n < 1) return null;
+  const normalizado = normalizarDorsalEntrada(dorsal);
+  if (!normalizado) return null;
+  if (normalizado === "00") return "00";
+  const n = Number(normalizado);
+  if (!Number.isFinite(n) || n < 0 || n > 99) return null;
   return Math.round(n);
 }
 
@@ -51,7 +71,8 @@ export function ordenarPlantilla(lista) {
     const rb = normalizeRolPlantilla(b?.rolPlantilla);
     if (peso[ra] !== peso[rb]) return peso[ra] - peso[rb];
     if (ra === ROL_PLANTILLA_JUGADOR) {
-      return (Number(a?.dorsal) || 0) - (Number(b?.dorsal) || 0);
+      const rank = (dorsal) => (String(dorsal) === "00" ? 0.5 : Number(dorsal) || 0);
+      return rank(a?.dorsal) - rank(b?.dorsal);
     }
     return String(a?.nombre || "").localeCompare(String(b?.nombre || ""), "es", {
       sensitivity: "base",

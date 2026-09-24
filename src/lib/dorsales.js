@@ -1,8 +1,14 @@
 import { doc, runTransaction } from "firebase/firestore";
 
 export function dorsalReservaId(equipoId, dorsal) {
+  if (String(dorsal).trim() === "00") return `${equipoId}__00`;
   const n = Number(dorsal);
-  return `${equipoId}_${String(n).padStart(2, "0")}`;
+  const padded = n < 10 ? `0${n}` : String(n);
+  return `${equipoId}_${padded}`;
+}
+
+export function dorsalReservado(dorsal) {
+  return String(dorsal).trim() === "00" ? "00" : Number(dorsal);
 }
 
 function dorsalOcupadoError() {
@@ -26,7 +32,8 @@ export async function guardarJugadoraConDorsal(db, {
 }) {
   await runTransaction(db, async (tx) => {
     const nuevaRef = dorsal != null ? doc(db, "Dorsales", dorsalReservaId(equipoId, dorsal)) : null;
-    const sueltaAnterior = dorsalAnterior != null && Number(dorsalAnterior) !== Number(dorsal);
+    const sueltaAnterior =
+      dorsalAnterior != null && dorsalReservaId(equipoId, dorsalAnterior) !== dorsalReservaId(equipoId, dorsal);
     const anteriorRef = sueltaAnterior
       ? doc(db, "Dorsales", dorsalReservaId(equipoId, dorsalAnterior))
       : null;
@@ -52,7 +59,7 @@ export async function guardarJugadoraConDorsal(db, {
       tx.set(nuevaRef, {
         equipoId,
         clubId,
-        dorsal: Number(dorsal),
+        dorsal: dorsalReservado(dorsal),
         jugadoraId: ref.id,
       });
     }

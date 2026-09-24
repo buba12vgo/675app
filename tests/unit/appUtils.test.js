@@ -122,6 +122,7 @@ describe("dorsalEstaOcupado", () => {
   const plantilla = [
     { id: "a", dorsal: 4 },
     { id: "b", dorsal: 10 },
+    { id: "c", dorsal: 0 },
   ];
 
   it("detecta dorsales repetidos y permite el propio al editar", () => {
@@ -133,11 +134,17 @@ describe("dorsalEstaOcupado", () => {
   it("ignora dorsales de entrenador y ayudante", () => {
     const conStaff = [
       ...plantilla,
-      { id: "c", dorsal: 10, rolPlantilla: "entrenador" },
+      { id: "e", dorsal: 10, rolPlantilla: "entrenador" },
       { id: "d", dorsal: null, rolPlantilla: "ayudante" },
     ];
     expect(dorsalEstaOcupado(conStaff, 10)).toBe(true);
-    expect(dorsalEstaOcupado([{ id: "c", dorsal: 10, rolPlantilla: "entrenador" }], 10)).toBe(false);
+    expect(dorsalEstaOcupado([{ id: "e", dorsal: 10, rolPlantilla: "entrenador" }], 10)).toBe(false);
+  });
+
+  it("trata el 0 y el 00 como dorsales distintos", () => {
+    expect(dorsalEstaOcupado(plantilla, "0")).toBe(true);
+    expect(dorsalEstaOcupado(plantilla, "00")).toBe(false);
+    expect(dorsalEstaOcupado([...plantilla, { id: "d", dorsal: "00" }], "00", "d")).toBe(false);
   });
 });
 

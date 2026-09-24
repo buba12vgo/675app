@@ -6,7 +6,7 @@ import {
   MOTIVO_LESIONADO,
   MOTIVO_AUSENCIA_DEFAULT,
 } from "./motivosAusencia.js";
-import { esStaffPlantilla } from "./plantillaRoles.js";
+import { claveDorsal, esStaffPlantilla } from "./plantillaRoles.js";
 
 
 const ROL_LABELS = {
@@ -122,13 +122,13 @@ export function getDevicePreviewFromWidth(width) {
 }
 
 export function dorsalEstaOcupado(jugadoras, dorsal, exceptId = null) {
-  const n = Number(dorsal);
-  if (!Number.isFinite(n)) return false;
+  const clave = claveDorsal(dorsal);
+  if (!clave) return false;
   return (jugadoras || []).some((j) => {
     if (j.id === exceptId) return false;
     if (esStaffPlantilla(j)) return false;
     if (j.dorsal == null || j.dorsal === "") return false;
-    return Number(j.dorsal) === n;
+    return claveDorsal(j.dorsal) === clave;
   });
 }
 
