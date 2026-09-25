@@ -8,6 +8,7 @@ import {
   planificacionParaGuardar,
   etiquetaJugadoraPlanificacion,
   esEquipoMinibasket,
+  avisosPlanificacionSextos,
 } from "../../src/lib/planificacionSextos.js";
 
 describe("normalizeSextosJugadora", () => {
@@ -53,6 +54,33 @@ describe("etiquetaJugadoraPlanificacion", () => {
   it("junta nombre y dorsal", () => {
     expect(etiquetaJugadoraPlanificacion({ nombre: "Mara", dorsal: 17 })).toBe("17 Mara");
     expect(etiquetaJugadoraPlanificacion({ nombre: "Eva" })).toBe("Eva");
+  });
+});
+
+describe("avisosPlanificacionSextos", () => {
+  const jugadoras = [
+    { id: "a", nombre: "Ana", dorsal: 4 },
+    { id: "b", nombre: "Lucía", dorsal: 10 },
+  ];
+
+  it("no avisa si la planificación está vacía", () => {
+    expect(avisosPlanificacionSextos(jugadoras, {})).toEqual([]);
+  });
+
+  it("avisa si al acabar el 5º alguien no lleva 2 sextos", () => {
+    const avisos = avisosPlanificacionSextos(jugadoras, { a: [1, 2], b: [1, 6] });
+    expect(avisos.some((a) => a.includes("5º") && a.includes("10 Lucía"))).toBe(true);
+    expect(avisos.some((a) => a.includes("4 Ana"))).toBe(false);
+  });
+
+  it("avisa de tres sextos seguidos", () => {
+    const avisos = avisosPlanificacionSextos(jugadoras, { a: [1, 2, 3, 5], b: [2, 4] });
+    expect(avisos.some((a) => a.includes("3 sextos seguidos") && a.includes("4 Ana (1º-3º)"))).toBe(true);
+    expect(avisos.some((a) => a.includes("10 Lucía"))).toBe(false);
+  });
+
+  it("no avisa cuando se cumplen las dos normas", () => {
+    expect(avisosPlanificacionSextos(jugadoras, { a: [1, 3, 5], b: [2, 4, 6] })).toEqual([]);
   });
 });
 

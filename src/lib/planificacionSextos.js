@@ -66,6 +66,44 @@ export function planificacionParaGuardar(planificacion, idsConvocadas) {
   return out;
 }
 
+function tramosTresSeguidos(sextos) {
+  const set = new Set(sextos);
+  const tramos = [];
+  for (let inicio = 1; inicio <= 4; inicio += 1) {
+    if (set.has(inicio) && set.has(inicio + 1) && set.has(inicio + 2)) {
+      tramos.push(`${SEXTOS_LABELS[inicio - 1]}-${SEXTOS_LABELS[inicio + 1]}`);
+    }
+  }
+  return tramos;
+}
+
+/** Avisos de normativa minibasket: 2 sextos al acabar el 5º, y nunca 3 seguidos. */
+export function avisosPlanificacionSextos(jugadoras, planificacion) {
+  const lista = jugadoras || [];
+  const hayMarca = lista.some((j) => normalizeSextosJugadora(planificacion?.[j.id]).length > 0);
+  if (!hayMarca) return [];
+
+  const cortos = [];
+  const seguidos = [];
+  lista.forEach((j) => {
+    const sextos = normalizeSextosJugadora(planificacion?.[j.id]);
+    const nombre = etiquetaJugadoraPlanificacion(j) || "Jugador";
+    if (sextos.filter((n) => n <= 5).length < 2) cortos.push(nombre);
+    tramosTresSeguidos(sextos).forEach((tramo) => {
+      seguidos.push(`${nombre} (${tramo})`);
+    });
+  });
+
+  const avisos = [];
+  if (cortos.length) {
+    avisos.push(`Al acabar el 5º sexto faltan 2 sextos jugados: ${cortos.join(", ")}.`);
+  }
+  if (seguidos.length) {
+    avisos.push(`Hay 3 sextos seguidos: ${seguidos.join(", ")}.`);
+  }
+  return avisos;
+}
+
 export function etiquetaJugadoraPlanificacion(jugadora) {
   const nombre = String(jugadora?.nombre || "").trim();
   const dorsal = jugadora?.dorsal;

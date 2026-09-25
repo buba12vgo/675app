@@ -3,6 +3,7 @@ import {
   SEXTOS_LABELS,
   estaEnSexto,
   etiquetaJugadoraPlanificacion,
+  avisosPlanificacionSextos,
 } from "../lib/planificacionSextos.js";
 
 export function PlanificacionSextosPanel({
@@ -16,6 +17,7 @@ export function PlanificacionSextosPanel({
   readOnly = false,
 }) {
   const columnaJugadora = labels?.statsColumnaJugador || labels?.jugador || "Jugadora";
+  const avisos = avisosPlanificacionSextos(jugadorasConvocadas, planificacionSextos);
 
   return (
     <div
@@ -26,6 +28,15 @@ export function PlanificacionSextosPanel({
       }}
     >
       <div className="planificacion-panel__title">Planificación de sextos</div>
+      {avisos.length > 0 ? (
+        <ul className="planificacion-panel__avisos">
+          {avisos.map((aviso) => (
+            <li key={aviso} className="planificacion-panel__aviso" role="status">
+              {aviso}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {jugadorasConvocadas.length === 0 ? (
         <p className="planificacion-panel__empty" style={{ color: textMuted }}>
           Marca la convocatoria para ver aquí a {labels?.jugadores?.toLowerCase() || "las jugadoras"} y asignarles sextos.
