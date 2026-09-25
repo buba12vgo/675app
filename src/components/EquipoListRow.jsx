@@ -6,7 +6,6 @@ import {
   GENERO_MIXTO,
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
-  TIPO_CANASTA_PEQUENA,
 } from "../lib/appUtils.js";
 import { IconGear, IconStar } from "./icons.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
@@ -94,7 +93,6 @@ export function EquipoListRow({
             Canasta
             <select value={editTipoCanasta} onChange={(e) => setEditTipoCanasta(e.target.value)} style={selectStyle} disabled={saving}>
               <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
-              <option value={TIPO_CANASTA_PEQUENA}>Canasta pequeña</option>
               <option value={TIPO_CANASTA_MINI}>Minibasket</option>
             </select>
           </label>

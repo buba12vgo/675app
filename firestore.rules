@@ -250,7 +250,7 @@ service cloud.firestore {
         && d.clubId.size() > 0
         && d.clubId.size() <= 80
         && (!('genero' in d) || d.genero == 'femenino' || d.genero == 'masculino' || d.genero == 'mixto')
-        && (!('tipoCanasta' in d) || d.tipoCanasta == 'grande' || d.tipoCanasta == 'minibasket' || d.tipoCanasta == 'pequena')
+        && (!('tipoCanasta' in d) || d.tipoCanasta == 'grande' || d.tipoCanasta == 'minibasket')
         && optionalTimestamp(d, 'creadoEn')
         && optionalString(d, 'logoSource', 40)
         && optionalTimestamp(d, 'logoUpdatedAt')

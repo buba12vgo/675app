@@ -211,7 +211,7 @@ export function normalizeGenero(genero) {
 }
 
 export function normalizeTipoCanasta(tipoCanasta) {
-  if (tipoCanasta === TIPO_CANASTA_MINI || tipoCanasta === TIPO_CANASTA_PEQUENA) return tipoCanasta;
+  if (tipoCanasta === TIPO_CANASTA_MINI || tipoCanasta === TIPO_CANASTA_PEQUENA) return TIPO_CANASTA_MINI;
   return TIPO_CANASTA_GRANDE;
 }
 
@@ -220,10 +220,7 @@ export function getEquipoLabels(genero) {
 }
 
 export function formatTipoCanasta(tipoCanasta) {
-  const tipo = normalizeTipoCanasta(tipoCanasta);
-  if (tipo === TIPO_CANASTA_MINI) return "Minibasket";
-  if (tipo === TIPO_CANASTA_PEQUENA) return "Canasta pequeña";
-  return "Canasta grande";
+  return normalizeTipoCanasta(tipoCanasta) === TIPO_CANASTA_MINI ? "Minibasket" : "Canasta grande";
 }
 
 export function formatGeneroEquipo(genero) {

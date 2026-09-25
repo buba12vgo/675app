@@ -50,7 +50,7 @@ describe("formatTipoCanasta", () => {
   it("formatea canasta grande y minibasket", () => {
     expect(formatTipoCanasta("grande")).toBe("Canasta grande");
     expect(formatTipoCanasta("minibasket")).toBe("Minibasket");
-    expect(formatTipoCanasta("pequena")).toBe("Canasta pequeña");
+    expect(formatTipoCanasta("pequena")).toBe("Minibasket");
   });
 });
 
