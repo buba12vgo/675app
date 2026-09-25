@@ -3,8 +3,10 @@ import {
   formatGeneroEquipo,
   GENERO_FEMENINO,
   GENERO_MASCULINO,
+  GENERO_MIXTO,
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
+  TIPO_CANASTA_PEQUENA,
 } from "../lib/appUtils.js";
 import { IconGear, IconStar } from "./icons.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
@@ -92,6 +94,7 @@ export function EquipoListRow({
             Canasta
             <select value={editTipoCanasta} onChange={(e) => setEditTipoCanasta(e.target.value)} style={selectStyle} disabled={saving}>
               <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
+              <option value={TIPO_CANASTA_PEQUENA}>Canasta pequeña</option>
               <option value={TIPO_CANASTA_MINI}>Minibasket</option>
             </select>
           </label>
@@ -100,6 +103,7 @@ export function EquipoListRow({
             <select value={editGenero} onChange={(e) => setEditGenero(e.target.value)} style={selectStyle} disabled={saving}>
               <option value={GENERO_FEMENINO}>Femenino</option>
               <option value={GENERO_MASCULINO}>Masculino</option>
+              <option value={GENERO_MIXTO}>Mixto</option>
             </select>
           </label>
         </div>

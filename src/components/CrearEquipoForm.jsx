@@ -1,8 +1,10 @@
 import {
   GENERO_FEMENINO,
   GENERO_MASCULINO,
+  GENERO_MIXTO,
   TIPO_CANASTA_GRANDE,
   TIPO_CANASTA_MINI,
+  TIPO_CANASTA_PEQUENA,
 } from "../lib/appUtils.js";
 import { IconChevronLeft } from "./icons.jsx";
 
@@ -86,6 +88,7 @@ export function CrearEquipoForm({
               }}
             >
               <option value={TIPO_CANASTA_GRANDE}>Canasta grande</option>
+              <option value={TIPO_CANASTA_PEQUENA}>Canasta pequeña</option>
               <option value={TIPO_CANASTA_MINI}>Minibasket</option>
             </select>
           </label>
@@ -107,6 +110,7 @@ export function CrearEquipoForm({
             >
               <option value={GENERO_FEMENINO}>Femenino</option>
               <option value={GENERO_MASCULINO}>Masculino</option>
+              <option value={GENERO_MIXTO}>Mixto</option>
             </select>
           </label>
         </div>

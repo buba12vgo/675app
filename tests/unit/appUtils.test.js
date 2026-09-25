@@ -50,6 +50,7 @@ describe("formatTipoCanasta", () => {
   it("formatea canasta grande y minibasket", () => {
     expect(formatTipoCanasta("grande")).toBe("Canasta grande");
     expect(formatTipoCanasta("minibasket")).toBe("Minibasket");
+    expect(formatTipoCanasta("pequena")).toBe("Canasta pequeña");
   });
 });
 
@@ -57,6 +58,8 @@ describe("formatGeneroEquipo", () => {
   it("formatea genero del equipo", () => {
     expect(formatGeneroEquipo("masculino")).toBe("Masculino");
     expect(formatGeneroEquipo("femenino")).toBe("Femenino");
+    expect(formatGeneroEquipo("mixto")).toBe("Mixto");
+    expect(getEquipoLabels("mixto").anadirJugador).toBe("Añadir jugador/a");
   });
 });
 

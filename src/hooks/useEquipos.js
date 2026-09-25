@@ -12,9 +12,9 @@ import {
 import {
   canManageEquipo,
   GENERO_FEMENINO,
-  GENERO_MASCULINO,
   TIPO_CANASTA_GRANDE,
-  TIPO_CANASTA_MINI,
+  normalizeGenero,
+  normalizeTipoCanasta,
 } from "../lib/appUtils.js";
 import { validateLogoFile, getLogoErrorMessage } from "../lib/logoImage.js";
 import { equipoLogoDocId, isInlineDataUrl } from "../lib/logoDocs.js";
@@ -204,10 +204,8 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
     if (!puedeGestionarEquipo(equipo)) return;
     setEquipoEditandoId(equipo.id);
     setEditEquipoNombre(equipo.nombre || "");
-    setEditEquipoGenero(equipo.genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO);
-    setEditEquipoTipoCanasta(
-      equipo.tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE
-    );
+    setEditEquipoGenero(normalizeGenero(equipo.genero));
+    setEditEquipoTipoCanasta(normalizeTipoCanasta(equipo.tipoCanasta));
     setErrorMsg("");
   };
 

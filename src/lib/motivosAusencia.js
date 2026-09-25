@@ -22,15 +22,19 @@ export const MOTIVOS_AUSENCIA_PARTIDO = [
     id: MOTIVO_NO_CONVOCADO,
     labelF: "No convocada",
     labelM: "No convocado",
+    labelX: "No convocado/a",
     shortF: "No conv.",
     shortM: "No conv.",
+    shortX: "No conv.",
   },
   {
     id: MOTIVO_LESIONADO,
     labelF: "Lesionada",
     labelM: "Lesionado",
+    labelX: "Lesionado/a",
     shortF: "Lesion.",
     shortM: "Lesion.",
+    shortX: "Lesion.",
   },
 ];
 
@@ -52,11 +56,11 @@ export function motivoAusenciaDefaultParaTipo(tipo) {
 
 export function motivosAusenciaParaTipo(tipo, genero = "femenino") {
   if (esTipoPartido(tipo)) {
-    const esMasc = genero === "masculino";
+    const etiqueta = genero === "mixto" ? "X" : genero === "masculino" ? "M" : "F";
     return MOTIVOS_AUSENCIA_PARTIDO.map((m) => ({
       id: m.id,
-      label: esMasc ? m.labelM : m.labelF,
-      short: esMasc ? m.shortM : m.shortF,
+      label: m[`label${etiqueta}`],
+      short: m[`short${etiqueta}`],
     }));
   }
   return MOTIVOS_AUSENCIA_ENTRENO;

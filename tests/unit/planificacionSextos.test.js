@@ -59,6 +59,7 @@ describe("etiquetaJugadoraPlanificacion", () => {
 describe("esEquipoMinibasket", () => {
   it("reconoce minibasket por tipo o por nombre", () => {
     expect(esEquipoMinibasket("minibasket")).toBe(true);
+    expect(esEquipoMinibasket("pequena")).toBe(true);
     expect(esEquipoMinibasket("mini")).toBe(true);
     expect(esEquipoMinibasket("grande", "Mini Femenino")).toBe(true);
     expect(esEquipoMinibasket(undefined, "Alevin Masc")).toBe(true);

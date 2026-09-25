@@ -134,8 +134,10 @@ export function dorsalEstaOcupado(jugadoras, dorsal, exceptId = null) {
 
 export const GENERO_FEMENINO = "femenino";
 export const GENERO_MASCULINO = "masculino";
+export const GENERO_MIXTO = "mixto";
 export const TIPO_CANASTA_GRANDE = "grande";
 export const TIPO_CANASTA_MINI = "minibasket";
+export const TIPO_CANASTA_PEQUENA = "pequena";
 
 const EQUIPO_LABELS = {
   [GENERO_FEMENINO]: {
@@ -180,14 +182,37 @@ const EQUIPO_LABELS = {
     quitarDeSesion: "Quitar de esta sesión",
     sinResultadosBusqueda: "No hay coincidencias en el club",
   },
+  [GENERO_MIXTO]: {
+    jugador: "Jugador/a",
+    jugadores: "Jugadores",
+    plantillaTitulo: "Plantilla",
+    anadirJugador: "Añadir jugador/a",
+    cargandoJugadores: "Cargando plantilla...",
+    sinJugadoresPlantilla: "Sin jugadores en plantilla",
+    noHayJugadoresPlantilla: "No hay jugadores en la plantilla.",
+    editarJugador: "Editar jugador/a",
+    eliminarJugador: "Eliminar jugador/a",
+    errorAnadirJugador: "Error al añadir jugador/a.",
+    errorEliminarJugador: "No se pudo eliminar.",
+    errorDorsalDuplicado: "Ese dorsal ya está en uso en este equipo.",
+    statsColumnaJugador: "Jugador/a",
+    fichaTitulo: "Ficha",
+    seedJugadoresPorEquipo: "10 jugadores por equipo",
+    buscarJugadorClub: "Buscar jugador/a de otro equipo del club…",
+    anadirDeOtroEquipo: "Añadir de otro equipo del club",
+    quitarDeSesion: "Quitar de esta sesión",
+    sinResultadosBusqueda: "No hay coincidencias en el club",
+  },
 };
 
 export function normalizeGenero(genero) {
-  return genero === GENERO_MASCULINO ? GENERO_MASCULINO : GENERO_FEMENINO;
+  if (genero === GENERO_MASCULINO || genero === GENERO_MIXTO) return genero;
+  return GENERO_FEMENINO;
 }
 
 export function normalizeTipoCanasta(tipoCanasta) {
-  return tipoCanasta === TIPO_CANASTA_MINI ? TIPO_CANASTA_MINI : TIPO_CANASTA_GRANDE;
+  if (tipoCanasta === TIPO_CANASTA_MINI || tipoCanasta === TIPO_CANASTA_PEQUENA) return tipoCanasta;
+  return TIPO_CANASTA_GRANDE;
 }
 
 export function getEquipoLabels(genero) {
@@ -195,11 +220,17 @@ export function getEquipoLabels(genero) {
 }
 
 export function formatTipoCanasta(tipoCanasta) {
-  return normalizeTipoCanasta(tipoCanasta) === TIPO_CANASTA_MINI ? "Minibasket" : "Canasta grande";
+  const tipo = normalizeTipoCanasta(tipoCanasta);
+  if (tipo === TIPO_CANASTA_MINI) return "Minibasket";
+  if (tipo === TIPO_CANASTA_PEQUENA) return "Canasta pequeña";
+  return "Canasta grande";
 }
 
 export function formatGeneroEquipo(genero) {
-  return normalizeGenero(genero) === GENERO_MASCULINO ? "Masculino" : "Femenino";
+  const valor = normalizeGenero(genero);
+  if (valor === GENERO_MASCULINO) return "Masculino";
+  if (valor === GENERO_MIXTO) return "Mixto";
+  return "Femenino";
 }
 
 export function getClubInitials(nombre) {

@@ -33,6 +33,10 @@ describe("motivosAusencia", () => {
       "No convocado",
       "Lesionado",
     ]);
+    expect(motivosAusenciaParaTipo("partido", "mixto").map((m) => m.label)).toEqual([
+      "No convocado/a",
+      "Lesionado/a",
+    ]);
     expect(motivosAusenciaParaTipo("entreno").map((m) => m.id)).toContain(MOTIVO_DOBLAJE);
   });
 
