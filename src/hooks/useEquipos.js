@@ -88,7 +88,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       const unsub = onSnapshot(
         q,
         (snapshot) => {
-          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          const lista = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
           lista.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
           setEquipos(lista);
           setEquiposLoading(false);
@@ -108,7 +108,7 @@ export function useEquipos({ userData, superadminVista, equiposFiltroSuperadmin,
       const unsub = onSnapshot(
         q,
         (snapshot) => {
-          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          const lista = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
           lista.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es"));
           setEquipos(lista);
           setEquiposLoading(false);

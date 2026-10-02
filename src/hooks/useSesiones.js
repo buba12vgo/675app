@@ -240,7 +240,7 @@ export function useSesiones({
           );
           const snap = await getDocs(qSesion);
           if (cancelled) return;
-          const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const docs = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
           const preferId = pendingSelectIdRef.current;
           if (preferId) pendingSelectIdRef.current = null;
           const preferTipo = pendingSelectTipo;
@@ -289,37 +289,35 @@ export function useSesiones({
 
   useEffect(() => {
     if (!sesionDoc) return;
-    const idsPlantilla = jugadoras.map((j) => j.id);
-    const idsExternas = normalizeExternasIds(jugadorasExternasIds).filter((id) => !idsPlantilla.includes(id));
-    const idsSesion = [...idsPlantilla, ...idsExternas];
-    if (!idsSesion.length) return;
+    const idsPlantilla = new Set(jugadoras.map((j) => j.id));
+    const idsExternas = normalizeExternasIds(jugadorasExternasIds).filter((id) => !idsPlantilla.has(id));
+    const permitidos = new Set([...idsPlantilla, ...idsExternas]);
+    if (!permitidos.size) return;
 
     setAsistencias((prevAsist) => {
       const nuevo = {};
-      idsSesion.forEach((id) => {
-        if (typeof prevAsist[id] !== "undefined") {
-          nuevo[id] = prevAsist[id];
-        } else {
-          nuevo[id] = idsExternas.includes(id);
-        }
+      Object.entries(prevAsist || {}).forEach(([id, value]) => {
+        if (!permitidos.has(id) || typeof value !== "boolean") return;
+        nuevo[id] = value;
+      });
+      idsExternas.forEach((id) => {
+        if (typeof nuevo[id] !== "boolean") nuevo[id] = true;
       });
       return nuevo;
     });
     setValoraciones((prevVal) => {
       const nuevo = {};
-      idsSesion.forEach((id) => {
-        const val = prevVal[id];
-        if (typeof val === "number" && val >= 0 && val <= 5) {
-          nuevo[id] = val;
-        }
+      Object.entries(prevVal || {}).forEach(([id, val]) => {
+        if (!permitidos.has(id)) return;
+        if (typeof val === "number" && val >= 0 && val <= 5) nuevo[id] = val;
       });
       return nuevo;
     });
     setMotivosAusencia((prevMotivos) => {
       const nuevo = {};
-      idsSesion.forEach((id) => {
-        const motivo = prevMotivos[id];
-        if (motivo) nuevo[id] = motivo;
+      Object.entries(prevMotivos || {}).forEach(([id, motivo]) => {
+        if (!permitidos.has(id) || !motivo) return;
+        nuevo[id] = motivo;
       });
       return nuevo;
     });
@@ -469,12 +467,14 @@ export function useSesiones({
       const asistenciasLimpias = {};
       const valoracionesFiltradas = {};
       idsSesion.forEach((id) => {
-        asistenciasLimpias[id] = !!asistencias[id];
+        if (typeof asistencias[id] !== "boolean") return;
+        asistenciasLimpias[id] = asistencias[id];
         if (asistenciasLimpias[id] && typeof valoraciones[id] === "number") {
           valoracionesFiltradas[id] = valoraciones[id];
         }
       });
-      const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsSesion, tipoNorm);
+      const idsAusentes = Object.keys(asistenciasLimpias).filter((id) => asistenciasLimpias[id] === false);
+      const motivosLimpios = motivoAusenciaParaGuardar(asistenciasLimpias, motivosAusencia, idsAusentes, tipoNorm);
       const idsConvocadas = idsSesion.filter((id) => asistenciasLimpias[id]);
       const planificacionLimpia = planificacionParaGuardar(planificacionSextos, idsConvocadas);
       const sesionDocRef = doc(db, "Sesiones", sesionId);

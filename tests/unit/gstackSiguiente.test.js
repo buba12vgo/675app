@@ -27,6 +27,23 @@ describe("rangoConsultaSesiones", () => {
       periodo: "todo",
       hoy,
     })).toBeNull();
+    expect(rangoConsultaSesiones({
+      mes: 8,
+      anio: 2026,
+      tab: "players",
+      periodo: "todo",
+      hoy,
+    })).toBeNull();
+  });
+
+  it("el dashboard carga el historial entero, no el mes del calendario", () => {
+    expect(rangoConsultaSesiones({
+      mes: 8,
+      anio: 2026,
+      tab: "dashboard",
+      periodo: "mensual",
+      hoy,
+    })).toBeNull();
   });
 
   it("en estadísticas mensuales incluye el mes en curso", () => {

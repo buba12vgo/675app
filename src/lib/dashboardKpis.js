@@ -1,6 +1,8 @@
 import {
+  fechaAltaJugadora,
   filtrarSesionesPorPeriodo,
   normalizarTipoSesion,
+  sesionCuentaParaJugadora,
   TIPO_SESION_FISICO,
   TIPO_SESION_PARTIDO,
 } from "./appUtils.js";
@@ -51,14 +53,16 @@ export function balancePartidos(kpis) {
   return `${kpis.victorias}-${kpis.derrotas}`;
 }
 
-function registrarAsistencia(sesion, jugadorIds, acc) {
+function registrarAsistencia(sesion, jugadoresPorId, acc) {
   const tipo = normalizarTipoSesion(sesion);
   if (tipo === TIPO_SESION_PARTIDO) return;
   const asist = sesion?.asistencias || {};
   const motivos = sesion?.motivosAusencia || {};
   const notas = sesion?.valoraciones || {};
   Object.entries(asist).forEach(([id, presente]) => {
-    if (!jugadorIds.has(id)) return;
+    const jugadora = jugadoresPorId.get(id);
+    if (!jugadora) return;
+    if (!sesionCuentaParaJugadora(sesion, id, fechaAltaJugadora(jugadora))) return;
     if (presente) {
       acc.presentes += 1;
       const nota = notas[id];
@@ -77,7 +81,7 @@ export function calcularKpisEquipo({ equipo, jugadoras = [], sesiones = [], peri
   const equipoId = equipo?.id || "";
   const plantilla = (jugadoras || []).filter((j) => j.equipoId === equipoId);
   const jugadores = plantilla.filter(esJugadorPlantilla);
-  const jugadorIds = new Set(jugadores.map((j) => j.id));
+  const jugadoresPorId = new Map(jugadores.map((j) => [j.id, j]));
   const delEquipo = (sesiones || []).filter((s) => s.equipoId === equipoId);
   const filtradas = filtrarSesionesPorPeriodo(delEquipo, periodo, desde, hasta);
   const acc = emptyKpis(equipoId);
@@ -90,7 +94,7 @@ export function calcularKpisEquipo({ equipo, jugadoras = [], sesiones = [], peri
     else if (tipo === TIPO_SESION_FISICO) acc.fisicos += 1;
     else acc.entrenos += 1;
     if (sesion.fecha && sesion.fecha > acc.ultimaFecha) acc.ultimaFecha = sesion.fecha;
-    registrarAsistencia(sesion, jugadorIds, acc);
+    registrarAsistencia(sesion, jugadoresPorId, acc);
     if (tipo === TIPO_SESION_PARTIDO) {
       const estado = resultadoPartidoEstado(sesion.puntosFavor, sesion.puntosContra);
       if (estado === "victoria") acc.victorias += 1;

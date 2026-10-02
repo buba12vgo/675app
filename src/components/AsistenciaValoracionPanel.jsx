@@ -44,15 +44,18 @@ export function AsistenciaValoracionPanel({
   const motivosDisponibles = motivosAusenciaParaTipo(tipoSesion, generoEquipo);
   const motivoDefault = motivoAusenciaDefaultParaTipo(tipoSesion);
   const jugadoresConteo = jugadoras.filter((j) => !esStaffPlantilla(j));
-  const presentesCount = jugadoresConteo.filter((j) => asistencias[j.id]).length;
-  const totalJugadoras = jugadoresConteo.length;
+  const enLista = jugadoresConteo.filter((j) => typeof asistencias[j.id] === "boolean");
+  const presentesCount = enLista.filter((j) => asistencias[j.id] === true).length;
+  const sinRegistrar = jugadoresConteo.length - enLista.length;
   const verdePresente = success;
   const rojoAusente = error;
   const resumen = resumenPresentes
-    ? resumenPresentes(presentesCount, totalJugadoras)
-    : (totalJugadoras > 0
-      ? `${presentesCount} de ${totalJugadoras} presentes · ${totalJugadoras - presentesCount} ausentes`
-      : playerLabels.sinJugadoresPlantilla);
+    ? resumenPresentes(presentesCount, enLista.length, sinRegistrar)
+    : (enLista.length > 0
+      ? `${presentesCount} de ${enLista.length} presentes · ${enLista.length - presentesCount} ausentes${sinRegistrar ? ` · ${sinRegistrar} sin registrar` : ""}`
+      : sinRegistrar
+        ? `${sinRegistrar} sin registrar en esta sesión`
+        : playerLabels.sinJugadoresPlantilla);
 
   const marcarTodasPresentes = () => {
     if (readOnly) return;
@@ -267,14 +270,18 @@ export function AsistenciaValoracionPanel({
           </div>
         ) : (
           jugadoras.map(j => {
-            const estaPresente = !!asistencias[j.id];
+            const registrada = typeof asistencias[j.id] === "boolean";
+            const estaPresente = asistencias[j.id] === true;
             const valoracionActual = valoraciones[j.id];
             const motivoActual = motivosAusencia[j.id];
             const esStaff = esStaffPlantilla(j);
+            const claseFila = !registrada
+              ? "asistencia-row asistencia-row--sin-lista"
+              : `asistencia-row${estaPresente ? " asistencia-row--presente" : " asistencia-row--ausente"}`;
             return (
               <div
                 key={j.id}
-                className={`asistencia-row${estaPresente ? " asistencia-row--presente" : " asistencia-row--ausente"}`}
+                className={claseFila}
               >
                 <div className="asistencia-row__main">
                   <span className="asistencia-row__dorsal" style={{ color: accent }}>
@@ -291,7 +298,26 @@ export function AsistenciaValoracionPanel({
                   </div>
                 </div>
                 <div className="asistencia-row__controls">
-                  {estaPresente ? (
+                  {!registrada ? (
+                    <div className="asistencia-motivo-group" role="group" aria-label="Incluir en esta sesión">
+                      <button
+                        type="button"
+                        className="asistencia-motivo-btn"
+                        disabled={readOnly}
+                        onClick={() => marcarPresente(j.id)}
+                      >
+                        Presente
+                      </button>
+                      <button
+                        type="button"
+                        className="asistencia-motivo-btn"
+                        disabled={readOnly}
+                        onClick={() => iniciarAusencia(j.id)}
+                      >
+                        Ausente
+                      </button>
+                    </div>
+                  ) : estaPresente ? (
                     esStaff ? (
                       <div className="asistencia-staff-presente" style={{ color: textMuted }}>Presente</div>
                     ) : (
@@ -338,6 +364,7 @@ export function AsistenciaValoracionPanel({
                     </div>
                   )}
                   <div className="asistencia-action-group">
+                    {registrada ? (
                     <button
                       type="button"
                       className="asistencia-toggle-btn"
@@ -358,6 +385,7 @@ export function AsistenciaValoracionPanel({
                     >
                       {estaPresente ? "✓" : "✗"}
                     </button>
+                    ) : null}
                     {j.esExterna && onRemoveJugadoraExterna ? (
                       <button
                         type="button"

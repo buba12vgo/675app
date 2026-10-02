@@ -62,7 +62,7 @@ export function usePlantilla({ equipoActivo, userData, setErrorMsg }) {
       unsub = onSnapshot(
         q,
         (snapshot) => {
-          const docs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          const docs = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
           setJugadoras(ordenarPlantilla(docs));
           setJugadorasLoading(false);
         },

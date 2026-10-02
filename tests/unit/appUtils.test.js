@@ -303,6 +303,23 @@ describe("filtrarSesionesPorPeriodo", () => {
 });
 
 describe("calcularEstadisticasJugadoras", () => {
+  it("no cuenta sesiones anteriores al alta aunque estén en la lista", () => {
+    const jugadoras = [
+      { id: "j1", nombre: "Ana", dorsal: 1, creadoEn: new Date(2026, 7, 10) },
+      { id: "j2", nombre: "Bea", dorsal: 2, creadoEn: new Date(2026, 7, 1) },
+    ];
+    const sesiones = [
+      { tipo: "entreno", fecha: "2026-08-02", asistencias: { j1: true, j2: false }, motivosAusencia: { j2: "salud" } },
+      { tipo: "entreno", fecha: "2026-08-12", asistencias: { j1: true, j2: true } },
+    ];
+    const stats = calcularEstadisticasJugadoras(jugadoras, sesiones);
+    expect(stats[0].entrenos.total).toBe(1);
+    expect(stats[0].entrenos.presentes).toBe(1);
+    expect(stats[1].entrenos.total).toBe(2);
+    expect(stats[1].entrenos.presentes).toBe(1);
+    expect(stats[1].entrenos.ausencias).toBe(1);
+  });
+
   it("calcula asistencia y nota media", () => {
     const jugadoras = [{ id: "j1", nombre: "Ana", dorsal: 1 }];
     const sesiones = [

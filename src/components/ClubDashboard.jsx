@@ -160,6 +160,7 @@ export function ClubDashboard({
                   <KpiStat label="Partidos" value={kpis.partidos} />
                   <KpiStat label="Entrenos" value={kpis.entrenos} />
                   <KpiStat label="Absentismo" value={formatearPct(kpis.absentismoPct)} />
+                  <KpiStat label="Asistencia" value={formatearPct(kpis.asistenciaPct)} />
                   <KpiStat label="Balance" value={balancePartidos(kpis)} />
                   <KpiStat label="Nota media" value={formatearNota(kpis.notaMedia)} />
                   <KpiStat label="Staff" value={kpis.staff} />

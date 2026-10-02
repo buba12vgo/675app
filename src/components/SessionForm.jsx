@@ -71,8 +71,10 @@ export function SessionForm({
   readOnly = false,
 }) {
   const [pasoEliminar, setPasoEliminar] = useState(0);
-  const presentesCount = jugadorasSesion.filter((j) => asistencias[j.id] && esJugadorPlantilla(j)).length;
-  const totalJugadoras = jugadorasSesion.filter(esJugadorPlantilla).length;
+  const plantillaJuego = jugadorasSesion.filter(esJugadorPlantilla);
+  const enLista = plantillaJuego.filter((j) => typeof asistencias[j.id] === "boolean");
+  const presentesCount = enLista.filter((j) => asistencias[j.id]).length;
+  const totalJugadoras = enLista.length;
   const esPartido = tipoSesion === TIPO_SESION_PARTIDO;
   const esFisico = tipoSesion === TIPO_SESION_FISICO;
   const esMinibasket = esEquipoMinibasket(tipoCanasta, nombreEquipo);
@@ -123,8 +125,8 @@ export function SessionForm({
           onClick={() => onSesionVistaChange("asistencia")}
         >
           {tipoSesion === "partido"
-            ? `Convocatoria (${presentesCount}/${totalJugadoras})`
-            : `Asistencia (${presentesCount}/${totalJugadoras})`}
+            ? (totalJugadoras ? `Convocatoria (${presentesCount}/${totalJugadoras})` : "Convocatoria")
+            : (totalJugadoras ? `Asistencia (${presentesCount}/${totalJugadoras})` : "Asistencia")}
         </button>
         {mostrarPlanificacion ? (
           <button
@@ -362,10 +364,12 @@ export function SessionForm({
             }
             resumenPresentes={
               tipoSesion === "partido"
-                ? (p, t) =>
+                ? (p, t, sinRegistrar = 0) =>
                     t > 0
-                      ? `${p} convocadas · ${t - p} fuera · valoración 1-5 si está convocada`
-                      : equipoLabels.sinJugadoresPlantilla
+                      ? `${p} convocadas · ${t - p} fuera · valoración 1-5 si está convocada${sinRegistrar ? ` · ${sinRegistrar} sin registrar` : ""}`
+                      : sinRegistrar
+                        ? `${sinRegistrar} sin registrar en este partido`
+                        : equipoLabels.sinJugadoresPlantilla
                 : undefined
             }
             btnTodasPresentes={tipoSesion === "partido" ? "Todas convocadas" : "Todas presentes"}

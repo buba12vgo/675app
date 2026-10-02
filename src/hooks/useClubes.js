@@ -51,7 +51,7 @@ export function useClubes({
       unsub = onSnapshot(
         colRef,
         (snapshot) => {
-          setClubes(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+          setClubes(snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id })));
           setGestionLoading(false);
         },
         () => setGestionLoading(false)
@@ -73,7 +73,7 @@ export function useClubes({
     const unsub = onSnapshot(
       doc(db, "Clubes", resolvedClubId),
       (snap) => {
-        setActiveClub(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+        setActiveClub(snap.exists() ? { ...snap.data(), id: snap.id } : null);
       },
       () => setActiveClub(null)
     );
@@ -88,7 +88,7 @@ export function useClubes({
         try {
           const clubCol = collection(db, "Clubes");
           const snap = await getDocs(clubCol);
-          setClubes(snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+          setClubes(snap.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id })));
         } catch {
           setClubes([]);
         }
@@ -106,7 +106,7 @@ export function useClubes({
       try {
         const clubCol = collection(db, "Clubes");
         const snap = await getDocs(clubCol);
-        setClubes(snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+        setClubes(snap.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id })));
       } catch {
         setClubes([]);
       }

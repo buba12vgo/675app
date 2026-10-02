@@ -384,9 +384,16 @@ export function getMetricasEvento(sesion, plantilla = []) {
   return { confirmadas, total };
 }
 
+/** Pestañas que totalizan sesiones. «players» es Estadísticas; el alias viejo se mantiene. */
+export function tabCargaHistorialSesiones(tab) {
+  return tab === "players" || tab === "estadisticas" || tab === "dashboard";
+}
+
 /**
- * Ventana de sesiones del equipo. null = historial entero (estadísticas «Todo»).
- * Cubre el mes del calendario, los próximos 120 días y el periodo de estadísticas.
+ * Ventana de sesiones del equipo. null = historial entero.
+ * El dashboard y estadísticas «Todo» no se quedan en el mes del calendario:
+ * si no, «Todo», «Este mes» y «Esta semana» cuentan el mismo recorte.
+ * El calendario sigue acotado al mes visible, los próximos 120 días y el periodo de estadísticas.
  */
 export function rangoConsultaSesiones({
   mes,
@@ -397,7 +404,8 @@ export function rangoConsultaSesiones({
   hasta,
   hoy = new Date(),
 }) {
-  if (tab === "estadisticas" && periodo === "todo") return null;
+  if (tab === "dashboard") return null;
+  if (tabCargaHistorialSesiones(tab) && periodo === "todo") return null;
 
   const fechas = [];
   const calStart = new Date(anio, mes, 1);
@@ -410,7 +418,7 @@ export function rangoConsultaSesiones({
   futuro.setDate(futuro.getDate() + 120);
   fechas.push(formatDateYYYYMMDD(hoy), formatDateYYYYMMDD(futuro));
 
-  if (tab === "estadisticas" && periodo && periodo !== "todo") {
+  if (tabCargaHistorialSesiones(tab) && periodo && periodo !== "todo") {
     const { inicio, fin } = getRangoFechasEstadisticas(periodo, desde, hasta);
     if (inicio && fin) fechas.push(inicio, fin);
   }
@@ -446,7 +454,29 @@ export function filtrarSesionesPorPeriodo(sesiones, periodo, desde, hasta) {
   return lista.filter((s) => s.fecha >= inicio && s.fecha <= fin);
 }
 
-export function calcularStatsPorLista(jugadoraId, sesiones) {
+/** Día de alta en la plantilla (YYYY-MM-DD). Vacío si el documento no trae fecha. */
+export function fechaAltaJugadora(jugadora) {
+  const raw = jugadora?.creadoEn;
+  if (!raw) return "";
+  if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  let date = null;
+  if (typeof raw.toDate === "function") date = raw.toDate();
+  else if (raw instanceof Date) date = raw;
+  else if (typeof raw.seconds === "number") date = new Date(raw.seconds * 1000);
+  if (!date || Number.isNaN(date.getTime())) return "";
+  return formatDateYYYYMMDD(date);
+}
+
+/** Una sesión anterior al alta no cuenta, aunque un guardado posterior la haya apuntado en la lista. */
+export function sesionCuentaParaJugadora(sesion, jugadoraId, alta = "") {
+  const asist = sesion?.asistencias || {};
+  if (typeof asist[jugadoraId] === "undefined") return false;
+  if (alta && sesion?.fecha && sesion.fecha < alta) return false;
+  return true;
+}
+
+export function calcularStatsPorLista(jugadoraId, sesiones, opciones = {}) {
+  const alta = opciones.alta || "";
   let total = 0;
   let presentes = 0;
   let ausencias = 0;
@@ -460,7 +490,7 @@ export function calcularStatsPorLista(jugadoraId, sesiones) {
   let countNotas = 0;
   sesiones.forEach((s) => {
     const asist = s.asistencias || {};
-    if (typeof asist[jugadoraId] === "undefined") return;
+    if (!sesionCuentaParaJugadora(s, jugadoraId, alta)) return;
     total += 1;
     if (asist[jugadoraId] === false) {
       const motivo = (s.motivosAusencia || {})[jugadoraId] || MOTIVO_AUSENCIA_DEFAULT;
@@ -555,10 +585,13 @@ export function calcularEstadisticasJugadoras(jugadoras, sesiones) {
   const entrenos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_ENTRENO);
   const partidos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_PARTIDO);
   const fisicos = sesiones.filter((s) => normalizarTipoSesion(s) === TIPO_SESION_FISICO);
-  return jugadoras.map((j) => ({
-    jugadora: j,
-    entrenos: calcularStatsPorLista(j.id, entrenos),
-    partidos: calcularStatsPorLista(j.id, partidos),
-    fisicos: calcularStatsPorLista(j.id, fisicos),
-  }));
+  return jugadoras.map((j) => {
+    const alta = fechaAltaJugadora(j);
+    return {
+      jugadora: j,
+      entrenos: calcularStatsPorLista(j.id, entrenos, { alta }),
+      partidos: calcularStatsPorLista(j.id, partidos, { alta }),
+      fisicos: calcularStatsPorLista(j.id, fisicos, { alta }),
+    };
+  });
 }

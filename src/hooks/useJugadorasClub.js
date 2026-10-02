@@ -33,7 +33,7 @@ export function useJugadorasClub({ clubId, enabled, equipos = null, setErrorMsg 
       unsubEquipos = onSnapshot(
         query(collection(db, "Equipos"), where("clubId", "==", clubId)),
         (snapshot) => {
-          const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+          const lista = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
           setEquiposLocal(sortEquipos(lista));
         },
         () => setEquiposLocal([])
@@ -43,7 +43,7 @@ export function useJugadorasClub({ clubId, enabled, equipos = null, setErrorMsg 
     const unsubJugadoras = onSnapshot(
       query(collection(db, "Jugadoras"), where("clubId", "==", clubId)),
       (snapshot) => {
-        const lista = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        const lista = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
         lista.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
         setJugadorasClub(lista);
         setJugadorasClubLoading(false);

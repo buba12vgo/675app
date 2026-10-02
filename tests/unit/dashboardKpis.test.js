@@ -104,6 +104,32 @@ describe("dashboardKpis", () => {
     expect(porcentajeAbsentismo(8, 2)).toBe(20);
   });
 
+  it("no cuenta la asistencia anterior al alta, aunque la sesión sí cuenta para el equipo", () => {
+    const jugadoras = [
+      { id: "j1", equipoId: "eq-1", dorsal: 4, creadoEn: new Date(2026, 8, 10) },
+    ];
+    const sesiones = [
+      {
+        equipoId: "eq-1",
+        tipo: "entreno",
+        fecha: "2026-09-01",
+        asistencias: { j1: false },
+        motivosAusencia: { j1: "no_justificada" },
+      },
+      {
+        equipoId: "eq-1",
+        tipo: "entreno",
+        fecha: "2026-09-12",
+        asistencias: { j1: true },
+      },
+    ];
+    const kpis = calcularKpisEquipo({ equipo, jugadoras, sesiones, periodo: "todo" });
+    expect(kpis.sesiones).toBe(2);
+    expect(kpis.presentes).toBe(1);
+    expect(kpis.ausencias).toBe(0);
+    expect(kpis.asistenciaPct).toBe(100);
+  });
+
   it("agrega KPIs de varios equipos", () => {
     const filas = calcularKpisEquipos({
       equipos: [equipo, { id: "eq-2", nombre: "Cadete" }],

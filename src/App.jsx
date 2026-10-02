@@ -388,7 +388,7 @@ function App() {
         if (!found) {
           try {
             const snap = await getDoc(doc(db, "Equipos", stored.equipoId));
-            found = snap.exists() ? { id: snap.id, ...snap.data() } : null;
+            found = snap.exists() ? { ...snap.data(), id: snap.id } : null;
           } catch {
             found = null;
           }

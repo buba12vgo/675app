@@ -27,7 +27,7 @@ function listenDocs(queries, setData, setLoading) {
     onSnapshot(
       q,
       (snapshot) => {
-        byQuery[index] = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        byQuery[index] = snapshot.docs.map((docSnap) => ({ ...docSnap.data(), id: docSnap.id }));
         const merged = [];
         const seen = new Set();
         byQuery.flat().forEach((item) => {
