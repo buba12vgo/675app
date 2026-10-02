@@ -44,6 +44,7 @@ export function AsistenciaValoracionPanel({
   const motivosDisponibles = motivosAusenciaParaTipo(tipoSesion, generoEquipo);
   const motivoDefault = motivoAusenciaDefaultParaTipo(tipoSesion);
   const jugadoresConteo = jugadoras.filter((j) => !esStaffPlantilla(j));
+  const totalJugadoras = jugadoresConteo.length;
   const enLista = jugadoresConteo.filter((j) => typeof asistencias[j.id] === "boolean");
   const presentesCount = enLista.filter((j) => asistencias[j.id] === true).length;
   const sinRegistrar = jugadoresConteo.length - enLista.length;
