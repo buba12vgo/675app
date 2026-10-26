@@ -3,6 +3,7 @@ import { AppBrand } from "./AppBrand.jsx";
 import { DevicePreviewControl } from "./DevicePreviewControl.jsx";
 import { ThemeToggleButton } from "./ThemeToggleButton.jsx";
 import { IconSettings } from "./icons.jsx";
+import { SuiteLauncher } from "./SuiteLauncher.jsx";
 
 export function AppHeader({
   compact,
@@ -29,6 +30,7 @@ export function AppHeader({
         <div className="app-header-bar app-header-bar--compact" style={barStyle}>
           <AppBrand text={text} fontSize={20} onGoHome={onGoHome} />
           <div className="app-header-compact-actions">
+            <SuiteLauncher />
             <button
               type="button"
               className="app-header-options-btn app-header-options-btn--icon-only"
@@ -61,6 +63,7 @@ export function AppHeader({
               <span className="app-header-role__name">{userData.nombre.trim()}</span>
             ) : null}
           </span>
+          <SuiteLauncher />
           <button
             type="button"
             className="app-header-options-btn"

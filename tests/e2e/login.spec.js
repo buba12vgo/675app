@@ -6,6 +6,18 @@ import {
 } from "./helpers/auth.js";
 
 test.describe("Login", () => {
+  test("SUITE-01 el login enlaza Pizarra y Planner en la misma pestaña", async ({ page }) => {
+    await page.goto("/");
+    const pizarra = page.getByRole("link", { name: "675 Pizarra" });
+    const planner = page.getByRole("link", { name: "675 Planner" });
+    await expect(pizarra).toBeVisible();
+    await expect(planner).toBeVisible();
+    await expect(pizarra).toHaveAttribute("href", "/whiteboard/");
+    await expect(planner).toHaveAttribute("href", "/planner/");
+    await expect(pizarra).not.toHaveAttribute("target");
+    await expect(planner).not.toHaveAttribute("target");
+  });
+
   test("AUTH-01 muestra formulario de acceso", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByPlaceholder("Correo electrónico")).toBeVisible();
