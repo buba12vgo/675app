@@ -2,6 +2,7 @@ import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
 import { IconGear } from "./icons.jsx";
 import { resolveClubLogoUrl } from "../lib/clubLogoPresets.js";
+import { withAccentAlpha } from "../theme.js";
 
 export function SuperadminClubesPanel({
   userData,
@@ -407,7 +408,7 @@ export function SuperadminClubesPanel({
                     aria-label={`Editar ${club.nombre}`}
                     title="Editar club"
                     disabled={isBusy}
-                    style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+                    style={{ color: accent, borderColor: withAccentAlpha(accent, "55"), background: withAccentAlpha(accent, "14") }}
                   >
                     <IconGear size={17} />
                   </button>

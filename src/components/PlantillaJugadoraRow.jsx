@@ -8,6 +8,7 @@ import {
   marcaRolPlantilla,
   normalizarDorsalEntrada,
 } from "../lib/plantillaRoles.js";
+import { withAccentAlpha } from "../theme.js";
 
 export function PlantillaJugadoraRow({
   jugadora,
@@ -159,7 +160,7 @@ export function PlantillaJugadoraRow({
           onClick={() => onStartEdit(jugadora)}
           aria-label={`Editar ${jugadora.nombre}`}
           title={playerLabels.editarJugador}
-          style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+          style={{ color: accent, borderColor: withAccentAlpha(accent, "55"), background: withAccentAlpha(accent, "14") }}
         >
           <IconGear size={18} />
         </button>

@@ -1,74 +1,43 @@
 export const STORAGE_THEME_KEY = "theme";
 
-export const THEMES = {
-  dark: {
-    bg: "#171310",
-    bgDark: "#171310",
-    cardBg: "#221C17",
-    cardBgElevated: "#2C241D",
-    surface: "#332B23",
-    inputBg: "#2C241D",
-    inputBorder: "#4A3F35",
-    accent: "#C2410C",
-    accentDark: "#9A3412",
-    accentLight: "#F0B27A",
-    accentSoft: "rgba(194, 65, 12, 0.20)",
-    accentBorder: "rgba(240, 178, 122, 0.38)",
-    accentShadow: "rgba(194, 65, 12, 0.35)",
-    accentBgSubtle: "rgba(194, 65, 12, 0.12)",
-    tableHeader: "#EDE4D8",
-    tableHeaderAccent: "#F0B27A",
-    text: "#F6F1EA",
-    textSecondary: "#C9B8A6",
-    textMuted: "#9A8A78",
-    success: "#10B981",
-    error: "#F87171",
-    cardShadow: "0 8px 32px rgba(0, 0, 0, 0.35)",
-    glass: "rgba(34, 28, 23, 0.62)",
-    colorPartido: "#8B5CF6",
-    colorPartidoLight: "#C4B5FD",
-    colorPartidoSoft: "rgba(139, 92, 246, 0.18)",
-    colorPartidoBorder: "rgba(139, 92, 246, 0.45)",
-    colorFisico: "#2DD4BF",
-    colorFisicoLight: "#5EEAD4",
-    colorFisicoSoft: "rgba(45, 212, 191, 0.18)",
-    colorFisicoBorder: "rgba(45, 212, 191, 0.45)",
-    onAccent: "#FFFFFF",
-  },
-  light: {
-    bg: "#F7F3ED",
-    bgDark: "#F1EBE3",
-    cardBg: "#FFFCF8",
-    cardBgElevated: "#F4EDE4",
-    surface: "#EDE4D8",
-    inputBg: "#FFFCF8",
-    inputBorder: "#E0D3C4",
-    accent: "#B45309",
-    accentDark: "#92400E",
-    accentLight: "#9A3412",
-    accentSoft: "rgba(180, 83, 9, 0.12)",
-    accentBorder: "rgba(180, 83, 9, 0.30)",
-    accentShadow: "rgba(180, 83, 9, 0.22)",
-    accentBgSubtle: "rgba(180, 83, 9, 0.08)",
-    tableHeader: "#9A3412",
-    tableHeaderAccent: "#B45309",
-    text: "#0F172A",
-    textSecondary: "#475569",
-    textMuted: "#64748B",
-    success: "#059669",
-    error: "#DC2626",
-    cardShadow: "0 8px 32px rgba(15, 23, 42, 0.08)",
-    glass: "rgba(255, 252, 248, 0.62)",
-    colorPartido: "#7C3AED",
-    colorPartidoLight: "#5B21B6",
-    colorPartidoSoft: "rgba(124, 58, 237, 0.12)",
-    colorPartidoBorder: "rgba(91, 33, 182, 0.35)",
-    colorFisico: "#0F766E",
-    colorFisicoLight: "#0D9488",
-    colorFisicoSoft: "rgba(15, 118, 110, 0.12)",
-    colorFisicoBorder: "rgba(13, 148, 136, 0.35)",
-    onAccent: "#FFFFFF",
-  },
+/**
+ * La paleta vive en src/index.css. Estas claves leen esas variables
+ * para que los estilos en línea no dupliquen hex ni se desvíen
+ * (violeta de partido, aviso, sombra).
+ */
+export const THEME_CSS_VARS = {
+  bg: "--color-bg",
+  bgDark: "--color-bg-dark",
+  cardBg: "--color-card",
+  cardBgElevated: "--color-card-elevated",
+  surface: "--color-surface",
+  inputBg: "--color-input-bg",
+  inputBorder: "--color-border",
+  accent: "--color-accent",
+  accentDark: "--color-accent-dark",
+  accentLight: "--color-accent-strong",
+  accentSoft: "--color-accent-soft",
+  accentBorder: "--color-accent-border",
+  accentShadow: "--color-accent-shadow",
+  accentBgSubtle: "--color-accent-bg-subtle",
+  tableHeader: "--color-table-header",
+  tableHeaderAccent: "--color-table-header-accent",
+  text: "--color-text",
+  textSecondary: "--color-text-secondary",
+  textMuted: "--color-text-muted",
+  success: "--color-success",
+  error: "--color-aviso",
+  cardShadow: "--shadow-card",
+  glass: "--color-glass",
+  colorPartido: "--color-partido",
+  colorPartidoLight: "--color-partido-light",
+  colorPartidoSoft: "--color-partido-soft",
+  colorPartidoBorder: "--color-partido-border",
+  colorFisico: "--color-fisico",
+  colorFisicoLight: "--color-fisico-light",
+  colorFisicoSoft: "--color-fisico-soft",
+  colorFisicoBorder: "--color-fisico-border",
+  onAccent: "--color-on-accent",
 };
 
 export function getStoredTheme() {
@@ -93,10 +62,28 @@ export function persistTheme(theme) {
   }
 }
 
-export function getGlassCardStyle(theme) {
+export function getThemeColors(mode) {
+  if (mode === "dark" || mode === "light") applyThemeToDocument(mode);
+  const style = getComputedStyle(document.documentElement);
+  const theme = {};
+  for (const [key, cssVar] of Object.entries(THEME_CSS_VARS)) {
+    theme[key] = style.getPropertyValue(cssVar).trim();
+  }
+  return theme;
+}
+
+/** Conserva el alfa hex (#RRGGBBAA) y sigue valiendo si el acento llega como rgb() o var(). */
+export function withAccentAlpha(accent, hexByte) {
+  const byte = String(hexByte).toLowerCase();
+  if (/^#[0-9a-f]{6}$/i.test(accent)) return `${accent}${byte}`;
+  const percent = Math.round((Number.parseInt(byte, 16) / 255) * 1000) / 10;
+  return `color-mix(in srgb, ${accent} ${percent}%, transparent)`;
+}
+
+export function getGlassCardStyle() {
   return {
-    background: THEMES[theme].glass,
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+    background: "var(--color-glass)",
+    backdropFilter: "blur(var(--blur-glass))",
+    WebkitBackdropFilter: "blur(var(--blur-glass))",
   };
 }

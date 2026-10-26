@@ -43,10 +43,10 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
       ) : null}
 
       <header className="tutorial__header">
-        <p className="tutorial__kicker">Guía de 675app</p>
+        <p className="tutorial__kicker">Guía de 675 Basket</p>
         <h1 className="tutorial__title">Cómo funciona la app</h1>
         <p className="tutorial__lead">
-          675app organiza el día a día del club: dashboard, equipos, plantilla, entrenos, partidos y trabajo físico.
+          675 Basket organiza el día a día del club: dashboard, equipos, plantilla, entrenos, partidos y trabajo físico.
           Esta guía sigue el orden en el que se usa, con el aspecto actual de la web.
         </p>
       </header>
@@ -69,7 +69,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         </p>
         <Figure
           src="/tutorial/01_login.jpg"
-          alt="Pantalla de inicio de sesión de 675app en modo claro"
+          alt="Pantalla de inicio de sesión de 675 Basket en modo claro"
           caption="Login en modo claro: logo 675, correo, contraseña o Google."
         />
         <p>
@@ -86,11 +86,11 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
         <p>
           Arriba a la derecha está el interruptor de tema: luna para modo oscuro (madera oscura) y sol para volver al
           claro. El encabezado muestra tu rol, <strong>Opciones</strong> (engranaje) y <strong>Salir</strong>. El logo
-          675app te devuelve al listado de equipos.
+          675 Basket te devuelve al listado de equipos.
         </p>
         <Figure
           src="/tutorial/01b_login_oscuro.jpg"
-          alt="Pantalla de inicio de sesión de 675app en modo oscuro"
+          alt="Pantalla de inicio de sesión de 675 Basket en modo oscuro"
           caption="El mismo login en modo oscuro: pista, madera y naranja."
         />
       </section>
@@ -303,7 +303,7 @@ export function TutorialView({ onBack, textMuted, inputBorder, cardBgElevated })
           caption="En el teléfono: menú inferior y pestañas Datos / Asistencia en la sesión."
         />
         <p>
-          Si instalas 675app en la pantalla de inicio y no ves un cambio reciente, cierra la app del todo y ábrela
+          Si instalas 675 Basket en la pantalla de inicio y no ves un cambio reciente, cierra la app del todo y ábrela
           otra vez.
         </p>
       </section>

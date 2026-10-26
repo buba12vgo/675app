@@ -9,7 +9,7 @@
   --color-card-elevated: #F4EDE4;
   --color-accent: #B45309;
   --color-accent-dark: #92400E;
-  --color-accent-light: #9A3412;
+  --color-accent-strong: #9A3412;
   --color-accent-soft: rgba(180, 83, 9, 0.12);
   --color-accent-border: rgba(180, 83, 9, 0.30);
   --color-accent-shadow: rgba(180, 83, 9, 0.22);
@@ -34,7 +34,7 @@
   --color-panel-muted: rgba(247, 243, 237, 0.72);
   --color-row-present: rgba(16, 185, 129, 0.12);
   --color-row-absent: rgba(248, 113, 113, 0.10);
-  --color-aviso: #b91c1c;
+  --color-aviso: #B91C1C;
   --color-player-name: #0F172A;
   --color-player-nickname: #475569;
   --color-control-bg: rgba(244, 237, 228, 0.92);
@@ -57,6 +57,11 @@
   --radius-chip: 999px;
   --shadow-inset: inset 0 1px 0 rgba(246, 241, 234, 0.10);
   --shadow-card: var(--shadow-inset), 0 10px 24px -8px var(--color-shadow-soft);
+  --color-bg-dark: #F1EBE3;
+  --color-success: #059669;
+  --color-on-accent: #FFFFFF;
+  --color-accent-bg-subtle: rgba(180, 83, 9, 0.08);
+  --blur-glass: 10px;
 }
 
 html.dark {
@@ -66,7 +71,7 @@ html.dark {
   --color-card-elevated: #2C241D;
   --color-accent: #C2410C;
   --color-accent-dark: #9A3412;
-  --color-accent-light: #F0B27A;
+  --color-accent-strong: #F0B27A;
   --color-accent-soft: rgba(194, 65, 12, 0.20);
   --color-accent-border: rgba(240, 178, 122, 0.38);
   --color-accent-shadow: rgba(194, 65, 12, 0.35);
@@ -109,6 +114,9 @@ html.dark {
   --color-form-shell: #2C241D;
   --color-stats-row-bg: #332B23;
   --color-stats-row-border: rgba(74, 63, 53, 0.7);
+  --color-bg-dark: #171310;
+  --color-success: #10B981;
+  --color-accent-bg-subtle: rgba(194, 65, 12, 0.12);
 }
 
 *,
@@ -192,7 +200,7 @@ select {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .tactical-lead {
@@ -206,7 +214,7 @@ select {
 
 .tactical-lead strong,
 .tactical-lead em {
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-style: normal;
   font-weight: 700;
 }
@@ -247,7 +255,7 @@ select {
   background: var(--color-card-elevated);
   color: var(--color-text);
   border-radius: var(--radius-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   box-shadow: var(--shadow-card);
 }
 
@@ -335,7 +343,7 @@ select {
 .chip--entreno.chip--active {
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .chip--partido.chip--active {
@@ -459,7 +467,7 @@ select {
 
 .app-header-logout {
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--color-on-accent);
   border: none;
   border-radius: 12px;
   padding: 10px 16px;
@@ -474,10 +482,6 @@ select {
   transition: filter 0.17s;
   outline: 0;
   flex-shrink: 0;
-}
-
-html:not(.dark) .app-header-logout {
-  color: #fff;
 }
 
 .app-header-logout--corner {
@@ -506,7 +510,7 @@ html:not(.dark) .app-header-logout {
   padding: 4px 9px;
   border-radius: 999px;
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -600,7 +604,7 @@ html:not(.dark) .app-header-logout {
   border-radius: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-panel-muted);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   cursor: pointer;
   padding: 0;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -648,13 +652,13 @@ html:not(.dark) .app-header-logout {
 .device-preview-control__btn:hover {
   opacity: 0.85;
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .device-preview-control__btn--active {
   opacity: 1;
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   box-shadow: inset 0 0 0 1px var(--color-accent-border);
 }
 
@@ -693,10 +697,10 @@ html:not(.dark) .app-header-logout {
   overflow-x: hidden;
   overflow-y: auto;
   border-radius: 18px;
-  outline: 1px solid color-mix(in srgb, var(--color-accent-light) 22%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-accent-strong) 22%, transparent);
   box-shadow: 0 14px 42px var(--color-shadow-soft);
   background: var(--color-preview-frame-bg);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(var(--blur-glass));
   transition: width 0.22s ease, box-shadow 0.22s ease;
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent-border) transparent;
@@ -898,10 +902,10 @@ html:not(.dark) .app-header-logout {
   width: 268px;
   flex-shrink: 0;
   padding: 18px 14px 16px;
-  border-right: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border)) !important;
+  border-right: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border)) !important;
   border-radius: 16px 0 0 16px;
   background: color-mix(in srgb, var(--color-card) 78%, transparent) !important;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-glass));
 }
 
 .app-shell[data-device-preview="desktop"] .app-team-sidebar .app-nav-desktop {
@@ -1103,7 +1107,7 @@ html:not(.dark) .app-header-logout {
 .home-event-card {
   background: var(--color-card-elevated);
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   border-left: 4px solid var(--color-accent);
   padding: 0;
   overflow: hidden;
@@ -1692,7 +1696,7 @@ html:not(.dark) .app-header-logout {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   opacity: 0.26;
 }
 
@@ -1719,7 +1723,7 @@ html:not(.dark) .app-header-logout {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .login-topbar__logo {
@@ -1738,6 +1742,10 @@ html:not(.dark) .app-header-logout {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text);
+}
+
+.login-topbar__brand span span {
+  color: var(--color-accent);
 }
 
 .login-topbar .theme-toggle-btn {
@@ -1765,7 +1773,7 @@ html:not(.dark) .app-header-logout {
   flex-direction: column;
   gap: 14px;
   background: var(--color-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 18%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 18%, var(--color-border));
   box-shadow: inset 0 1px 0 rgba(246, 241, 234, 0.07), 0 16px 36px -8px var(--color-shadow-soft);
 }
 
@@ -1830,7 +1838,7 @@ html:not(.dark) .app-header-logout {
 }
 
 .login-tutorial-link:hover {
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .tutorial-page {
@@ -1845,11 +1853,11 @@ html:not(.dark) .app-header-logout {
   margin: 0 auto;
   max-width: 820px;
   background: color-mix(in srgb, var(--color-card) 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   border-radius: var(--radius-card);
   padding: 16px 18px 32px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--blur-glass));
 }
 
 .tutorial {
@@ -1871,7 +1879,7 @@ html:not(.dark) .app-header-logout {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .tutorial__title {
@@ -1901,7 +1909,7 @@ html:not(.dark) .app-header-logout {
 }
 
 .tutorial__toc a {
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
@@ -1933,7 +1941,7 @@ html:not(.dark) .app-header-logout {
 }
 
 .tutorial__contact {
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-weight: 700;
   text-decoration: none;
 }
@@ -2038,8 +2046,8 @@ html:not(.dark) .app-header-logout {
 }
 
 .login-field__input:focus {
-  border-color: var(--color-accent-light);
-  box-shadow: 0 0 0 1px var(--color-accent-light);
+  border-color: var(--color-accent-strong);
+  box-shadow: 0 0 0 1px var(--color-accent-strong);
 }
 
 .login-field__toggle {
@@ -2153,7 +2161,7 @@ html:not(.dark) .login-submit {
 
 .login-footer__contact,
 .user-options-contact a {
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
@@ -2286,7 +2294,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .confirm-dialog__confirm {
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   border: 1px solid var(--color-accent-border);
 }
 
@@ -2492,7 +2500,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   padding: 16px 18px;
   box-sizing: border-box;
   background: var(--color-card-elevated);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
@@ -2600,7 +2608,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   border-radius: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-size: 13px;
   font-weight: 600;
 }
@@ -2619,7 +2627,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .team-context-team {
@@ -2653,7 +2661,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .team-context-back:hover {
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .team-context-header--sidebar .team-context-back {
@@ -2723,7 +2731,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .app-nav-btn--mobile.app-nav-btn--active {
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   font-weight: 700;
 }
 
@@ -2823,7 +2831,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   padding: 28px 18px;
   text-align: center;
   border-radius: var(--radius-card);
-  border: 1px dashed color-mix(in srgb, var(--color-accent-light) 28%, var(--color-border));
+  border: 1px dashed color-mix(in srgb, var(--color-accent-strong) 28%, var(--color-border));
   background: var(--color-panel-muted);
   box-sizing: border-box;
 }
@@ -2895,7 +2903,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .segmented-control__btn--active {
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   border-color: var(--color-accent-border);
 }
 
@@ -2909,7 +2917,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   box-sizing: border-box;
   background: var(--color-form-shell);
   border-radius: var(--radius-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   box-shadow: var(--shadow-card);
 }
 
@@ -2936,7 +2944,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   border-radius: 16px;
   padding: 16px;
   border-left: 4px solid var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   border-left-width: 4px;
   box-shadow: inset 0 1px 0 rgba(246, 241, 234, 0.07), 0 10px 24px -8px var(--color-shadow-soft);
   font-size: 17px;
@@ -3115,7 +3123,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   padding: 16px 18px;
   border-radius: var(--radius-card);
   background: var(--color-card-elevated);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
@@ -3158,7 +3166,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   flex-direction: column;
   align-items: center;
   padding: 18px 10px 20px;
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   position: relative;
   overflow: hidden;
 }
@@ -3370,7 +3378,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   border-left: 4px solid var(--color-accent);
   padding: 14px 16px;
   gap: 12px;
@@ -3423,7 +3431,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   width: 36px;
   text-align: center;
   flex-shrink: 0;
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .plantilla-jugadora-row__dorsal--rol {
@@ -3602,7 +3610,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 .stats-type-nav-btn--entreno.stats-type-nav-btn--active {
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
 }
 
 .stats-type-nav-btn--partidos.stats-type-nav-btn--active {
@@ -3858,7 +3866,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   border-radius: var(--radius-card);
   padding: 14px 16px;
   background: var(--color-card-elevated);
@@ -4031,7 +4039,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   overflow: hidden;
   background: var(--color-card-elevated);
   border-radius: var(--radius-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
   box-shadow: var(--shadow-card);
 }
 
@@ -4126,7 +4134,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
 
 .session-subnav-btn--active {
   background: var(--color-accent-soft);
-  color: var(--color-accent-light);
+  color: var(--color-accent-strong);
   border-color: var(--color-accent-border);
 }
 
@@ -4883,8 +4891,8 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
     border-right: 1px solid var(--color-border);
     border-radius: 16px 0 0 16px;
     background: color-mix(in srgb, var(--color-card) 78%, transparent);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid color-mix(in srgb, var(--color-accent-light) 16%, var(--color-border));
+    backdrop-filter: blur(var(--blur-glass));
+    border-right: 1px solid color-mix(in srgb, var(--color-accent-strong) 16%, var(--color-border));
     min-height: 0;
   }
 
@@ -5029,7 +5037,7 @@ html.dark .confirm-dialog--danger .confirm-dialog__title {
   padding: 10px 8px;
   border-radius: 10px;
   background: var(--color-card-elevated);
-  border: 1px solid color-mix(in srgb, var(--color-accent-light) 14%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 14%, var(--color-border));
   text-align: center;
 }
 

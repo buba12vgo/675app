@@ -11,6 +11,7 @@ import { IconGear, IconStar } from "./icons.jsx";
 import { EntityLogoMark } from "./EntityLogoMark.jsx";
 import { LogoUpload } from "./LogoUpload.jsx";
 import { MAX_EQUIPOS_FAVORITOS } from "../lib/equiposFavoritos.js";
+import { withAccentAlpha } from "../theme.js";
 
 export function EquipoListRow({
   equipo,
@@ -196,8 +197,8 @@ export function EquipoListRow({
             title={isFavorite ? "Quitar de favoritos" : favoriteDisabled ? `Ya tienes ${maxFavoritos} favoritos` : "Marcar como favorito"}
             style={{
               color: isFavorite ? accent : textMuted,
-              borderColor: isFavorite ? `${accent}55` : inputBorder,
-              background: isFavorite ? `${accent}14` : "transparent",
+              borderColor: isFavorite ? withAccentAlpha(accent, "55") : inputBorder,
+              background: isFavorite ? withAccentAlpha(accent, "14") : "transparent",
             }}
           >
             <IconStar size={17} color={isFavorite ? accent : textMuted} filled={isFavorite} />
@@ -211,7 +212,7 @@ export function EquipoListRow({
             aria-label={`Editar ${equipo.nombre}`}
             title="Editar equipo"
             disabled={deleting}
-            style={{ color: accent, borderColor: `${accent}55`, background: `${accent}14` }}
+            style={{ color: accent, borderColor: withAccentAlpha(accent, "55"), background: withAccentAlpha(accent, "14") }}
           >
             <IconGear size={17} />
           </button>

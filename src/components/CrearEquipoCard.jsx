@@ -1,3 +1,5 @@
+import { withAccentAlpha } from "../theme.js";
+
 export function CrearEquipoCard({ onClick, accent, accentLight, accentSoft, textMuted, inputBorder }) {
   return (
     <button
@@ -7,7 +9,7 @@ export function CrearEquipoCard({ onClick, accent, accentLight, accentSoft, text
       style={{ borderLeftColor: accent, borderColor: inputBorder }}
       aria-label="Crear equipo"
     >
-      <span className="crear-equipo-card__icon" style={{ color: accentLight, background: accentSoft, borderColor: `${accent}44` }}>
+      <span className="crear-equipo-card__icon" style={{ color: accentLight, background: accentSoft, borderColor: withAccentAlpha(accent, "44") }}>
         +
       </span>
       <span className="crear-equipo-card__label" style={{ color: accentLight }}>

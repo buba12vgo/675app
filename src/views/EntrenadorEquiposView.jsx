@@ -5,6 +5,7 @@ import {
   normalizeEquiposFavoritos,
   filterEquiposPorFavoritos,
 } from "../lib/equiposFavoritos.js";
+import { withAccentAlpha } from "../theme.js";
 
 export function EntrenadorEquiposView({
   equiposListaProps,
@@ -42,7 +43,7 @@ export function EntrenadorEquiposView({
             style={{
               background: "transparent",
               color: accent,
-              border: `1px solid ${accent}55`,
+              border: `1px solid ${withAccentAlpha(accent, "55")}`,
               borderRadius: 999,
               padding: "8px 14px",
               fontWeight: 600,
