@@ -9,12 +9,14 @@
       "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
     }
   ],
+  "redirects": [
+    { "source": "/planner/", "destination": "/planner", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/whiteboard", "destination": "https://675whiteboard.vercel.app/whiteboard" },
     { "source": "/whiteboard/", "destination": "https://675whiteboard.vercel.app/whiteboard/" },
     { "source": "/whiteboard/:path*", "destination": "https://675whiteboard.vercel.app/whiteboard/:path*" },
     { "source": "/planner", "destination": "https://675planner.vercel.app/planner" },
-    { "source": "/planner/", "destination": "https://675planner.vercel.app/planner/" },
     { "source": "/planner/:path*", "destination": "https://675planner.vercel.app/planner/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

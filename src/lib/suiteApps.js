@@ -18,7 +18,7 @@ export const SUITE_APPS = [
     name: "675 Planner",
     suffix: "Planner",
     subtitle: "Temporada",
-    href: "/planner/",
+    href: "/planner",
   },
 ];
 

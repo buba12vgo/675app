@@ -13,7 +13,7 @@ test.describe("Login", () => {
     await expect(pizarra).toBeVisible();
     await expect(planner).toBeVisible();
     await expect(pizarra).toHaveAttribute("href", "/whiteboard/");
-    await expect(planner).toHaveAttribute("href", "/planner/");
+    await expect(planner).toHaveAttribute("href", "/planner");
     await expect(pizarra).not.toHaveAttribute("target");
     await expect(planner).not.toHaveAttribute("target");
   });

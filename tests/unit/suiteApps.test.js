@@ -9,7 +9,7 @@ describe("suite bajo 675basket.com", () => {
     expect(SUITE_APPS.map((app) => [app.name, app.href])).toEqual([
       ["675 Basket", "/"],
       ["675 Pizarra", "/whiteboard/"],
-      ["675 Planner", "/planner/"],
+      ["675 Planner", "/planner"],
     ]);
     expect(CURRENT_SUITE_APP).toBe("basket");
   });
@@ -26,5 +26,14 @@ describe("suite bajo 675basket.com", () => {
     expect(bySource["/whiteboard/:path*"]).toBe("https://675whiteboard.vercel.app/whiteboard/:path*");
     expect(bySource["/planner"]).toBe("https://675planner.vercel.app/planner");
     expect(bySource["/planner/:path*"]).toBe("https://675planner.vercel.app/planner/:path*");
+    expect(bySource["/planner/"]).toBeUndefined();
+  });
+
+  it("el 308 de /planner/ se queda en este dominio y no vuelve al proxy", () => {
+    expect(vercel.redirects).toEqual([
+      { source: "/planner/", destination: "/planner", permanent: true },
+    ]);
+    const proxied = vercel.rewrites.map((rule) => rule.destination);
+    expect(proxied).not.toContain("https://675planner.vercel.app/planner/");
   });
 });
