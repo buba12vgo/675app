@@ -1,6 +1,6 @@
 {
-  "name": "675app",
-  "short_name": "675app",
+  "name": "675 Basket",
+  "short_name": "675",
   "description": "Gestión de equipos y entrenamientos de baloncesto",
   "start_url": "/",
   "display": "standalone",

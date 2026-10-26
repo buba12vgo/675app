@@ -31,7 +31,7 @@ export function LoginScreen({
       <header className="login-topbar">
         <div className="login-topbar__brand">
           <img className="login-topbar__logo" src={LOGO_SRC} alt="" width={28} height={28} decoding="async" />
-          <span>675app</span>
+          <span>675 <span>Basket</span></span>
         </div>
         <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
       </header>
@@ -41,7 +41,7 @@ export function LoginScreen({
             <img className="login-card__logo" src={LOGO_SRC} alt="" width={72} height={72} decoding="async" />
           </div>
           <p className="login-card__wordmark">
-            675<span>app</span>
+            675 <span>Basket</span>
           </p>
           <p className="login-card__lead">Entra para seguir con tu equipo</p>
           <form className="login-form" onSubmit={onEmailLogin} autoComplete="off">

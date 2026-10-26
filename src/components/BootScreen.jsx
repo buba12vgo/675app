@@ -1,4 +1,4 @@
-export function BootScreen({ message = "Cargando 675app…" }) {
+export function BootScreen({ message = "Cargando 675 Basket…" }) {
   return (
     <div
       className="boot-screen"

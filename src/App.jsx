@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import {
-  THEMES,
+  getThemeColors,
   applyThemeToDocument,
   getStoredTheme,
   persistTheme,
@@ -430,8 +430,8 @@ function App() {
     setColorMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  const theme = THEMES[colorMode];
-  const glassCardStyle = getGlassCardStyle(colorMode);
+  const theme = getThemeColors(colorMode);
+  const glassCardStyle = getGlassCardStyle();
   const isDarkMode = colorMode === "dark";
   const {
     accent,
@@ -490,7 +490,7 @@ function App() {
   if (!authReady) {
     return (
       <BootScreen
-        message={hasGoogleRedirectPending() ? "Completando el acceso con Google…" : "Cargando 675app…"}
+        message={hasGoogleRedirectPending() ? "Completando el acceso con Google…" : "Cargando 675 Basket…"}
       />
     );
   }
