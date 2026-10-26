@@ -184,6 +184,17 @@ export function IconEyeOff({ size = 18, color = "currentColor" }) {
   );
 }
 
+export function IconApps({ size = 18, color = "currentColor" }) {
+  const dots = [5, 12, 19].flatMap((y) => [5, 12, 19].map((x) => [x, y]));
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+      {dots.map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />
+      ))}
+    </svg>
+  );
+}
+
 export function IconCoordination({ size = 20, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

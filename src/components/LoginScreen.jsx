@@ -4,6 +4,8 @@ import { CourtWatermark } from "./CourtWatermark.jsx";
 import { ThemeToggleButton } from "./ThemeToggleButton.jsx";
 import { IconEye, IconEyeOff, IconHelp } from "./icons.jsx";
 import { CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/contact.js";
+import { SUITE_APPS } from "../lib/suiteApps.js";
+import { SuiteLauncher } from "./SuiteLauncher.jsx";
 
 const LOGO_SRC = "/logo-675.png";
 
@@ -33,7 +35,10 @@ export function LoginScreen({
           <img className="login-topbar__logo" src={LOGO_SRC} alt="" width={28} height={28} decoding="async" />
           <span>675 <span>Basket</span></span>
         </div>
-        <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
+        <div className="login-topbar__tools">
+          <SuiteLauncher />
+          <ThemeToggleButton colorMode={colorMode} onToggle={onToggleColorMode} />
+        </div>
       </header>
       <main className="login-main">
         <div className="login-card">
@@ -114,6 +119,14 @@ export function LoginScreen({
           </button>
         ) : null}
         <p className="login-footer__kicker">Pizarra táctica · Categorías base · Club 675</p>
+        <nav className="login-suite" aria-label="Otras apps de la suite">
+          {SUITE_APPS.filter((app) => app.id !== "basket").map((app) => (
+            <a key={app.id} className="login-suite__link" href={app.href}>
+              <img src={LOGO_SRC} alt="" width={28} height={28} />
+              <span>675 <span>{app.suffix}</span></span>
+            </a>
+          ))}
+        </nav>
         <a className="login-footer__contact" href={CONTACT_MAILTO}>
           Contacto: {CONTACT_EMAIL}
         </a>
